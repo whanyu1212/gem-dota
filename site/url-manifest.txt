@@ -154,6 +154,7 @@
 /reference/extractors/lane
 /reference/extractors/objectives
 /reference/extractors/players
+/reference/extractors/runes
 /reference/extractors/wards
 /reference/field_decoder
 /reference/field_path

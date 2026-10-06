@@ -122,6 +122,7 @@ extractors/draft.py         ← pick/ban resolution (three-tier hero-ID resoluti
 extractors/fights.py      ← gem's fights (all sizes) + OpenDota-exact teamfights
 extractors/smoke_vision.py  ← Smoke of Deceit + vision-granting modifier events
 extractors/visibility.py    ← authoritative per-team visibility transitions for player heroes
+extractors/runes.py         ← every rune entity (spawn, type, place) + how it ended (rune chat events)
 extractors/_snapshots.py    ← shared snapshot dataclasses/sampling helpers
 ```
 

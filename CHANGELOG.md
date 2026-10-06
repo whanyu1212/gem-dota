@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`ParsedMatch.runes` and `gem.Rune`** (HY-151): every power, bounty and
+  water rune that spawned, from its `CDOTA_Item_Rune` entity: when and where it
+  appeared, its type, and how it ended: `picked_up`, `bottled` (with
+  `used_tick`, when the Bottle was used), `denied`, `not_taken`, or
+  `still_there`, with the player slot. The bottle and deny chat events were not
+  kept before, so a bottled rune showed only as a `PICKUP_RUNE` entry when it
+  was used, away from its spot. On the 9 fixtures every rune chat event matches
+  a rune: 317 taken, 181 bottled (180 of them used later), 5 denied, 16 not taken.
+  `PICKUP_RUNE` entries are unchanged (OpenDota counts bottle uses as pickups).
+  Wisdom runes are no entity and stay `PICKUP_RUNE` entries.
+
 - **Recipe: how did each lane go?** (HY-127). `examples/cookbook/lanes.py`
   puts each hero in the lane it spent the most of the first 6 minutes in (from
   its positions on OpenDota's lane grid), then reads each lane at 6:00, the end

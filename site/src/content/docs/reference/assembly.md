@@ -17,9 +17,9 @@ Source: [src/gem/results/assembly.py](https://github.com/whanyu1212/gem-dota/blo
 ### `build_parsed_match`
 
 ```python
-def build_parsed_match(parser: ReplayParser, player_ext: PlayerExtractor, obj_ext: ObjectivesExtractor, ward_ext: WardsExtractor, courier_ext: CourierExtractor, draft_ext: DraftExtractor, combat_agg: _CombatAggregator, all_entries: list[CombatLogEntry], chat_entries: list[ChatEntry], smoke_events: list[SmokeEvent] | None = None, vision_modifier_events: list[VisionModifierEvent] | None = None, neutral_item_finds: list[NeutralItemFoundEvent] | None = None, interval_ext: IntervalExtractor | None = None, hero_visibility_events: list[HeroVisibilityEvent] | None = None, vision_modifier_pairing_issues: list[VisionModifierPairingIssue] | None = None, entity_visibility_events: list[EntityVisibilityEvent] | None = None, buyback_spends: list[BuybackSpend] | None = None, chat_event_times: list[_ChatEventTime] | None = None) -> ParsedMatch
+def build_parsed_match(parser: ReplayParser, player_ext: PlayerExtractor, obj_ext: ObjectivesExtractor, ward_ext: WardsExtractor, courier_ext: CourierExtractor, draft_ext: DraftExtractor, combat_agg: _CombatAggregator, all_entries: list[CombatLogEntry], chat_entries: list[ChatEntry], smoke_events: list[SmokeEvent] | None = None, vision_modifier_events: list[VisionModifierEvent] | None = None, neutral_item_finds: list[NeutralItemFoundEvent] | None = None, interval_ext: IntervalExtractor | None = None, hero_visibility_events: list[HeroVisibilityEvent] | None = None, vision_modifier_pairing_issues: list[VisionModifierPairingIssue] | None = None, entity_visibility_events: list[EntityVisibilityEvent] | None = None, buyback_spends: list[BuybackSpend] | None = None, chat_event_times: list[_ChatEventTime] | None = None, runes: list[Rune] | None = None) -> ParsedMatch
 ```
 
 Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
-Source: [src/gem/results/assembly.py:1334](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/assembly.py#L1334)
+Source: [src/gem/results/assembly.py:1335](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/assembly.py#L1335)

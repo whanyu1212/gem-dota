@@ -12,6 +12,7 @@ extractor's output properties are ready to read.
 | `PlayerExtractor` | `gem.extractors.players` | Hero/player state snapshots, time series, rune pickups |
 | `ObjectivesExtractor` | `gem.extractors.objectives` | Tower kills, barracks, Roshan kills, Tormentor kills |
 | `WardsExtractor` | `gem.extractors.wards` | Ward placements with coordinates |
+| `RuneExtractor` | `gem.extractors.runes` | Every rune: spawn, type, place, and how it ended |
 | `CourierExtractor` | `gem.extractors.courier` | Courier state per tick |
 | `DraftExtractor` | `gem.extractors.draft` | Pick and ban events |
 | `TeamfightsExtractor` | `gem.extractors.fights` | Fight window detection |
