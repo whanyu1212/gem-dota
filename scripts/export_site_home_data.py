@@ -719,6 +719,7 @@ def lanes_recipe(match: ParsedMatch) -> dict:
     home = dict(zip(lanes["hero"], lanes["lane"], strict=True))
     return {
         "readings": [recipe.LANE_S, recipe.COMPARE_S],
+        "min_visit_s": recipe.MIN_VISIT_S,
         "lanes": out_lanes,
         "events": [
             [

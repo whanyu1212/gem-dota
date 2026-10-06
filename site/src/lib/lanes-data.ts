@@ -32,6 +32,8 @@ export type LaneEvent = [number, number | null, "death" | "teleport" | "visit", 
 export interface LanesData {
   /** The two readings, in game seconds: the laning stage's end, then 10:00. */
   readings: [number, number];
+  /** How long a visit lasts before it counts; at a reading, it must have lasted this long by then. */
+  min_visit_s: number;
   lanes: Lane[];
   events: LaneEvent[];
   /** Heroes whose OpenDota lane (over 10 minutes) is another: [hero, OpenDota's, the recipe's]. */
@@ -86,10 +88,17 @@ export function eventText(event: LaneEvent, reading: number): string {
   return `${hero} in the lane${until}${elsewhere}`;
 }
 
-/** The events in a lane (or, with `lane` null, outside the three) up to a reading. */
+/**
+ * The events in a lane (or, with `lane` null, outside the three) up to a
+ * reading. A visit counts only once it had lasted `min_visit_s` by the reading,
+ * so a later reading's evidence doesn't show at an earlier one.
+ */
 export function eventsIn(data: LanesData, lane: LaneName | null, reading: number): LaneEvent[] {
   const lanes = new Set(["top", "mid", "bot"]);
-  return data.events.filter(([t, , , where]) => t <= reading && (lane === null ? !lanes.has(where) : where === lane));
+  return data.events.filter(([t, end, kind, where]) => {
+    if (t > reading || (lane === null ? lanes.has(where) : where !== lane)) return false;
+    return kind !== "visit" || Math.min(end ?? reading, reading) - t >= data.min_visit_s;
+  });
 }
 
 function heroesMarkup(side: LaneSide): string {

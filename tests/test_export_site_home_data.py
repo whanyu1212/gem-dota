@@ -955,7 +955,7 @@ def test_lanes_recipe_writes_each_lane_with_shares_numbers_and_events() -> None:
     match.players[0].lane = 2  # OpenDota's lane (mid), which the recipe's (top) differs from
     data = export.lanes_recipe(match)
 
-    assert data["readings"] == [360, 600]
+    assert data["readings"] == [360, 600] and data["min_visit_s"] == 20
     top = data["lanes"][0]
     assert top["lane"] == "top"
     assert top["sides"]["r"]["heroes"] == [["Axe", 0.82]]

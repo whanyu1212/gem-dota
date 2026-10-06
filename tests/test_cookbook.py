@@ -25,7 +25,7 @@ from gem.results.models import (
     VisibilityState,
 )
 from gem.state.game_clock import GameClock, GamePause
-from tests._lanes import lanes_match as _lanes_match
+from tests._lanes import MID as MID_CELL, TOP as TOP_CELL, lanes_match as _lanes_match
 
 COOKBOOK = Path(__file__).resolve().parent.parent / "examples" / "cookbook"
 
@@ -785,3 +785,50 @@ def test_lanes_lists_deaths_teleports_and_visits_by_lane() -> None:
         # A summon's kill counts for its owner, from the owner's lane.
         (410, "death", "top", "npc_dota_hero_pudge", "npc_dota_hero_lina", "mid", None),
     ]
+
+
+def test_lanes_rounds_cells_as_opendota_does() -> None:
+    # 90.46 cells is 91 for OpenDota (one decimal, then half up): mid, not top.
+    assert lanes.lane_at(90.46 * 128, 128 * 128) == "mid"
+
+
+def test_lanes_finds_a_teleport_that_lands_after_a_pause() -> None:
+    lina = "npc_dota_hero_lina"
+    match = ParsedMatch(
+        match_id=9,
+        game_start_tick=0,
+        # 30 s paused one second into the channel (cast at 6:40, tick 12,000).
+        game_clock=GameClock(
+            game_start_tick=0, pauses=[GamePause(start_tick=12_030, end_tick=12_930)]
+        ),
+        players=[
+            ParsedPlayer(
+                player_id=1,
+                team=2,
+                hero_name=lina,
+                position_log=[
+                    (t, *(TOP_CELL if t >= 12_960 else MID_CELL)) for t in range(0, 20_000, 30)
+                ],
+            )
+        ],
+        combat_log=[
+            CombatLogEntry(
+                tick=12_000,
+                log_type=CombatLogType.ITEM,
+                attacker_name=lina,
+                inflictor_name="item_tpscroll",
+            )
+        ],
+    )
+    events = lanes.lane_events(match)
+    teleports = events[events["kind"] == "teleport"]
+    assert teleports[["time_s", "lane"]].values.tolist() == [[400, "top"]]
+
+
+def test_lanes_reads_a_ledger_without_minute_readings() -> None:
+    match = _lanes_match()
+    for player in match.players:
+        assert player.gold_ledger is not None
+        player.gold_ledger = GoldLedger(final=player.gold_ledger.per_minute[-1])
+    table = lanes.lane_table(match)
+    assert table["net_worth"].sum() > 0 and table["lane_creep_gold"].sum() == 0

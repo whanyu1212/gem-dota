@@ -17,7 +17,7 @@ const events: LaneEvent[] = [
   [433, null, "death", "top", "Shadow Fiend", "d", "Timbersaw", "top"],
   [539, 600, "visit", "top", "Rubick", "d", null, "bot"],
 ];
-const data: LanesData = { readings: [360, 600], lanes: [top], events, opendota: [["Lion", "mid", "top"]] };
+const data: LanesData = { readings: [360, 600], min_visit_s: 20, lanes: [top], events, opendota: [["Lion", "mid", "top"]] };
 
 describe("lanes", () => {
   it("formats times and amounts", () => {
@@ -34,6 +34,13 @@ describe("lanes", () => {
     expect(eventsIn(data, "top", 360)).toEqual([]);
     expect(eventsIn(data, "top", 600).map((e) => e[0])).toEqual([420, 424, 433, 539]);
     expect(eventsIn(data, null, 600).map((e) => e[3])).toEqual(["jungle"]);
+  });
+
+  it("shows a visit at a reading only once it had lasted the minimum by then", () => {
+    // 5:50 to 6:20: 10 s by 6:00, 30 s by 10:00.
+    const late: LanesData = { ...data, events: [[350, 380, "visit", "top", "Sniper", "r", null, "mid"]] };
+    expect(eventsIn(late, "top", 360)).toEqual([]);
+    expect(eventsIn(late, "top", 600)).toHaveLength(1);
   });
 
   it("names the killer's or visitor's lane only when it is another", () => {

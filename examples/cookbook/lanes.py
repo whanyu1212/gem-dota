@@ -23,6 +23,7 @@ from collections import Counter
 import pandas as pd
 
 import gem
+from gem.extractors._cells import od_cell_index
 from gem.extractors.lane import LANE_BOT, LANE_MID, LANE_TOP, lane_for_cell
 
 LANE_S = 360  # the laning stage: lanes, and the first reading
@@ -42,7 +43,8 @@ EVENT_COLUMNS = ["match_id", "time_s", "end_s", "kind", "lane", "hero", "side", 
 
 def lane_at(x: float, y: float) -> str:
     """The lane a world position is on: ``top``, ``mid``, ``bot``, ``jungle`` or ``""``."""
-    lane = lane_for_cell(math.floor(x / 128 + 0.5), math.floor(y / 128 + 0.5))
+    # OpenDota's own cell rounding (float32, one decimal, then half up), as gem's lane_pos uses.
+    lane = lane_for_cell(od_cell_index(x), od_cell_index(y))
     return LANES.get(lane, "jungle") if lane is not None else ""
 
 
@@ -124,7 +126,9 @@ def lane_table(
                     sums["xp"] += player.total_earned_xp_t_min[i]
                     sums["last_hits"] += player.lh_t_min[i]
                     sums["denies"] += player.dn_t_min[i]
-                    ledger = player.gold_ledger.per_minute[i] if player.gold_ledger else None
+                    # A ledger can have a final reading but no per-minute ones.
+                    minutes = player.gold_ledger.per_minute if player.gold_ledger else []
+                    ledger = minutes[i] if i < len(minutes) else None
                     if ledger is not None:
                         named = (
                             ledger.creep_kill_gold
@@ -150,7 +154,8 @@ def lane_events(
     - ``death``: a hero died; ``lane`` is where the victim was, ``by`` the killer
       (a summon's kill counts for its owner) and ``from_lane`` the killer's lane.
     - ``teleport``: a hero's Town Portal Scroll moved it at least
-      ``TP_MIN_JUMP`` within ``TP_LAND_S``; ``lane`` is where it landed.
+      ``TP_MIN_JUMP`` within ``TP_LAND_S`` game seconds; ``lane`` is where it
+      landed.
     - ``visit``: a hero stayed at least ``MIN_VISIT_S`` in a lane that isn't its
       own (``from_lane``), from ``BASE_S`` on; ``end_s`` is when it left.
 
@@ -199,7 +204,9 @@ def lane_events(
             player = heroes[entry.attacker_name]
             cast = gem.position_at_tick(player, entry.tick)
             for second in range(1, TP_LAND_S + 1):
-                spot = gem.position_at_tick(player, entry.tick + 30 * second)
+                # The game clock, so a pause during the channel doesn't use up the window.
+                landed = clock.tick_at(time_s + second)
+                spot = gem.position_at_tick(player, landed) if landed is not None else None
                 if cast is not None and spot is not None and math.dist(cast, spot) >= TP_MIN_JUMP:
                     add(
                         time_s,
