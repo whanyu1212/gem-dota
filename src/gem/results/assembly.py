@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from gem.extractors.intervals import IntervalExtractor, IntervalSnapshot, IntervalTimeSeries
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
+    from gem.extractors.runes import Rune
     from gem.extractors.wards import WardEvent, WardsExtractor
     from gem.parser import ReplayParser
     from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
@@ -1350,6 +1351,7 @@ def build_parsed_match(
     entity_visibility_events: list[EntityVisibilityEvent] | None = None,
     buyback_spends: list[BuybackSpend] | None = None,
     chat_event_times: list[_ChatEventTime] | None = None,
+    runes: list[Rune] | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
@@ -1379,6 +1381,7 @@ def build_parsed_match(
             (``BuybackSpendTracker.spends``), giving exact buyback costs.
         chat_event_times: The replay's chat events with OpenDota's tick-start
             clock, which time rune pickups and chat-message objectives.
+        runes: Every rune entity and how it ended (``RuneExtractor.finalize()``).
 
     Returns:
         Fully populated :class:`ParsedMatch`.
@@ -1410,6 +1413,7 @@ def build_parsed_match(
         tormentors=obj_ext.tormentor_kills,
         shrines=obj_ext.shrine_kills,
         banner_plants=obj_ext.banner_plants,
+        runes=runes or [],
         wards=ward_ext.ward_events,
         combat_log=all_entries,
         chat=chat_entries,

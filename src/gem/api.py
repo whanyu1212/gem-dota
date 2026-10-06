@@ -182,6 +182,7 @@ from gem.results.models import (
     NeutralItemFoundEvent,
     ParsedMatch,
     ParsedPlayer,
+    Rune,
     SmokeEvent,
     SmokeParticipant,
     VisibilityState,
@@ -232,6 +233,7 @@ def parse(path: str | Path) -> ParsedMatch:
     from gem.extractors.intervals import IntervalExtractor
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
+    from gem.extractors.runes import RuneExtractor
     from gem.extractors.smoke_vision import SmokeExtractor, VisionModifierExtractor
     from gem.extractors.visibility import VisibilityExtractor
     from gem.extractors.wards import WardsExtractor
@@ -247,6 +249,7 @@ def parse(path: str | Path) -> ParsedMatch:
     interval_ext = IntervalExtractor()
     visibility_ext = VisibilityExtractor(player_ext)
     buyback_tracker = BuybackSpendTracker()
+    rune_ext = RuneExtractor()
 
     player_ext.attach(p)
     visibility_ext.attach(p)
@@ -256,6 +259,7 @@ def parse(path: str | Path) -> ParsedMatch:
     courier_ext.attach(p)
     draft_ext.attach(p)
     buyback_tracker.attach(p)
+    rune_ext.attach(p)
 
     combat_agg = _CombatAggregator(player_ext)
     p.on_combat_log_entry(combat_agg.on_entry)
@@ -319,6 +323,7 @@ def parse(path: str | Path) -> ParsedMatch:
         entity_visibility_events=visibility_ext.entity_events,
         buyback_spends=buyback_tracker.spends,
         chat_event_times=chat_event_times,
+        runes=rune_ext.finalize(),
     )
 
 
@@ -484,6 +489,7 @@ __all__ = [
     "GoldLedger",
     "GoldLedgerSnapshot",
     "BannerPlant",
+    "Rune",
     "GameClock",
     "GamePause",
     "SmokeEvent",
