@@ -691,8 +691,10 @@ is `fight.json`) into Figure 3's player (`site/src/lib/fight-player.ts`, markup 
 per-packet hero states and a map crop (`site/public/figures/fights/`); the rest
 carry an empty `heroes[].runs` and play as a breakdown without the map. The objectives
 figure reads `site/src/data/objectives.json`; the export places its buildings,
-Roshan and Tormentors from the replay's own entities (`load_map_places`, a pass of
-its own), since gem has no building-position catalog. The fights page opens the
+Roshan, Tormentors and the two wisdom-rune shrines (`CDOTA_BaseNPC_XP_Fountain`)
+from the replay's own entities (`load_map_places`, a pass of its own), since gem
+has no building-position catalog. The wisdom runes themselves are no entity:
+pickups are `PICKUP_RUNE` entries of type 8 (`value` is the player slot). The fights page opens the
 fight a link names (`/cookbook/fights#fight-6`) from its script, so other
 figures add those links in the browser, not in the built HTML (the link check
 would find no `#fight-6` there). The lead figure reads `site/src/data/lead.json`:

@@ -88,7 +88,7 @@ export function mountObjectivesFigure(figure: HTMLElement, data: ObjectivesData)
     });
   }
 
-  // --- The timeline: Radiant's losses above, Dire's below, bosses on the line ---
+  // --- The timeline: Radiant's losses above, Dire's below, bosses and wisdom runes on the line ---
   const strip = $<HTMLElement>("[data-timeline]");
   const timeline = document.createElementNS(SVG, "svg") as SVGSVGElement;
   timeline.setAttribute("viewBox", "0 0 1000 72");
@@ -99,12 +99,13 @@ export function mountObjectivesFigure(figure: HTMLElement, data: ObjectivesData)
   const x = (s: number) => ((s - data.start_s) / (data.end_s - data.start_s)) * 1000;
   const marks = data.objectives.map((o, i) => {
     const lost = o.for === "r" ? "d" : "r"; // a building is lost by the side it didn't count for
-    const boss = o.kind === "roshan" || o.kind === "tormentor";
+    const boss = o.kind === "roshan" || o.kind === "tormentor" || o.kind === "wisdom_rune";
     const y = boss ? 36 : lost === "r" ? 14 : 58;
     const g = svgEl("g", { class: `obj-mark obj-mark--${sideClass(o.for)} obj-mark--${o.kind}`, "data-objective": i }, timeline);
     const cx = x(o.time_s);
     if (o.kind === "tower") svgEl("polygon", { points: `${cx},${y - 8} ${cx - 5},${y + 6} ${cx + 5},${y + 6}` }, g);
     else if (o.kind === "barracks") svgEl("rect", { x: cx - 4, y: y - 6, width: 8, height: 12 }, g);
+    else if (o.kind === "wisdom_rune") svgEl("polygon", { points: `${cx},${y - 7} ${cx + 4},${y} ${cx},${y + 7} ${cx - 4},${y}` }, g);
     else svgEl("rect", { x: cx - 3, y: y - 9, width: 6, height: 18, rx: 3 }, g);
     return { i, g };
   });
@@ -118,7 +119,7 @@ export function mountObjectivesFigure(figure: HTMLElement, data: ObjectivesData)
       "p",
       { class: "strip-label" },
       "Objectives over the match",
-      el("span", {}, "Radiant's losses above, Dire's below; Roshan and Tormentor on the line"),
+      el("span", {}, "Radiant's losses above, Dire's below; Roshan, Tormentor and wisdom runes on the line"),
       el("span", { class: "strip-hint" }, "Drag to pick a stretch; click for the whole match"),
     ),
     timeline,
@@ -208,6 +209,7 @@ export function mountObjectivesFigure(figure: HTMLElement, data: ObjectivesData)
     if (o) {
       const c = objectiveCard(o);
       side.append(el("p", { class: "obj-card-title" }, c.title), el("p", { class: "obj-card-line" }, c.line));
+      if (c.note) side.append(el("p", { class: "obj-card-line" }, c.note));
       if (o.damage.length) {
         const total = o.damage.reduce((sum, [, d]) => sum + d, 0);
         const bar = el("div", { class: "obj-damage" });

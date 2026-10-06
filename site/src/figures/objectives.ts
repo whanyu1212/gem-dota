@@ -1,8 +1,9 @@
 /**
  * The objectives recipe's figure, rendered into the Markdown page at build time
  * by `::: figure objectives`: the map with every building as it stood at the
- * end of the match (the fallen crossed out) and the Roshan and Tormentor kills,
- * and each team's conversion bars, then a caption from the page. With
+ * end of the match (the fallen crossed out), the Roshan and Tormentor kills and
+ * the wisdom runes taken at each shrine, each team's conversion bars, and who
+ * took each shrine's wisdom runes, then a caption from the page. With
  * JavaScript, src/lib/objectives-figure.ts adds the kind filter, the timeline,
  * the list, each objective's card, and the edges behind each bar.
  *
@@ -11,7 +12,7 @@
  */
 import home from "../data/home.json";
 import objectivesJson from "../data/objectives.json";
-import { KINDS, mapMarkup, objectivesIn, tallyMarkup, type ObjectivesData } from "../lib/objectives-data";
+import { KINDS, mapMarkup, objectivesIn, tallyMarkup, wisdomMarkup, type ObjectivesData } from "../lib/objectives-data";
 
 const data = objectivesJson as unknown as ObjectivesData;
 const points = (list: number[][]) => list.map(([x, y]) => `${x},${y}`).join(" ");
@@ -40,6 +41,11 @@ export function objectivesFigure(base: string): { open: string; close: string } 
     `<p class="tally-hint" data-tally-hint hidden>Click a bar segment to list its edges.</p>`,
     `<ol class="tally-list" data-tally-list hidden></ol>`,
     `</div>`,
+    `<div class="objectives-fig-tally">`,
+    `<p class="tally-head">Who took each wisdom rune?</p>`,
+    `<div class="tally-teams">${wisdomMarkup(data.wisdom)}</div>`,
+    `<p class="tally-hint"><i class="wisdom-key tally-seg--o" aria-hidden="true"></i>Not taken before the next spawn <i class="wisdom-key tally-seg--n" aria-hidden="true"></i>Not taken before the game ended</p>`,
+    `</div>`,
     `<figcaption>`,
   ].join("");
   const legend = [
@@ -47,6 +53,7 @@ export function objectivesFigure(base: string): { open: string; close: string } 
     `<li class="legend-item"><i class="swatch-tower" aria-hidden="true"></i>Tower</li>`,
     `<li class="legend-item"><i class="swatch-barracks" aria-hidden="true"></i>Barracks</li>`,
     `<li class="legend-item"><i class="swatch-boss" aria-hidden="true">R</i>Roshan, <i class="swatch-boss" aria-hidden="true">T</i>Tormentor (in the colour of the side that killed it)</li>`,
+    `<li class="legend-item"><i class="swatch-boss" aria-hidden="true">W</i>Wisdom-rune shrine, <i class="swatch-rune" aria-hidden="true"></i>a rune taken there (in the colour of the side that took it)</li>`,
     `<li class="legend-item"><i class="swatch-fallen" aria-hidden="true"></i>Fallen</li>`,
     `<li class="legend-item team-radiant"><i aria-hidden="true"></i>Radiant</li>`,
     `<li class="legend-item team-dire"><i aria-hidden="true"></i>Dire</li>`,

@@ -305,6 +305,9 @@ def load_hero_states(
 #: Building, Roshan and Tormentor classes, for their places on the map.
 _BUILDING_CLASSES = ("CDOTA_BaseNPC_Tower", "CDOTA_BaseNPC_Barracks", "CDOTA_BaseNPC_Fort")
 _MOVING_CLASSES = {"CDOTA_Unit_Roshan": "roshan", "CDOTA_Unit_Miniboss": "tormentor"}
+#: The wisdom-rune shrines: one in each side's jungle. The runes themselves are
+#: no entity of their own in the replay.
+_SHRINE_CLASS = "CDOTA_BaseNPC_XP_Fountain"
 
 
 def _building_key(entity_name: str) -> str:
@@ -323,9 +326,9 @@ def load_map_places(replay: Path, until: int) -> dict:
     """Where the buildings stand, and where Roshan and the Tormentors were, from the replay.
 
     A pass over the replay's entities up to ``until``: every tower, barracks and
-    Ancient by its combat-log name, with its world position; and every position
-    update of Roshan and the Tormentors, as ``(tick, x, y)``. Kept separate so
-    tests can supply places.
+    Ancient by its combat-log name, with its world position; every position
+    update of Roshan and the Tormentors, as ``(tick, x, y)``; and the two
+    wisdom-rune shrines (``wisdom``). Kept separate so tests can supply places.
     """
     from gem.extractors._snapshots import _ENTITY_NAME_FIELDS, _pos
     from gem.parser import ReplayParser
@@ -333,9 +336,15 @@ def load_map_places(replay: Path, until: int) -> dict:
     parser = ReplayParser(replay)
     buildings: dict[str, tuple[float, float]] = {}
     moving: dict[str, list[tuple[int, float, float]]] = {"roshan": [], "tormentor": []}
+    shrines: list[tuple[float, float]] = []
 
     def on_entity(entity, _op) -> None:  # type: ignore[no-untyped-def]
         cls = entity.get_class_name()
+        if cls == _SHRINE_CLASS:
+            pos = _pos(entity)
+            if pos and pos not in shrines:
+                shrines.append(pos)
+            return
         if cls in _MOVING_CLASSES:
             pos = _pos(entity)
             if pos:
@@ -354,7 +363,7 @@ def load_map_places(replay: Path, until: int) -> dict:
     parser.on_entity(on_entity)
     parser.stop_after_tick(until)
     parser.parse()
-    return {"buildings": buildings, **moving}
+    return {"buildings": buildings, **moving, "wisdom": shrines}
 
 
 def match_hero_states(match: ParsedMatch) -> dict[int, list[HeroState]]:
@@ -503,11 +512,13 @@ def objectives_recipe(match: ParsedMatch, places: dict) -> dict:
 
     From the recipe itself (``examples/cookbook/objectives.py``), with places
     from the replay (``load_map_places``): every building at its position (the
-    ones still standing too), Roshan where it was at each kill, and each
-    Tormentor at the spawn nearest its killer. A tier-4 tower is matched to the
+    ones still standing too), Roshan where it was at each kill, each Tormentor
+    at the spawn nearest its killer, and each wisdom rune at its side's shrine. A tier-4 tower is matched to the
     one of its side's two nearest the last hit's hero. Positions are in the
     map square; ``r``/``d`` is the side, ``c``/``o``/``n`` an edge's outcome
-    (converted, other side first, nothing).
+    (converted, other side first, nothing). ``wisdom`` has each spawn's two
+    runes: who took each (``o`` its own side, ``x`` the other side, ``n`` nobody
+    before the next spawn, ``e`` nobody before the game ended).
     """
     recipe = _cookbook("objectives")
     table = recipe.objective_table(match)
@@ -530,6 +541,14 @@ def objectives_recipe(match: ParsedMatch, places: dict) -> dict:
         if all(math.dist((x, y), s) > 500 for s in spawns):
             spawns.append((x, y))
     roshan = sorted(places.get("roshan", []))
+    # Each wisdom shrine by the half of the map it stands in.
+    shrines = {
+        side[half.removesuffix("_half")]: xy
+        for xy in places.get("wisdom", [])
+        if (half := gem.region_of(*xy)) in ("radiant_half", "dire_half")
+    }
+    # Both sides can take their runes on the same tick: key by tick and hero.
+    pickups = {(w["tick"], w["hero"]): w for w in recipe.wisdom_pickups(match)}
 
     def hero_at(name: str, tick: int) -> Point | None:
         player = heroes.get(name)
@@ -557,12 +576,17 @@ def objectives_recipe(match: ParsedMatch, places: dict) -> dict:
             near = hero_at(row.last_hit, row.tick)
             spot = min(spawns, key=lambda s: math.dist(s, near)) if near is not None else spawns[0]
             at = _project(*spot)
+        elif row.kind == "wisdom_rune":
+            shrine = shrines.get(side.get(row.name.removesuffix("_wisdom_rune"), ""))
+            at = _project(*shrine) if shrine else None
         hits = damage[(damage["name"] == row.name) & (damage["time_s"] == row.time_s)]
         objectives.append(
             {
                 "kind": row.kind,
                 "name": _objective_name(row.name)
                 if row.kind in ("tower", "barracks")
+                else "Wisdom rune"
+                if row.kind == "wisdom_rune"
                 else row.kind.capitalize(),
                 "for": side.get(row.for_side or "", ""),
                 "time_s": round(row.time_s, 1),
@@ -581,6 +605,11 @@ def objectives_recipe(match: ParsedMatch, places: dict) -> dict:
                 ),
             }
         )
+        pickup = pickups.get((row.tick, row.last_hit)) if row.kind == "wisdom_rune" else None
+        if pickup is not None:
+            # The shrine it was taken at, and the XP the picker's team got.
+            objectives[-1]["spot"] = side.get(pickup["spot"], "")
+            objectives[-1]["xp"] = int(pickup["xp"])
     fights = sorted(match.fights, key=lambda f: f.start_tick)
     edges = []
     for row in edge_rows.itertuples(index=False):
@@ -610,8 +639,22 @@ def objectives_recipe(match: ParsedMatch, places: dict) -> dict:
         "end_s": round(_game_seconds(match, end_tick), 1),
         "buildings": standing,
         "tormentor_spawns": [_project(*s) for s in spawns],
+        "wisdom_spots": {key: _project(*xy) for key, xy in shrines.items()},
         "objectives": objectives,
         "edges": edges,
+        "wisdom": [
+            [
+                int(w.spawn_s),
+                side[w.spot],
+                side.get(w.taken_by or "", ""),
+                hero_display(w.hero) if isinstance(w.hero, str) else None,
+                None if pd.isna(w.after_s) else int(w.after_s),
+                {"own side": "o", "other side": "x", "not taken": "n", "game ended": "e"}[
+                    w.outcome
+                ],
+            ]
+            for w in recipe.wisdom_runes(match).itertuples(index=False)
+        ],
     }
 
 

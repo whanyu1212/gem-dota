@@ -1,9 +1,9 @@
 """When did each objective fall, who took it, and did each team convert its edges?
 
 Every building that fell (``match.towers``, ``match.barracks``), every Roshan
-(``match.roshans``) and every Tormentor (``match.tormentors``): when, for which
-side, the last hit, and the fight that ended in the ``WINDOW_S`` in-game seconds
-before it. For buildings, who damaged it in the ``DAMAGE_S`` seconds before it
+(``match.roshans``), every Tormentor (``match.tormentors``) and every wisdom
+rune taken: when, for which side, the last hit (or the hero who took the rune),
+and the fight that ended in the ``WINDOW_S`` in-game seconds before it. For buildings, who damaged it in the ``DAMAGE_S`` seconds before it
 fell: each hero (a summon's damage counts for its owner) and the creeps.
 
 Then each team's edges and what they led to:
@@ -16,13 +16,23 @@ Then each team's edges and what they led to:
 
 A building counts for the side that didn't own it (a deny still loses it).
 
+Wisdom runes spawn at each side's shrine at ``WISDOM_FIRST_S`` (7:00) and every
+``WISDOM_EVERY_S`` after. A pickup is a ``PICKUP_RUNE`` entry of the wisdom type,
+whose ``value`` is the player's slot; the rune's spot is the half of the map the
+hero was on, and its XP the wisdom-rune XP (reason 4) the picker's team got on
+that tick. For each spawn, who took each side's rune before the next one: its
+own side, the other side, or nobody. The replay records no rune entity for them,
+so an untaken rune's fate isn't known; on the fixtures no spot was ever taken
+twice between two spawns.
+
     python examples/cookbook/objectives.py replay.dem [more.dem ...]
 """
 
 from __future__ import annotations
 
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
+from typing import Any
 
 import pandas as pd
 
@@ -31,10 +41,18 @@ import gem
 WINDOW_S = 120  # how long after a fight its edge can turn into an objective
 AEGIS_S = 300  # how long after a Roshan the team's buildings count for the Aegis
 DAMAGE_S = 90  # how long before a building fell its damage counts
+WISDOM_FIRST_S = 420  # the first wisdom runes spawn at 7:00
+WISDOM_EVERY_S = 420  # and again every 7 minutes
+WISDOM_RUNE = 8  # the wisdom rune's type in PICKUP_RUNE entries
+XP_WISDOM = 4  # the combat log's XP reason for a wisdom rune
+PICKUP_TICKS = 3  # a pickup's XP lands within this many ticks of it
 TEAMS = {2: "radiant", 3: "dire"}
 OTHER = {2: 3, 3: 2}
 OBJECTIVE_COLUMNS = [
     "match_id", "tick", "time_s", "time", "kind", "name", "for_side", "last_hit", "after_fight", "after_fight_s",
+]  # fmt: skip
+WISDOM_COLUMNS = [
+    "match_id", "spawn_s", "spot", "taken_by", "hero", "tick", "time_s", "after_s", "xp", "outcome",
 ]  # fmt: skip
 EDGE_COLUMNS = [
     "match_id",
@@ -84,13 +102,20 @@ def objective_table(match: gem.ParsedMatch) -> pd.DataFrame:
         )
         for t in match.tormentors
     ]
+    rows += [
+        (w["tick"], "wisdom_rune", f"{w['spot'] or 'unknown'}_wisdom_rune", w["team"], w["hero"])
+        for w in wisdom_pickups(match)
+    ]
+    # A rune pickup keeps its own time: OpenDota's clock for its chat event.
+    rune_time = {(w["tick"], w["hero"]): w["time_s"] for w in wisdom_pickups(match)}
     fight_ends = sorted(
         (clock.game_time_at(fight.end_tick), number)
         for number, fight in enumerate(sorted(match.fights, key=lambda f: f.start_tick), start=1)
     )
     table = []
     for tick, kind, name, team, killer in sorted(rows, key=lambda row: row[0]):
-        time_s = clock.game_time_at(tick)
+        time_s = rune_time.get((tick, killer)) if kind == "wisdom_rune" else None
+        time_s = time_s if time_s is not None else clock.game_time_at(tick)
         if time_s is None:
             continue
         before = [
@@ -102,7 +127,9 @@ def objective_table(match: gem.ParsedMatch) -> pd.DataFrame:
                 "match_id": match.match_id,
                 "tick": tick,
                 "time_s": time_s,
-                "time": clock.format_tick(tick),
+                "time": f"{int(time_s) // 60:02d}:{int(time_s) % 60:02d}"
+                if kind == "wisdom_rune"
+                else clock.format_tick(tick),
                 "kind": kind,
                 "name": name.removeprefix("npc_dota_"),
                 "for_side": TEAMS.get(team) if team is not None else None,
@@ -115,6 +142,133 @@ def objective_table(match: gem.ParsedMatch) -> pd.DataFrame:
     for column in ("after_fight", "after_fight_s"):
         frame[column] = frame[column].astype("Int64")
     return frame
+
+
+def wisdom_pickups(match: gem.ParsedMatch) -> list[dict]:
+    """Return every wisdom rune taken: when, by whom, at which side's spot, and its XP.
+
+    Args:
+        match: A parsed match.
+
+    Returns:
+        One dict per pickup, in time order: ``tick``, ``time_s`` (the entry's own
+        ``game_time_s``, OpenDota's clock for the chat event; the game clock
+        when it has none), ``hero``, ``team`` (2 or 3), ``spot``
+        (``radiant``/``dire``: the half the hero was on, or ``""``) and ``xp``
+        (the wisdom-rune XP it gave the picker's team).
+    """
+    clock = match.game_clock
+    by_slot = {player.player_id: player for player in match.players}
+    team_of = {player.hero_name: player.team for player in match.players}
+    pickups: list[dict[str, Any]] = []
+    for entry in match.combat_log:
+        if entry.log_type != "PICKUP_RUNE" or entry.rune_type != WISDOM_RUNE:
+            continue
+        player = by_slot.get(entry.value)
+        if player is None:
+            continue
+        spot = gem.position_at_tick(player, entry.tick)
+        half = gem.region_of(*spot) if spot is not None else None
+        time_s: float | None = entry.game_time_s
+        if time_s is None and clock is not None:
+            time_s = clock.game_time_at(entry.tick)
+        pickups.append(
+            {
+                "tick": entry.tick,
+                "time_s": time_s,
+                "hero": player.hero_name,
+                "team": player.team,
+                "spot": {"radiant_half": "radiant", "dire_half": "dire"}.get(half or "", ""),
+                "xp": 0,
+            }
+        )
+    pickups.sort(key=lambda p: p["tick"])
+    # Each XP entry goes to the nearest pickup by its hero's team within
+    # PICKUP_TICKS. Both teams can take their runes on one tick, and so can one
+    # team take both: then the entries are shared out, each to the pickup that
+    # has had the fewest so far.
+    given: Counter[int] = Counter()
+    for entry in match.combat_log:
+        if entry.log_type != "XP" or entry.xp_reason != XP_WISDOM:
+            continue
+        team = team_of.get(entry.target_name)
+        near = [
+            i
+            for i, p in enumerate(pickups)
+            if p["team"] == team and abs(p["tick"] - entry.tick) <= PICKUP_TICKS
+        ]
+        if near:
+            i = min(near, key=lambda i: (abs(pickups[i]["tick"] - entry.tick), given[i]))
+            pickups[i]["xp"] += entry.value
+            given[i] += 1
+    return pickups
+
+
+def wisdom_runes(match: gem.ParsedMatch) -> pd.DataFrame:
+    """Return who took each side's wisdom rune at each spawn.
+
+    For every spawn up to the end of the game and each side's spot: the side
+    and hero that took it before the next spawn, how long after the spawn, and
+    its XP. ``outcome`` is ``own side``, ``other side``, ``not taken`` (before
+    the next spawn) or ``game ended`` (before the next spawn came).
+
+    Args:
+        match: A parsed match.
+
+    Returns:
+        One row per spawn and spot, with ``WISDOM_COLUMNS``.
+    """
+    clock = match.game_clock
+    end_tick = match.post_game_tick or match.game_end_tick
+    if clock is None or not end_tick:
+        return pd.DataFrame(columns=WISDOM_COLUMNS)
+    end_s = clock.game_time_at(end_tick)
+    if end_s is None or end_s < WISDOM_FIRST_S:
+        return pd.DataFrame(columns=WISDOM_COLUMNS)
+    taken: dict[tuple[int, str], dict] = {}
+    for found in wisdom_pickups(match):
+        time_s = found["time_s"]
+        if time_s is None or time_s < WISDOM_FIRST_S or not found["spot"]:
+            continue
+        spawn = WISDOM_FIRST_S + (time_s - WISDOM_FIRST_S) // WISDOM_EVERY_S * WISDOM_EVERY_S
+        taken.setdefault((int(spawn), found["spot"]), found)
+    rows = []
+    for spawn in range(WISDOM_FIRST_S, int(end_s) + 1, WISDOM_EVERY_S):
+        for spot in ("radiant", "dire"):
+            pickup = taken.get((spawn, spot))
+            side = TEAMS.get(pickup["team"]) if pickup else None
+            if pickup is None:
+                outcome = "game ended" if spawn + WISDOM_EVERY_S > end_s else "not taken"
+            else:
+                outcome = "own side" if side == spot else "other side"
+            rows.append(
+                {
+                    "match_id": match.match_id,
+                    "spawn_s": spawn,
+                    "spot": spot,
+                    "taken_by": side,
+                    "hero": pickup["hero"] if pickup else None,
+                    "tick": pickup["tick"] if pickup else None,
+                    "time_s": pickup["time_s"] if pickup else None,
+                    "after_s": round(pickup["time_s"] - spawn) if pickup else None,
+                    "xp": pickup["xp"] if pickup else None,
+                    "outcome": outcome,
+                }
+            )
+    frame = pd.DataFrame(rows, columns=WISDOM_COLUMNS)
+    for column in ("tick", "after_s", "xp"):
+        frame[column] = frame[column].astype("Int64")
+    return frame
+
+
+def wisdom_summary(runes: pd.DataFrame) -> pd.DataFrame:
+    """Count each side's wisdom runes by who took them: the figure's bars."""
+    counts = runes.groupby(["spot", "outcome"]).size().unstack("outcome", fill_value=0)
+    counts = counts.reindex(
+        columns=["own side", "other side", "not taken", "game ended"], fill_value=0
+    )
+    counts.insert(0, "spawns", counts.sum(axis=1))
+    return counts.reset_index()
 
 
 def building_damage(match: gem.ParsedMatch) -> pd.DataFrame:
@@ -278,6 +432,9 @@ def main(paths: list[str]) -> None:
     )
     print("\nEach team's edges, by what they led to:")
     print(conversion_summary(edge_rows).to_string(index=False))
+    runes = pd.concat([wisdom_runes(match) for match in matches], ignore_index=True)
+    print("\nEach side's wisdom runes, by who took them:")
+    print(wisdom_summary(runes).to_string(index=False))
 
 
 if __name__ == "__main__":  # parse_many's worker processes re-import this file

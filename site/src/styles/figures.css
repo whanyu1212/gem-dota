@@ -1464,3 +1464,58 @@
     grid-row: 1;
   }
 }
+
+/* Wisdom runes on the objectives figure */
+.obj-shrine circle {
+  fill: var(--map-halo);
+  stroke: var(--map-label);
+  stroke-width: 2;
+}
+.obj-shrine text {
+  fill: var(--map-label);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.obj-rune {
+  cursor: pointer;
+  outline: none;
+}
+.obj-rune circle:first-child {
+  stroke: var(--map-halo);
+  stroke-width: 2;
+}
+.obj-rune--radiant circle:first-child {
+  fill: var(--map-radiant-mark);
+}
+.obj-rune--dire circle:first-child {
+  fill: var(--map-dire-mark);
+}
+.obj-rune--unknown circle:first-child {
+  fill: var(--muted);
+}
+.obj-rune:focus-visible circle:first-child {
+  stroke: var(--ink);
+  stroke-width: 4;
+}
+.objectives-fig .legend-item i.swatch-rune {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.wisdom-seg {
+  cursor: default;
+}
+.wisdom-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 5px 0 10px;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+.wisdom-key:first-child {
+  margin-left: 0;
+}
