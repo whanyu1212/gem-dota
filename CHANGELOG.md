@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Recipe: what moved the gold and XP lead?** (HY-128).
+  `examples/cookbook/lead.py` splits the gold lead into the game's own gold
+  ledger sources (hero kills and assists, lane and neutral creeps, buildings,
+  Roshan, bounty runes, passive income, the rest) at every minute and at the
+  end of the game, and the XP lead into the combat log's XP by reason, with
+  creep XP split by what died on its tick. The sources add up to
+  `radiant_gold_adv` and `radiant_xp_adv` at every minute of the 9 fixtures;
+  gold the replay keeps no total for (reason 22, on one newer fixture) is a row
+  of its own. Its page has a figure of the home page's match: the lead curve
+  with its fights and objectives, what moved it by source and by hero for any
+  stretch, and where it changed hands.
+
 - **Recipe: when did each objective fall, and did teams convert their edges?**
   (HY-131). `examples/cookbook/objectives.py` lists every tower, barracks,
   Roshan and Tormentor kill with the side it counted for, the last hit, the

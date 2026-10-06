@@ -961,3 +961,300 @@
     grid-column: 1 / -1;
   }
 }
+
+/* The lead recipe's figure */
+.lead-fig,
+.prose .lead-fig {
+  margin: 24px 0;
+}
+.prose .lead-fig :is(ul, ol, p) {
+  margin: 0;
+  padding: 0;
+}
+.prose .lead-fig li + li {
+  margin-top: 0;
+}
+.prose .lead-fig figcaption > p {
+  margin-top: 12px;
+}
+.prose .lead-fig .legend {
+  margin-top: 10px;
+}
+.lead-fig .legend-item {
+  text-transform: none;
+}
+.lead-fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.lead-fig-controls .range-pill {
+  margin-left: auto;
+}
+.lead-fig-controls[hidden] {
+  display: none;
+}
+.lead-chart {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 6px;
+}
+.lead-axis {
+  position: relative;
+  height: 220px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.lead-axis span {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+.lead-curve-box {
+  position: relative;
+}
+.lead-fig svg.lead-curve {
+  display: block;
+  width: 100%;
+  height: 220px;
+  aspect-ratio: auto;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+.lead-side {
+  position: absolute;
+  left: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  pointer-events: none;
+}
+.lead-side--radiant {
+  top: 4px;
+}
+.lead-side--dire {
+  bottom: 4px;
+}
+.lead-grid {
+  stroke: var(--line);
+  vector-effect: non-scaling-stroke;
+}
+.lead-zero {
+  stroke: var(--muted);
+  vector-effect: non-scaling-stroke;
+}
+.lead-area--radiant {
+  fill: var(--map-radiant-mark);
+  fill-opacity: 0.3;
+}
+.lead-area--dire {
+  fill: var(--map-dire-mark);
+  fill-opacity: 0.3;
+}
+.lead-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.lead-marks-row {
+  position: relative;
+  height: 16px;
+}
+.lead-obj,
+.lead-fight {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.lead-obj {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+}
+.lead-fight {
+  border: 1px solid var(--paper);
+  border-radius: 50%;
+}
+.lead-fight:hover,
+.lead-fight:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+.lead-obj--radiant,
+.lead-fight--radiant {
+  background: var(--map-radiant-mark);
+}
+.lead-obj--dire,
+.lead-fight--dire {
+  background: var(--map-dire-mark);
+}
+.lead-obj--even,
+.lead-fight--even {
+  background: var(--muted);
+}
+.legend-item i.swatch-lead-fight {
+  background: var(--muted);
+}
+.legend-item i.swatch-lead-obj {
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  background: var(--muted);
+}
+.prose .lead-fig .lead-summary {
+  margin-top: 14px;
+  color: var(--ink);
+}
+.lead-moved {
+  margin-top: 8px;
+}
+.prose .lead-fig .lead-moved-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  color: var(--muted);
+  font-size: 12px;
+}
+.lead-moved-head span:nth-child(2) {
+  color: var(--body);
+  font-weight: 600;
+}
+.lead-moved-head span:last-child {
+  text-align: right;
+}
+.lead-rows {
+  list-style: none;
+  font-size: 13px;
+}
+.lead-row {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr) 104px;
+  gap: 10px;
+  align-items: center;
+  padding: 3px 0;
+}
+.lead-row-track {
+  position: relative;
+  height: 14px;
+}
+.lead-row-track::before {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: 50%;
+  border-left: 1px solid var(--line);
+  content: "";
+}
+.lead-bar {
+  position: absolute;
+  top: 2px;
+  height: 10px;
+  border-radius: 2px;
+}
+.lead-bar--radiant {
+  background: var(--map-radiant-mark);
+}
+.lead-bar--dire {
+  background: var(--map-dire-mark);
+}
+.lead-row-value {
+  color: var(--body);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.lead-row--total {
+  margin-top: 4px;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  font-weight: 600;
+}
+.prose .lead-fig .lead-head {
+  margin-top: 18px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.lead-teams {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px 24px;
+  margin-top: 8px;
+}
+.prose .lead-fig .lead-team-name {
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.lead-team-name--radiant::before,
+.lead-team-name--dire::before {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 6px;
+  border-radius: 50%;
+  content: "";
+}
+.lead-team-name--radiant::before {
+  background: var(--map-radiant-mark);
+}
+.lead-team-name--dire::before {
+  background: var(--map-dire-mark);
+}
+.lead-heroes {
+  list-style: none;
+  font-size: 12.5px;
+}
+.lead-heroes li {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr) 48px;
+  gap: 8px;
+  align-items: center;
+  padding: 2px 0;
+}
+.lead-hero-bar {
+  display: flex;
+  height: 10px;
+}
+.lead-hero-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.lead-part-0,
+.legend-item i.lead-part-0 {
+  background: var(--important);
+}
+.lead-part-1,
+.legend-item i.lead-part-1 {
+  background: var(--note);
+}
+.lead-part-2,
+.legend-item i.lead-part-2 {
+  background: var(--muted);
+}
+.lead-fig .lead-hero-key {
+  margin-top: 6px;
+  font-size: 12.5px;
+}
+.lead-fig .lead-hero-key i {
+  border-radius: 2px;
+}
+.prose .lead-fig .lead-flips {
+  margin-top: 4px;
+  color: var(--body);
+  font-size: 13px;
+}
+@media (max-width: 560px) {
+  .lead-chart {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+  .lead-row {
+    grid-template-columns: 112px minmax(0, 1fr) 86px;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .lead-heroes li {
+    grid-template-columns: 110px minmax(0, 1fr) 44px;
+  }
+}

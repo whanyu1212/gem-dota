@@ -15,6 +15,8 @@ from gem.extractors.fights import Fight, FightPlayer
 from gem.extractors.objectives import AegisEvent, BarracksKill, RoshanKill, TormentorKill, TowerKill
 from gem.extractors.wards import WardEvent
 from gem.results.models import (
+    GoldLedger,
+    GoldLedgerSnapshot,
     HeroVisibilityEvent,
     ParsedMatch,
     ParsedPlayer,
@@ -41,6 +43,7 @@ smoke_to_kill = _recipe("smoke_to_kill")
 wards = _recipe("wards")
 fights = _recipe("fights")
 objectives = _recipe("objectives")
+lead = _recipe("lead")
 
 
 def _fight(first_death_tick: int, winner: str) -> Fight:
@@ -187,6 +190,8 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
         fight_rows = fights.fight_table(canonical_parsed_match)
         objective_rows = objectives.objective_table(canonical_parsed_match)
         edge_rows = objectives.edges(canonical_parsed_match, objective_rows)
+        gold_lead = lead.lead_by_source(lead.gold_sources(canonical_parsed_match))
+        xp_lead = lead.lead_by_source(lead.xp_sources(canonical_parsed_match))
 
     assert len(rosh) == len(canonical_parsed_match.roshans)
     assert list(rosh.columns) == roshan_next_fight.COLUMNS
@@ -209,6 +214,12 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
         match.roshans
     ) + len(match.tormentors)
     assert set(edge_rows["outcome"]) <= {"converted", "other side first", "nothing"}
+    # The sources add up to the lead, which is the match's own curve at every minute.
+    for frame, curve in ((gold_lead, match.radiant_gold_adv), (xp_lead, match.radiant_xp_adv)):
+        sources = frame.drop(columns=["match_id", "tick", "time_s", "lead"])
+        assert (sources.sum(axis=1) == frame["lead"]).all()
+        assert frame["lead"].tolist()[: len(curve)] == curve
+    assert len(gold_lead) == len(match.radiant_gold_adv) + 1  # and the end of the game
 
 
 def test_recipes_fall_back_to_hero_teams_without_combat_log_teams() -> None:
@@ -570,3 +581,151 @@ def test_objectives_damage_window_is_in_game_seconds() -> None:
     )
     damage = objectives.building_damage(match)
     assert damage["damage"].tolist() == [250]
+
+
+def _ledger(tick: int, time_s: int, **gold: int) -> GoldLedgerSnapshot:
+    return GoldLedgerSnapshot(tick=tick, game_time_s=time_s, **gold)
+
+
+def _lead_match() -> ParsedMatch:
+    axe, lina = "npc_dota_hero_axe", "npc_dota_hero_lina"
+
+    def xp(tick: int, hero: str, reason: int, value: int) -> CombatLogEntry:
+        return CombatLogEntry(
+            tick=tick, log_type=CombatLogType.XP, target_name=hero, xp_reason=reason, value=value
+        )
+
+    def died(tick: int, unit: str) -> CombatLogEntry:
+        return CombatLogEntry(tick=tick, log_type=CombatLogType.DEATH, target_name=unit)
+
+    return ParsedMatch(
+        match_id=6,
+        game_start_tick=0,
+        game_clock=GameClock(game_start_tick=0),
+        players=[
+            ParsedPlayer(
+                player_id=0,
+                team=2,
+                hero_name=axe,
+                times=[0, 1_800, 1_860],
+                times_min=[0, 1_800],
+                total_earned_gold_t=[0, 700, 800],
+                total_earned_gold_t_min=[0, 700],
+                total_earned_xp_t=[0, 190, 220],
+                total_earned_xp_t_min=[0, 190],
+                gold_ledger=GoldLedger(
+                    per_minute=[
+                        _ledger(0, 0),
+                        _ledger(
+                            1_800, 60, hero_kill_gold=200, creep_kill_gold=300, income_gold=200
+                        ),
+                    ],
+                    # 50 of the 800 earned has no ledger field.
+                    final=_ledger(
+                        1_860,
+                        62,
+                        hero_kill_gold=200,
+                        creep_kill_gold=300,
+                        income_gold=210,
+                        bounty_gold=40,
+                    ),
+                ),
+            ),
+            ParsedPlayer(
+                player_id=5,
+                team=3,
+                hero_name=lina,
+                times=[0, 1_800, 1_860],
+                times_min=[0, 1_800],
+                total_earned_gold_t=[0, 700, 1_010],
+                total_earned_gold_t_min=[0, 700],
+                total_earned_xp_t=[0, 270, 280],
+                total_earned_xp_t_min=[0, 270],
+                gold_ledger=GoldLedger(
+                    per_minute=[
+                        _ledger(0, 0),
+                        _ledger(1_800, 60, neutral_kill_gold=500, income_gold=200),
+                    ],
+                    final=_ledger(
+                        1_860, 62, neutral_kill_gold=500, income_gold=210, roshan_gold=300
+                    ),
+                ),
+            ),
+        ],
+        combat_log=[
+            xp(100, axe, 1, 100),
+            died(200, "npc_dota_creep_badguys_melee"),
+            xp(200, axe, 2, 50),
+            # A neutral and a lane creep died on the tick: which one gave it is unclear.
+            died(300, "npc_dota_neutral_kobold"),
+            died(300, "npc_dota_creep_goodguys_ranged"),
+            xp(300, axe, 2, 40),
+            died(400, "npc_dota_neutral_kobold"),
+            xp(400, lina, 2, 60),
+            xp(500, lina, 3, 200),
+            xp(600, lina, 0, 10),
+            # On the minute's tick: the minute's reading doesn't count it yet.
+            xp(1_800, axe, 4, 30),
+        ],
+    )
+
+
+def test_lead_splits_the_gold_lead_into_ledger_sources() -> None:
+    gold = lead.lead_by_source(lead.gold_sources(_lead_match()))
+
+    assert gold["time_s"].tolist() == [0, 60, 62]
+    assert gold["lead"].tolist() == [0, 0, -210]
+    moved = lead.what_moved(gold)
+    assert moved.to_dict() == {
+        "hero_kills": 200,
+        "lane_creeps": 300,
+        "neutral_creeps": -500,
+        "buildings": 0,
+        "roshan": -300,
+        "bounty_runes": 40,
+        "passive_income": 0,
+        "other": 0,
+        "unlisted": 50,
+        "lead": -210,
+    }
+    # A stretch: from the minute to the end.
+    assert lead.what_moved(gold, start_s=60)["roshan"] == -300
+    assert lead.what_moved(gold, end_s=60)["lead"] == 0
+
+
+def test_lead_splits_the_xp_lead_by_reason_and_what_died() -> None:
+    xp = lead.lead_by_source(lead.xp_sources(_lead_match()))
+
+    minute = xp[xp["time_s"] == 60].iloc[0]
+    assert minute["lead"] == 190 - 270
+    assert (minute["hero_kills"], minute["lane_creeps"], minute["unclear_creeps"]) == (100, 50, 40)
+    assert (minute["neutral_creeps"], minute["roshan"], minute["other"]) == (-60, -200, -10)
+    assert minute["wisdom_runes"] == 0 and minute["unlisted"] == 0
+    end = xp.iloc[-1]
+    assert (end["wisdom_runes"], end["unlisted"], end["lead"]) == (30, -10, 220 - 280)
+
+
+def test_lead_changes_hands_only_across_zero() -> None:
+    frame = pd.DataFrame(
+        {
+            "match_id": 1,
+            "tick": range(5),
+            "time_s": [0, 60, 120, 180, 240],
+            "lead": [0, 100, -50, 0, 20],
+        }
+    )
+    changes = lead.lead_changes(frame)
+    assert changes[["time_s", "ahead"]].values.tolist() == [[120, "dire"], [240, "radiant"]]
+
+
+def test_lead_is_empty_without_a_gold_ledger() -> None:
+    match = ParsedMatch(
+        match_id=7, players=[ParsedPlayer(player_id=0, team=2, hero_name="npc_dota_hero_axe")]
+    )
+    assert lead.gold_sources(match).empty and lead.xp_sources(match).empty
+    assert list(lead.gold_sources(match).columns) == [
+        *lead.READING_COLUMNS,
+        *lead.GOLD_SOURCES,
+        "unlisted",
+        "total",
+    ]
