@@ -76,7 +76,7 @@ npc_dota_hero_ancient_apparition radiant  bot   0.86
          npc_dota_hero_nevermore    dire  top   0.95
       npc_dota_hero_ember_spirit    dire  mid   1.00
          npc_dota_hero_pangolier    dire  bot   1.00
-            npc_dota_hero_rubick    dire  bot   0.62
+            npc_dota_hero_rubick    dire  bot   0.61
             npc_dota_hero_treant    dire  top   0.71
 lane  reading_s    side  net_worth   xp  last_hits  denies
  top        360 radiant       3556 2678         29       2
