@@ -27,7 +27,7 @@ Source: [src/gem/extractors/fights.py:181](https://github.com/whanyu1212/gem-dot
 ### `detect_opendota_teamfights`
 
 ```python
-def detect_opendota_teamfights(combat_log: list[CombatLogEntry], hero_to_slot: dict[str, int] | None = None, player_snapshots: dict[int, list[PlayerStateSnapshot]] | None = None, *, game_start_tick: int | None = None, duration_s: int | None = None, game_clock: GameClock | None = None, interval_samples: Sequence[IntervalSample] | None = None, aegis_events: Iterable[AegisEvent] = ()) -> list[OpenDotaTeamfight]
+def detect_opendota_teamfights(combat_log: list[CombatLogEntry], hero_to_slot: dict[str, int] | None = None, player_snapshots: dict[int, list[PlayerStateSnapshot]] | None = None, *, game_start_tick: int | None = None, duration_s: int | None = None, game_clock: GameClock | None = None, interval_samples: Sequence[IntervalSample] | None = None, aegis_events: Iterable[AegisEvent] = (), aegis_pickups_s: Iterable[tuple[int, int]] | None = None) -> list[OpenDotaTeamfight]
 ```
 
 Project combat log entries into OpenDota-compatible teamfight output.
