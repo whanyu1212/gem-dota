@@ -165,15 +165,17 @@ See [Smoke Analysis](../experimental/smoke-analysis.md) and the
 
 OpenDota opens a fight at `first_death_time - 15`, extends it while hero deaths continue
 inside the 15-second cooldown, and keeps only windows with at least three hero deaths.
-gem stores that compatibility projection on `match.opendota_teamfights`, and it equals
-OpenDota's `teamfights` on every local fixture. That includes OpenDota's quirks:
+gem stores that compatibility projection on `match.opendota_teamfights`, following
+OpenDota's parser as of August 2026. That includes OpenDota's quirks:
 
 - A fight closes at OpenDota's first once-a-second interval 15 s or more after its last
   death. A fight still open when the recording ends never closes, so the game's final
   fight is usually missing. `match.fights` keeps it.
-- The Aegis holder's next death is skipped. OpenDota forgets the holder only when
-  `modifier_aegis_regen` (the buff an unused Aegis gives as it expires) appears, so a
-  holder whose Aegis ran out without it loses their next real death too.
+- A death that triggers a reincarnation is skipped: the holder's first death within
+  300 s of an Aegis pickup or steal, and Wraith King's when he is alive again within
+  4 s without a buyback (or his reincarnation modifier lands within 3 s). OpenDota
+  parses from before August 2026 used an older Aegis rule and can count one of these
+  deaths, so their `teamfights` can differ from gem's by a death.
 - A death adds to `deaths` and `deaths_pos` only when the victim has an interval read in
   that second. `deaths_pos` uses OpenDota's map cells (world units / 128), and
   `xp_start` / `xp_end` are the interval XP at exactly the fight's first and last second.

@@ -460,6 +460,7 @@ def detect_opendota_teamfights(
     game_clock: GameClock | None = None,
     interval_samples: Sequence[IntervalSample] | None = None,
     aegis_events: Iterable[AegisEvent] = (),
+    aegis_pickups_s: Iterable[tuple[int, int]] | None = None,
 ) -> list[OpenDotaTeamfight]:
     """Project combat log entries into OpenDota-compatible teamfight output.
 
@@ -471,8 +472,9 @@ def detect_opendota_teamfights(
     With ``interval_samples`` (what :func:`gem.parse` passes) the output is
     OpenDota's exactly. A fight closes at the first once-a-second interval
     15 s or more after its last death, so a fight still open when the
-    recording ends is dropped. Deaths follow OpenDota's Aegis rule (see
-    :func:`_opendota_killed_deaths`). XP bounds and death positions come from
+    recording ends is dropped. Deaths that trigger an Aegis or Wraith King
+    reincarnation are skipped, as OpenDota does (see
+    :class:`_OpenDotaReincarnations`). XP bounds and death positions come from
     the intervals. Without samples, fights close at ``last_death + 15`` (the
     last one clamped to ``duration_s``) and use the nearest snapshots, which
     only approximates OpenDota.
@@ -489,7 +491,12 @@ def detect_opendota_teamfights(
         interval_samples: OpenDota's interval reads from game time 0
             (``PlayerExtractor.interval_samples``).
         aegis_events: Aegis pickups, steals and denies, for OpenDota's rule
-            on the Aegis holder's death.
+            on the Aegis holder's death. ``combat_log`` supplies the Wraith
+            King modifier and buybacks, ``interval_samples`` his life states.
+        aegis_pickups_s: OpenDota's ``(second, player slot)`` for each Aegis
+            pickup or steal, from its ``CHAT_MESSAGE_AEGIS`` objectives. When
+            given, it replaces timing ``aegis_events`` by their ticks, which
+            can be a second later than OpenDota's chat clock.
 
     Returns:
         OpenDota-compatible teamfights with at least three hero deaths.
@@ -500,8 +507,10 @@ def detect_opendota_teamfights(
     clock = game_clock or GameClock(game_start_tick=game_start_tick)
     h2s = hero_to_slot or {}
     if interval_samples is not None:
+        if aegis_pickups_s is None:
+            aegis_pickups_s = _aegis_pickup_seconds(aegis_events, clock)
         return _opendota_teamfights_from_intervals(
-            combat_log, h2s, clock, interval_samples, aegis_events
+            combat_log, h2s, clock, interval_samples, aegis_pickups_s
         )
     entries = sorted(
         combat_log,
@@ -570,10 +579,12 @@ def _opendota_teamfights_from_intervals(
     hero_to_slot: dict[str, int],
     clock: GameClock,
     interval_samples: Sequence[IntervalSample],
-    aegis_events: Iterable[AegisEvent],
+    aegis_pickups_s: Iterable[tuple[int, int]],
 ) -> list[OpenDotaTeamfight]:
     """Build OpenDota's teamfights exactly, from its interval reads."""
-    deaths = _opendota_killed_deaths(combat_log, hero_to_slot, clock, aegis_events)
+    deaths = _opendota_killed_deaths(
+        combat_log, hero_to_slot, clock, aegis_pickups_s, interval_samples
+    )
 
     # Interval state: game second -> player id -> sample (a later read of the
     # same second replaces an earlier one, as OpenDota's map put does).
@@ -636,64 +647,152 @@ def _opendota_killed_deaths(
     combat_log: list[CombatLogEntry],
     hero_to_slot: dict[str, int],
     clock: GameClock,
-    aegis_events: Iterable[AegisEvent],
+    aegis_pickups_s: Iterable[tuple[int, int]],
+    interval_samples: Sequence[IntervalSample] = (),
 ) -> list[tuple[CombatLogEntry, int]]:
     """Return the hero deaths OpenDota turns into ``killed`` entries, with their second.
 
-    OpenDota's ``processExpand`` tracks an Aegis holder: set by an Aegis
-    pickup or steal, cleared by ``modifier_aegis_regen`` (the buff an unused
-    Aegis gives as it expires). The holder's next death is skipped and its
-    second remembered; another death in that second is skipped too, and a death
-    in a later second clears the state and counts. When an Aegis runs out with
-    no ``modifier_aegis_regen`` entry, the holder stays set, so their next real
-    death is skipped as well. Self-kills never count, nor do illusions.
+    A death that triggers a reincarnation is skipped (see
+    :class:`_OpenDotaReincarnations`). Self-kills never count, nor do
+    illusions.
 
     Reference: odota/parser CreateParsedDataBlob.java ``processExpand`` and
     ``handleDeathCombat``.
     """
-    # Chat events arrive before a tick's combat log, which Clarity defers to
-    # the tick's end.
-    stream: list[tuple[int, int, int, AegisEvent | CombatLogEntry]] = [
-        (event.tick, 0, index, event)
-        for index, event in enumerate(aegis_events)
-        if event.event_type in ("pickup", "stolen")
-    ]
-    stream += [(entry.tick, 1, index, entry) for index, entry in enumerate(combat_log)]
-    stream.sort(key=lambda item: item[:3])
-
-    holder: int | None = None
-    holder_death_s: int | None = None
+    reincarnations = _OpenDotaReincarnations.collect(
+        combat_log, hero_to_slot, clock, aegis_pickups_s, interval_samples
+    )
     deaths: list[tuple[CombatLogEntry, int]] = []
-    for _, _, _, entry in stream:
-        if not isinstance(entry, CombatLogEntry):
-            # OpenDota sets only the holder here and keeps any earlier holder's
-            # death second. The new holder's first death in a different second
-            # then clears the state and counts. Kept on purpose: this view must
-            # equal OpenDota's (e.g. 8855242704, Shadow Fiend at 3908 s).
-            holder = entry.player_id
-            continue
-        if entry.log_type == "MODIFIER_ADD" and entry.inflictor_name == "modifier_aegis_regen":
-            holder = None
-            continue
+    for entry in sorted(combat_log, key=lambda e: e.tick):
         if entry.log_type != "DEATH":
             continue
         time_s = _combat_time_s(entry, clock=clock)
         if time_s is None:
             continue
         key_slot = None if entry.target_is_illusion else hero_to_slot.get(entry.target_name)
-        if key_slot is not None and key_slot == holder:
-            if holder_death_s is None:
-                holder_death_s = time_s
-                continue
-            if holder_death_s != time_s:
-                holder_death_s = holder = None
-            else:
-                continue
+        if reincarnations.consume(key_slot, time_s):
+            continue
         if entry.target_is_illusion or entry.attacker_name == entry.target_name:
             continue
         if entry.target_is_hero:
             deaths.append((entry, time_s))
     return deaths
+
+
+def _aegis_pickup_seconds(
+    aegis_events: Iterable[AegisEvent], clock: GameClock
+) -> list[tuple[int, int]]:
+    """Return ``(second, player slot)`` for each Aegis pickup or steal."""
+    pickups = []
+    for event in aegis_events:
+        time_s = clock.game_seconds_at(event.tick)
+        if event.event_type in ("pickup", "stolen") and event.player_id >= 0 and time_s is not None:
+            pickups.append((time_s, event.player_id))
+    return pickups
+
+
+_WK_HERO = "npc_dota_hero_skeleton_king"
+_WK_REINCARNATION_MODIFIER = "modifier_skeleton_king_reincarnation"
+#: Seconds between a Wraith King death and his reincarnation modifier.
+_WK_MODIFIER_WINDOW_S = 3
+#: Longest Wraith King revive, in seconds, that counts as a reincarnation.
+_WK_REVIVE_MAX_S = 4
+#: Seconds an Aegis pickup keeps its holder's next death a reincarnation.
+_AEGIS_EXPIRY_S = 300
+
+
+@dataclass
+class _OpenDotaReincarnations:
+    """OpenDota's pre-scan of the deaths that are reincarnations, by player slot.
+
+    A death is a reincarnation when it is:
+
+    * within 3 s of a ``modifier_skeleton_king_reincarnation`` add on the hero;
+    * Wraith King's, and he is alive again within 4 s with no buyback (the
+      Aghanim's Scepter and facet variants log no modifier); or
+    * the holder's first death within 300 s of an Aegis pickup or steal. That
+      death consumes the pickup, so the holder's later deaths count.
+
+    Reference: odota/parser CreateParsedDataBlob.java
+    ``precomputeReincarnations`` and ``consumeReincarnationDeath``.
+    """
+
+    wk_slot: int | None
+    aegis_pickups: dict[int, list[int]] = field(default_factory=lambda: defaultdict(list))
+    wk_modifier_times: dict[int, list[int]] = field(default_factory=lambda: defaultdict(list))
+    dead_windows: dict[int, list[tuple[int, int]]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
+    buyback_times: dict[int, list[int]] = field(default_factory=lambda: defaultdict(list))
+
+    @classmethod
+    def collect(
+        cls,
+        combat_log: Iterable[CombatLogEntry],
+        hero_to_slot: Mapping[str, int],
+        clock: GameClock,
+        aegis_pickups_s: Iterable[tuple[int, int]],
+        interval_samples: Sequence[IntervalSample],
+    ) -> _OpenDotaReincarnations:
+        found = cls(wk_slot=hero_to_slot.get(_WK_HERO))
+        for picked_at, holder in sorted(aegis_pickups_s):
+            found.aegis_pickups[holder].append(picked_at)
+
+        for entry in combat_log:
+            time_s = _combat_time_s(entry, clock=clock)
+            if time_s is None:
+                continue
+            if (
+                entry.log_type == "MODIFIER_ADD"
+                and entry.inflictor_name == _WK_REINCARNATION_MODIFIER
+            ):
+                slot = hero_to_slot.get(entry.target_name)
+                if slot is not None:
+                    found.wk_modifier_times[slot].append(time_s)
+            elif entry.log_type == "BUYBACK":
+                found.buyback_times[entry.value].append(time_s)
+
+        # Dead windows from the once-a-second life states: from the first read
+        # that is not alive (0) to the next read that is.
+        last_state: dict[int, int] = {}
+        dead_since: dict[int, int] = {}
+        for sample in sorted(interval_samples, key=lambda s: s[0]):
+            time_s, slot, life_state = sample[1], sample[2], sample[6]
+            if life_state is None:
+                continue
+            previous = last_state.get(slot)
+            if not previous and life_state != 0:
+                dead_since[slot] = time_s
+            elif previous and life_state == 0 and slot in dead_since:
+                found.dead_windows[slot].append((dead_since.pop(slot), time_s))
+            last_state[slot] = life_state
+        return found
+
+    def consume(self, slot: int | None, time_s: int) -> bool:
+        """Return whether ``slot``'s death at ``time_s`` is a reincarnation.
+
+        An Aegis reincarnation uses up the pickup it came from.
+        """
+        if slot is None:
+            return False
+        modifier_times = self.wk_modifier_times.get(slot, ())
+        if any(abs(r - time_s) <= _WK_MODIFIER_WINDOW_S for r in modifier_times):
+            return True
+        if slot == self.wk_slot:
+            buybacks = self.buyback_times.get(slot, ())
+            for dead_from, alive_at in self.dead_windows.get(slot, ()):
+                if (
+                    time_s - 1 <= dead_from <= time_s + 3
+                    and alive_at - dead_from <= _WK_REVIVE_MAX_S
+                    and not any(dead_from <= b <= alive_at for b in buybacks)
+                ):
+                    return True
+        pickups = self.aegis_pickups.get(slot, [])
+        for index, picked_at in enumerate(pickups):
+            if picked_at <= time_s <= picked_at + _AEGIS_EXPIRY_S:
+                del pickups[index]
+                return True
+        return False
 
 
 def _populate_interval_death(

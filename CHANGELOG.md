@@ -25,6 +25,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`python -m gem` runs from a pip install.** `rich`, which the CLI imports, was
   only a dev dependency, so the command failed with `ModuleNotFoundError: No module
   named 'rich'` outside a development checkout. It is a runtime dependency now.
+- **`opendota_teamfights` follows OpenDota's reincarnation rule from August 2026**
+  (HY-178, odota/parser `efe5794b`). A death that triggers a reincarnation is not
+  counted: the holder's first death within 300 s of an Aegis pickup or steal
+  (each pickup covers one death), or Wraith King's when his reincarnation
+  modifier lands within 3 s or he is alive again within 4 s without a buyback.
+  The old rule tracked a single Aegis holder and counted a hero's second Aegis
+  reincarnation, so gem found an extra teamfight on 9040268873. On the local
+  fixtures the deaths skipped are exactly those the game flags with
+  `will_reincarnate`. OpenDota parses from before August still count some of them,
+  so teamfights from older OpenDota JSON can differ by a death.
+  `detect_opendota_teamfights` takes `aegis_pickups_s`, OpenDota's pickup seconds,
+  which `gem.parse` passes. The odota/parser pin moves to `4e35b344`.
 
 ## [0.13.0] - 2026-10-13
 
