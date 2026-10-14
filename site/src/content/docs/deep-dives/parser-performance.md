@@ -76,7 +76,7 @@ same fields or support the same dictionary writes. See Python's
 [`__slots__` rules](https://docs.python.org/3.10/reference/datamodel.html#slots).
 [Manta's combat callback registration](https://github.com/dotabuff/manta/blob/096933cf157ace54902463ff0599ea46a6673f98/callbacks.go#L1322),
 [Clarity's S1/S2 combat event dispatch](https://github.com/skadistats/clarity/blob/7fb3f1d07564a12efa99194d45cfbf5762ba5910/src/main/java/skadistats/clarity/processor/gameevents/CombatLog.java),
-and [OpenDota's `Entry` record](https://github.com/odota/parser/blob/e58a668f72866531b9a4e0293387163e8a927f5b/src/main/java/opendota/Entry.java) establish dataflow and output context; none
+and [OpenDota's `Entry` record](https://github.com/odota/parser/blob/4e35b344f66d4d38822cade640d4d8d62016edff/src/main/java/opendota/Entry.java) establish dataflow and output context; none
 establish Python object-layout compatibility. A future change needs a separate
 compatibility proposal. Internal replacement records and retention options are
 outside this study; the subsequent [final profile](parser-profile-2026-09.md)
