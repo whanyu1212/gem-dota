@@ -241,6 +241,30 @@
       "dem_size_bytes": 138583332,
       "dem_sha256": "c338ebbee2721264d6b246f89a8098c4c21e636b1fc3bb2d5406a9c01b4bb86b",
       "note": "BLAST SLAM VIII (PARIVISION vs Team Spirit), game build 6956: the first fixture whose send tables declare the fixed8 var encoder (build 6951+); regression for GitHub #301 / HY-177"
+    },
+    {
+      "match_id": 9040268873,
+      "name": "blast-slam-viii-aegis-reincarnation",
+      "dem": "9040268873.dem",
+      "opendota_json": "9040268873.opendota.json",
+      "status": "active",
+      "tier": "regression",
+      "capabilities": [
+        "aegis-reincarnation",
+        "medium-match",
+        "opendota-parity"
+      ],
+      "replaced_by": null,
+      "fetched_at": "2026-10-14T00:47:51Z",
+      "duration": 3169,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay272.valve.net/570/9040268873_1117230017.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 182086072,
+      "dem_sha256": "301965d2711bb38ffe4424eb68b924bd78c66cf9c65ce9f2f3c0a42797dd80ca",
+      "note": "BLAST SLAM VIII (Team Spirit vs Team Yandex), game build 6956: Kez reincarnates on two Aegises (2388 s, 3087 s), and OpenDota's August 2026 reincarnation rule (odota/parser efe5794b) counts neither death; regression for HY-178"
     }
   ]
 }

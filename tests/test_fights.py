@@ -1295,21 +1295,32 @@ def _od_death(
     )
 
 
-def _intervals(times, players=(0, 5, 6), xp=None, pos=(12800.0, 6400.0)):
-    """One read per player per second: (tick, time, pid, x, y, xp)."""
+def _intervals(times, players=(0, 5, 6), xp=None, pos=(12800.0, 6400.0), dead=()):
+    """One read per player per second: (tick, time, pid, x, y, xp, life_state).
+
+    ``dead`` holds the (time, pid) reads whose life state is dead (2).
+    """
     return [
-        (t * 30, t, pid, pos[0], pos[1], (xp or {}).get((t, pid), t * 10))
+        (
+            t * 30,
+            t,
+            pid,
+            pos[0],
+            pos[1],
+            (xp or {}).get((t, pid), t * 10),
+            2 if (t, pid) in dead else 0,
+        )
         for t in times
         for pid in players
     ]
 
 
-def _od_fights(entries, samples, aegis_events=()):
+def _od_fights(entries, samples, aegis_events=(), hero_to_slot=None):
     from gem.state.game_clock import GameClock
 
     return detect_opendota_teamfights(
         entries,
-        hero_to_slot=_H2S,
+        hero_to_slot=hero_to_slot or _H2S,
         game_clock=GameClock(game_start_tick=0),
         interval_samples=samples,
         aegis_events=aegis_events,
@@ -1364,15 +1375,25 @@ class TestOpenDotaTeamfightsFromIntervals:
         assert fight.players[0].killed == {"npc_dota_hero_lina": 1}
 
 
-class TestOpenDotaAegisRule:
-    """OpenDota's processExpand skips the Aegis holder's death."""
+_WK = "npc_dota_hero_skeleton_king"
+_H2S_WK = {**_H2S, _WK: 1}
+
+
+def _wk_death(time_s: int, **kwargs) -> CombatLogEntry:
+    return _od_death(time_s, target=_WK, **kwargs)
+
+
+class TestOpenDotaReincarnationRule:
+    """OpenDota's processExpand skips deaths that trigger a reincarnation."""
 
     @staticmethod
-    def _counted(entries, aegis_events):
-        from gem.extractors.fights import _opendota_killed_deaths
+    def _counted(entries, aegis_events=(), samples=()):
+        from gem.extractors.fights import _aegis_pickup_seconds, _opendota_killed_deaths
         from gem.state.game_clock import GameClock
 
-        deaths = _opendota_killed_deaths(entries, _H2S, GameClock(game_start_tick=0), aegis_events)
+        clock = GameClock(game_start_tick=0)
+        pickups = _aegis_pickup_seconds(aegis_events, clock)
+        deaths = _opendota_killed_deaths(entries, _H2S_WK, clock, pickups, samples)
         return [time_s for _, time_s in deaths]
 
     @staticmethod
@@ -1381,33 +1402,44 @@ class TestOpenDotaAegisRule:
 
         return AegisEvent(tick=time_s * 30, player_id=player_id, event_type=event_type)
 
-    def test_the_holders_death_is_skipped_and_a_later_one_counts(self):
+    def test_the_holders_first_death_is_skipped_and_a_later_one_counts(self):
         deaths = [_od_death(100, will_reincarnate=True), _od_death(130)]
         assert self._counted(deaths, [self._pickup(50)]) == [130]
 
-    def test_a_second_death_in_the_same_second_is_skipped_too(self):
+    def test_the_first_death_uses_up_the_pickup(self):
+        # A second death in the same second is a real death.
         deaths = [_od_death(100), _od_death(100), _od_death(130)]
-        assert self._counted(deaths, [self._pickup(50)]) == [130]
+        assert self._counted(deaths, [self._pickup(50)]) == [100, 130]
 
-    def test_a_new_pickup_keeps_the_earlier_death_second_as_opendota_does(self):
-        # OpenDota's processExpand sets only aegisHolder on a pickup, so a
-        # remembered death second from an earlier Aegis survives it. The new
-        # holder's first death (a different second) clears the state and
-        # counts. Deliberately not "fixed": this view reproduces OpenDota.
+    def test_each_pickup_covers_one_death(self):
+        # 9040268873: Kez reincarnates on two Aegises (2388 s and 3087 s), and
+        # OpenDota's kills_log has neither death. The old rule counted the second.
         deaths = [_od_death(100, will_reincarnate=True), _od_death(300, will_reincarnate=True)]
-        assert self._counted(deaths, [self._pickup(50), self._pickup(200)]) == [300]
+        assert self._counted(deaths, [self._pickup(50), self._pickup(200)]) == []
 
-    def test_aegis_regen_clears_the_holder(self):
+    def test_a_steal_is_a_pickup(self):
+        assert self._counted([_od_death(100)], [self._pickup(50, event_type="stolen")]) == []
+
+    def test_the_aegis_covers_300_seconds(self):
+        assert self._counted([_od_death(350)], [self._pickup(50)]) == []
+        assert self._counted([_od_death(351)], [self._pickup(50)]) == [351]
+
+    def test_a_death_before_the_pickup_counts(self):
+        assert self._counted([_od_death(40), _od_death(60)], [self._pickup(50)]) == [40]
+
+    def test_aegis_regen_no_longer_ends_the_aegis(self):
         regen = CombatLogEntry(
             tick=90 * 30, log_type="MODIFIER_ADD", inflictor_name="modifier_aegis_regen"
         )
-        assert self._counted([regen, _od_death(100)], [self._pickup(50)]) == [100]
+        assert self._counted([regen, _od_death(100)], [self._pickup(50)]) == []
 
     def test_a_denied_aegis_sets_no_holder(self):
         assert self._counted([_od_death(100)], [self._pickup(50, event_type="denied")]) == [100]
 
-    def test_a_pickup_on_the_death_tick_comes_first(self):
-        # Chat events arrive before a tick's combat log.
+    def test_another_players_aegis_does_not_cover_the_death(self):
+        assert self._counted([_od_death(100)], [self._pickup(50, player_id=0)]) == [100]
+
+    def test_a_pickup_in_the_death_second_covers_it(self):
         death = CombatLogEntry(
             tick=3000,
             game_time_s=100,
@@ -1417,10 +1449,73 @@ class TestOpenDotaAegisRule:
         )
         assert self._counted([death], [self._pickup(100)]) == []
 
+    def test_a_wraith_king_reincarnation_modifier_within_3s(self):
+        def modifier(time_s):
+            return CombatLogEntry(
+                tick=time_s * 30,
+                game_time_s=time_s,
+                log_type="MODIFIER_ADD",
+                inflictor_name="modifier_skeleton_king_reincarnation",
+                target_name=_WK,
+            )
+
+        assert self._counted([_wk_death(100), modifier(103)]) == []
+        assert self._counted([_wk_death(100), modifier(104)]) == [100]
+
+    def test_a_wraith_king_revive_within_4s_without_a_buyback(self):
+        # Dead from the 100 s read, alive again at 104 s.
+        samples = _intervals(range(90, 120), players=(1,), dead={(t, 1) for t in range(100, 104)})
+        assert self._counted([_wk_death(100)], samples=samples) == []
+
+    def test_a_slower_wraith_king_revive_is_a_death(self):
+        samples = _intervals(range(90, 120), players=(1,), dead={(t, 1) for t in range(100, 105)})
+        assert self._counted([_wk_death(100)], samples=samples) == [100]
+
+    def test_a_wraith_king_buyback_is_a_death(self):
+        samples = _intervals(range(90, 120), players=(1,), dead={(t, 1) for t in range(100, 103)})
+        buyback = CombatLogEntry(tick=101 * 30, game_time_s=101, log_type="BUYBACK", value=1)
+        assert self._counted([_wk_death(100), buyback], samples=samples) == [100]
+
+    def test_a_quick_revive_is_only_a_reincarnation_for_wraith_king(self):
+        samples = _intervals(range(90, 120), players=(5,), dead={(t, 5) for t in range(100, 103)})
+        assert self._counted([_od_death(100)], samples=samples) == [100]
+
     def test_self_kills_and_illusions_do_not_count(self):
         deaths = [
             _od_death(100, source="npc_dota_hero_lina"),  # Lina kills herself
             _od_death(110, target_is_illusion=True),
             _od_death(120),
         ]
-        assert self._counted(deaths, []) == [120]
+        assert self._counted(deaths) == [120]
+
+    def test_opendota_pickup_seconds_replace_the_event_ticks(self):
+        # OpenDota's chat clock can stamp a pickup a second before its tick's
+        # second; at the 300 s edge that decides the death.
+        from gem.state.game_clock import GameClock
+
+        pudge = "npc_dota_hero_pudge"
+        deaths = [_od_death(340, target=pudge), _od_death(345, target=pudge), _od_death(350)]
+        samples = _intervals(range(0, 400))
+
+        def fights(**kwargs):
+            return detect_opendota_teamfights(
+                deaths,
+                hero_to_slot=_H2S,
+                game_clock=GameClock(game_start_tick=0),
+                interval_samples=samples,
+                aegis_events=[self._pickup(50)],
+                **kwargs,
+            )
+
+        assert fights() == []  # Lina's 350 s death is within 50 + 300
+        (fight,) = fights(aegis_pickups_s=[(49, 5)])  # but not within 49 + 300
+        assert fight.deaths == 3
+
+    def test_teamfights_skip_a_wraith_king_reincarnation(self):
+        dead = {(t, 1) for t in range(105, 108)}
+        samples = _intervals(range(0, 200), players=(0, 1, 5, 6), dead=dead)
+        deaths = [_od_death(100), _wk_death(105), _od_death(110)]
+        assert _od_fights(deaths, samples, hero_to_slot=_H2S_WK) == []
+        deaths.append(_od_death(112, target="npc_dota_hero_pudge"))
+        (fight,) = _od_fights(deaths, samples, hero_to_slot=_H2S_WK)
+        assert fight.deaths == 3

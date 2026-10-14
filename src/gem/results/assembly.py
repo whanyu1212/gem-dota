@@ -1659,6 +1659,13 @@ def build_parsed_match(
         game_clock=clock,
         interval_samples=interval_samples if isinstance(interval_samples, list) else None,
         aegis_events=obj_ext.aegis_events,
+        # OpenDota's chat-clock second for each pickup (see _apply_chat_events).
+        aegis_pickups_s=[
+            (objective["time"], objective["slot"])
+            for objective in match.objectives
+            if objective.get("type") in ("CHAT_MESSAGE_AEGIS", "CHAT_MESSAGE_AEGIS_STOLEN")
+            and isinstance(objective.get("slot"), int)
+        ],
     )
 
     # teamfight_participation: read the authoritative game-computed value from
