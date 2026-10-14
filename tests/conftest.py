@@ -15,6 +15,7 @@ TI2026_LONG_MATCH_ID = 8856501050
 PERFORMANCE_BASELINE_MATCH_ID = 8822520406
 FEATURE_PARITY_MATCH_ID = 8855188139
 FIXED8_ENCODER_MATCH_ID = 9039619076
+AEGIS_REINCARNATION_MATCH_ID = 9040268873
 DEPRECATED_OPENDOTA_REPLAY_IDS = frozenset({8821954344, 8822593932})
 DEPRECATED_OPENDOTA_REPLAY_NAMES = frozenset(
     f"{match_id}.dem" for match_id in DEPRECATED_OPENDOTA_REPLAY_IDS
@@ -87,6 +88,12 @@ def performance_baseline_replay_path() -> Path:
 def fixed8_encoder_replay_path() -> Path:
     """Return the BLAST SLAM VIII replay whose send tables use the fixed8 encoder."""
     return _required_replay_path(FIXED8_ENCODER_MATCH_ID, "fixed8 encoder regression")
+
+
+@pytest.fixture(scope="session")
+def aegis_reincarnation_replay_path() -> Path:
+    """Return the BLAST SLAM VIII replay where Kez reincarnates on two Aegises."""
+    return _required_replay_path(AEGIS_REINCARNATION_MATCH_ID, "Aegis reincarnation regression")
 
 
 @pytest.fixture(scope="session")
