@@ -1488,6 +1488,11 @@ class TestOpenDotaReincarnationRule:
         ]
         assert self._counted(deaths) == [120]
 
+    def test_a_kill_by_an_illusion_of_the_victim_counts(self):
+        # 9039619076: Pangolier dies to his own Dark Portrait illusion at 2079 s.
+        death = _od_death(100, source="npc_dota_hero_lina", attacker_is_illusion=True)
+        assert self._counted([death]) == [100]
+
     def test_opendota_pickup_seconds_replace_the_event_ticks(self):
         # OpenDota's chat clock can stamp a pickup a second before its tick's
         # second; at the 300 s edge that decides the death.

@@ -12,13 +12,10 @@ Marked ``slow`` + ``integration``: needs the full ``.dem`` plus its
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
 
-FIXTURES_DIR = Path(__file__).parent / "fixtures" / "opendota"
-_MATCH_ID = 9039619076
 _SCALARS = (
     "hero_id",
     "kills",
@@ -45,16 +42,13 @@ pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 
 @pytest.fixture(scope="module")
-def parsed(fixed8_encoder_replay_path: Path):
-    import gem
-
-    return gem.parse(str(fixed8_encoder_replay_path))
+def parsed(fixed8_encoder_match):
+    return fixed8_encoder_match
 
 
 @pytest.fixture(scope="module")
-def opendota() -> dict:
-    path = FIXTURES_DIR / f"{_MATCH_ID}.opendota.json"
-    return json.loads(path.read_text(encoding="utf-8"))
+def opendota(fixed8_encoder_reference) -> dict:
+    return fixed8_encoder_reference
 
 
 def test_send_tables_use_the_fixed8_encoder(fixed8_encoder_replay_path: Path) -> None:

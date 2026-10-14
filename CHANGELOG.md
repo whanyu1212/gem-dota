@@ -36,7 +36,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `will_reincarnate`. OpenDota parses from before August still count some of them,
   so teamfights from older OpenDota JSON can differ by a death.
   `detect_opendota_teamfights` takes `aegis_pickups_s`, OpenDota's pickup seconds,
-  which `gem.parse` passes. The odota/parser pin moves to `4e35b344`.
+  which `gem.parse` passes.
+- **A kill by an illusion of the victim counts** (HY-237, odota/parser
+  `c206d0db`). An illusion of the victim (Dark Portrait, Disruption, Wall of
+  Replica) carries the victim's unit name, so gem dropped its kill as a suicide.
+  It is now credited to the illusion's owner in `kills_log`, `killed`,
+  `killed_by` and `opendota_teamfights`, as OpenDota has done since August 2026.
+  On 9039619076 Pangolier dies to Grimstroke's Dark Portrait at 2079 s; gem now
+  matches OpenDota there on every audited field. The odota/parser pin moves to
+  `5018d019`.
 
 ## [0.13.0] - 2026-10-13
 
