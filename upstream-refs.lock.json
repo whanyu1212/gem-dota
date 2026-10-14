@@ -33,7 +33,7 @@
     {
       "repository": "odota/parser",
       "branch": "master",
-      "commit": "4e35b344f66d4d38822cade640d4d8d62016edff",
+      "commit": "5018d0193a46138f7768509132c310439599775d",
       "role": "Output-schema authority",
       "watch": [
         "src/main/java/opendota/CreateParsedDataBlob.java",
