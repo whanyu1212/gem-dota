@@ -120,6 +120,24 @@ def feature_parity_match() -> "ParsedMatch":
 
 
 @pytest.fixture(scope="session")
+def fixed8_encoder_match(fixed8_encoder_replay_path: Path) -> "ParsedMatch":
+    """Share read-only output of the BLAST SLAM VIII build-6956 fixture (9039619076)."""
+    import gem
+
+    return gem.parse(str(fixed8_encoder_replay_path))
+
+
+@pytest.fixture(scope="session")
+def fixed8_encoder_reference() -> dict:
+    """Load the 9039619076 OpenDota reference (a parse with OpenDota's current rules)."""
+    path = OPENDOTA_FIXTURES_DIR / f"{FIXED8_ENCODER_MATCH_ID}.opendota.json"
+    if not path.exists():
+        pytest.skip(f"OpenDota reference {path.name} not available")
+    with path.open() as stream:
+        return json.load(stream)
+
+
+@pytest.fixture(scope="session")
 def feature_parity_reference() -> dict:
     """Load the read-only OpenDota reference once, only for tests that need it."""
     path = OPENDOTA_FIXTURES_DIR / f"{FEATURE_PARITY_MATCH_ID}.opendota.json"

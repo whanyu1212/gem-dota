@@ -653,8 +653,8 @@ def _opendota_killed_deaths(
     """Return the hero deaths OpenDota turns into ``killed`` entries, with their second.
 
     A death that triggers a reincarnation is skipped (see
-    :class:`_OpenDotaReincarnations`). Self-kills never count, nor do
-    illusions.
+    :class:`_OpenDotaReincarnations`). Suicides never count, nor do
+    illusions' deaths; a kill by an illusion of the victim does.
 
     Reference: odota/parser CreateParsedDataBlob.java ``processExpand`` and
     ``handleDeathCombat``.
@@ -672,11 +672,17 @@ def _opendota_killed_deaths(
         key_slot = None if entry.target_is_illusion else hero_to_slot.get(entry.target_name)
         if reincarnations.consume(key_slot, time_s):
             continue
-        if entry.target_is_illusion or entry.attacker_name == entry.target_name:
+        if entry.target_is_illusion or _is_suicide(entry):
             continue
         if entry.target_is_hero:
             deaths.append((entry, time_s))
     return deaths
+
+
+def _is_suicide(entry: CombatLogEntry) -> bool:
+    # An illusion of the victim (Dark Portrait, Disruption, Wall of Replica)
+    # has the victim's name, but its kill is the illusion owner's.
+    return entry.attacker_name == entry.target_name and not entry.attacker_is_illusion
 
 
 def _aegis_pickup_seconds(

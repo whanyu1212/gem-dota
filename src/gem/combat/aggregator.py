@@ -285,8 +285,13 @@ class _CombatAggregator:
             self._agg(target_pid).damage_inflictor_received[inflictor] += entry.value
 
     def _is_self_death(self, entry: Any) -> bool:
-        """Return whether a DEATH entry is a self-kill OpenDota would ignore."""
-        if not entry.target_name:
+        """Return whether a DEATH entry is a self-kill OpenDota would ignore.
+
+        An illusion of the victim (Dark Portrait, Disruption, Wall of Replica)
+        has the victim's unit name, but its kill counts: OpenDota credits it to
+        the illusion's owner (odota/parser ``handleDeathCombat``).
+        """
+        if not entry.target_name or entry.attacker_is_illusion:
             return False
         return entry.attacker_name == _illusion_key(entry.target_name, entry.target_is_illusion)
 
@@ -388,7 +393,7 @@ class _CombatAggregator:
                     self._agg(target_pid).xp_reasons[str(entry.xp_reason)] += entry.value
             case CombatLogType.DEATH:
                 # OpenDota's DOTA_COMBATLOG_DEATH expansion uses sourcename as
-                # the killing unit and ignores self-kills. This is crucial for
+                # the killing unit and ignores suicides. This is crucial for
                 # multi-summon heroes: their transient units often appear as the
                 # attacker, while damage_source_name is the owning hero.
                 if self._is_self_death(entry):

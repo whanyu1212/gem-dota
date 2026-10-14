@@ -858,3 +858,19 @@ class TestMultiKillsStreaksAndKilledBy:
             )
         )
         assert 1 not in agg.players or not agg.players[1].killed_by
+
+    def test_a_kill_by_an_illusion_of_the_victim_is_credited_to_its_owner(self):
+        # Dark Portrait: an illusion of Mirana, owned by Axe, kills Mirana. It
+        # has her unit name, but it is no suicide (odota/parser c206d0db).
+        agg = _two_hero_agg()
+        agg.on_entry(
+            _entry(
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_mirana",
+                attacker_is_illusion=True,
+                damage_source_name="npc_dota_hero_axe",
+                target_is_hero=True,
+            )
+        )
+        assert agg.players[1].killed_by == {"npc_dota_hero_axe": 1}
+        assert [e.target_name for e in agg.players[0].kills_log] == ["npc_dota_hero_mirana"]
