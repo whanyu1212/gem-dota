@@ -27,6 +27,7 @@ from gem.results.models import (
 from gem.state.game_clock import GameClock, GamePause
 from tests._lanes import MID as MID_CELL, TOP as TOP_CELL, lanes_match as _lanes_match
 from tests._runes import AXE, LINA, PUDGE, SF, runes_match as _runes_match
+from tests._stacks import LION, TIMBER, stacks_match as _stacks_match
 
 COOKBOOK = Path(__file__).resolve().parent.parent / "examples" / "cookbook"
 
@@ -48,6 +49,7 @@ objectives = _recipe("objectives")
 lead = _recipe("lead")
 lanes = _recipe("lanes")
 runes = _recipe("runes")
+stacks = _recipe("stacks")
 
 
 def _fight(first_death_tick: int, winner: str) -> Fight:
@@ -202,6 +204,10 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
         rune_rows = runes.rune_table(canonical_parsed_match)
         openers = runes.opening_bounties(canonical_parsed_match, rune_rows)
         windows = runes.rune_windows(canonical_parsed_match)
+        stack_rows = stacks.stack_table(canonical_parsed_match)
+        stacked = stacks.stacked_creeps(canonical_parsed_match)
+        flow_rows = stacks.flows(stacked)
+        player_rows = stacks.player_table(canonical_parsed_match, stack_rows, stacked)
 
     assert len(rosh) == len(canonical_parsed_match.roshans)
     assert list(rosh.columns) == roshan_next_fight.COLUMNS
@@ -255,6 +261,20 @@ def test_recipes_run_on_a_replay_without_deprecation_warnings(canonical_parsed_m
     ]
     assert list(windows.columns) == runes.WINDOW_COLUMNS and len(windows) == len(power)
     assert (windows["end_s"] >= windows["start_s"]).all()
+    # Every stack is listed once with its creeps, and every player's stacks add up.
+    assert list(stack_rows.columns) == stacks.STACK_COLUMNS and len(stack_rows) == len(
+        match.camp_stacks
+    )
+    assert stack_rows["creeps"].sum() == len(stacked) and set(stack_rows["role"]) <= {
+        "support",
+        "core",
+    }
+    assert list(flow_rows.columns) == stacks.FLOW_COLUMNS and flow_rows["creeps"].sum() <= len(
+        stacked
+    )
+    assert list(player_rows.columns) == stacks.PLAYER_COLUMNS
+    assert player_rows["stacks"].sum() == len(match.camp_stacks)
+    assert (player_rows["gold"] <= player_rows["neutral_gold"]).all()
 
 
 def test_recipes_fall_back_to_hero_teams_without_combat_log_teams() -> None:
@@ -1096,3 +1116,47 @@ def test_runes_puts_each_spot_on_the_map() -> None:
     assert runes.spot_of(17600, 15200) == "bot_river"
     assert runes.spot_of(15400, 20800) == "dire_jungle"
     assert runes.spot_of(17000, 11700) == "radiant_jungle"
+
+
+def test_stacks_lists_each_stack_with_its_stacker_and_creeps() -> None:
+    table = stacks.stack_table(_stacks_match())
+
+    # The camp's second stack holds only the wave it spawned: the rest are the first's.
+    assert table[
+        ["time_s", "camp", "hero", "role", "exact", "waves", "creeps"]
+    ].values.tolist() == [
+        [240, 3, LION, "support", True, 2, 5],
+        [300, 3, LION, "support", True, 3, 1],
+        [300, 6, "npc_dota_hero_nevermore", "core", False, 2, 2],
+    ]
+
+
+def test_stacks_credits_each_stacked_creep_to_its_killer() -> None:
+    match = _stacks_match()
+    creeps = stacks.stacked_creeps(match)
+
+    # Two kills on one tick split the tick's gold; a pulled or living creep gives none.
+    assert creeps["gold"].tolist() == [40, 50, 50, 70, 0, 0, 30, 30]
+    assert creeps["pulled"].tolist() == [False] * 5 + [True, False, False]
+    flows = stacks.flows(creeps)
+    assert flows[["stacker", "killer", "enemy", "creeps", "gold"]].values.tolist() == [
+        [LION, TIMBER, False, 2, 100],
+        ["npc_dota_hero_nevermore", "npc_dota_hero_rubick", False, 2, 60],
+        [LION, LION, False, 1, 40],
+        [LION, "npc_dota_hero_nevermore", True, 1, 70],
+    ]
+    players = stacks.player_table(match, creeps=creeps).set_index("hero")
+    assert players.loc[LION, ["role", "stacks", "exact", "killed", "gold"]].tolist() == [
+        "support",
+        2,
+        2,
+        1,
+        40,
+    ]
+    # Neutral gold counts every neutral kill, stacked or not.
+    assert players.loc[TIMBER, ["role", "killed", "gold", "neutral_gold"]].tolist() == [
+        "core",
+        2,
+        100,
+        300,
+    ]

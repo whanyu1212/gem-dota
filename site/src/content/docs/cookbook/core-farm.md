@@ -69,3 +69,5 @@ offlane        580.08     101.50          52.31      0.50   0.04        0.45
 - For camp-by-camp visits, use `gem.build_farming_routes(match)`; each segment
   has its camp, ticks, neutral kills and the gold and XP earned during the visit.
 - Swap `total_earned_gold_t_min` for `total_earned_xp_t_min` to compare XP.
+- For the camps stacked for a core, and who stacked them, see the
+  [stacks recipe](./stacks).

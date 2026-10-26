@@ -17,6 +17,7 @@ anything deprecated in 0.12.
 | [What moved the gold and XP lead?](./lead) | The gold ledger, total earned gold and XP, XP and deaths in the combat log |
 | [How did each lane go?](./lanes) | Hero positions on OpenDota's lane grid, minute curves, the gold ledger, deaths and teleports in the combat log |
 | [Who took each rune, and what happened while a power rune lasted?](./runes) | `match.runes`, `PICKUP_RUNE` entries, rune buffs, kills and damage in the combat log, buildings and Roshan kills |
+| [Who stacked each camp, who cleared it, and what did the stacks give?](./stacks) | `match.camp_stacks`, `match.neutral_creeps`, neutral-kill gold and deaths in the combat log, last hits |
 
 ## How the recipes are laid out
 
@@ -41,7 +42,7 @@ matches and on a fixture replay, so the code on these pages runs as shown.
 ## The sample
 
 The outputs come from the TI match 8974053011 (MOUZ vs Natus Vincere; the wards,
-fights, objectives, lead, lanes and runes recipes use 8856501050, the home page's match) and, for the totals, the 9 local
+fights, objectives, lead, lanes, runes and stacks recipes use 8856501050, the home page's match) and, for the totals, the 9 local
 fixture replays (`tests/fixtures/opendota/`). Nine pro
 matches are enough to show the method, not to draw conclusions; run the same
 code over your own replays.
