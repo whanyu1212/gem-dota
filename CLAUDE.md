@@ -30,8 +30,12 @@ uv run pytest --cov=gem --cov-report=term-missing
 # Explicit fast loop — equivalent to the default marker filter
 uv run pytest -m "not slow and not integration and not network"
 
-# Offline integration suite (requires local replay fixtures)
-uv run pytest -m "integration and not network"
+# Offline integration suite (requires local replay fixtures); 4 workers, one per
+# shared parsed replay (tests/conftest.py groups them)
+uv run pytest -m "integration and not network" -n 4 --dist loadgroup
+
+# OpenDota parity checks the parity audit repeats; run with the audit
+uv run pytest -m corpus -n 4 --dist loadgroup
 
 # All offline tests
 uv run pytest -m "not network"
@@ -618,14 +622,20 @@ scripts (`test_audit_camp_annotations.py`, `test_audit_opendota_fixture_constant
 - `uv run pytest` skips `slow`, `integration`, and `network` markers by default so local
   checks do not fetch or parse large replay files accidentally. Use `-m ""` to
   include every marker category in a full local run.
-- Full `.dem` files belong in tests marked `integration` and `slow`. Small
+- Full `.dem` files belong in tests marked `integration` and `slow`. A test that
+  checks OpenDota parity the audit already compares is marked `corpus` and `slow`
+  instead. A test that needs a whole parse should use a shared session fixture
+  (`canonical_parsed_match`, `canonical_replay_pass`, `feature_parity_match`,
+  `fixed8_encoder_match`; `SHARED_PARSE_FIXTURES` in `tests/conftest.py`), so each
+  replay is parsed once per run. Small
   committed truncated replays remain permissible in the fast suite. Live external
   services require the `network` marker; mocked network unit tests do not.
 - `tests/test_draft_integration.py` is intentionally a one-replay remote smoke
   test by default; set `GEM_DRAFT_INTEGRATION_FULL=1` when you need the broader
   five-replay OpenDota sample.
 - Run touched tests during iteration and the fast suite plus lint/type checks for
-  every PR. Run relevant offline integration for parser changes. Use broader
+  every PR. Run relevant offline integration for parser changes, and the `corpus`
+  tier with the parity audit for changes to OpenDota-compatible output. Use broader
   parity matrices and performance benchmarks for releases or changes that warrant
   them; they are not required for every small edit.
 - For changes to OpenDota-compatible output, run

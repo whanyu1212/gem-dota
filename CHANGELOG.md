@@ -60,6 +60,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     field-path depth (4,096 for a top-level field, 2,048 one level down, …) raises
     `EntityStateError` as a decoder desync, as Clarity does, instead of growing the
     entity's state.
+- **`scripts/audit_opendota_parity.py` reports mismatches against OpenDota JSON
+  older than a rule change as stale, apart from gem's mismatches** (HY-238).
+  OpenDota does not re-parse a match it has already parsed, so the JSON of the 7
+  fixtures it parsed before odota/parser `efe5794b` (August 2026: an Aegis
+  reincarnation is no longer a death) cannot be refreshed. Their manifest entries
+  now carry `opendota_json_predates: ["efe5794b"]`, and the audit counts their
+  `teamfights`, `kills_log`, `killed` and `killed_by` mismatches (3 fixtures)
+  apart from the field's total. Every other field is compared as before.
+- **The fixture corpus gains three post-TI2026 matches and drops 8821954344.**
+  9018736585 (PGL Wallachia Season 9 final, 25 min), 9040578015 (BLAST SLAM VIII
+  grand final, game 4, 57 min) and 9038120227 (BLAST SLAM VIII playoffs, 65 min)
+  have OpenDota parses made after `efe5794b`, so the parity audit compares every
+  field on them. No pytest test parses them; the integration suite takes as long
+  as before. 8821954344, a deprecated DreamLeague replay OpenDota never parsed,
+  is removed from the manifest, and the runes recipe's example of a buff longer
+  than usual now comes from 8855242704.
+- **The offline integration tests parse each replay once and run on 4 workers**
+  (HY-383). A run used to parse 25 whole replays; the canonical one alone
+  was parsed 9 times by tests that ran their own parser.
+  - A new `corpus` marker (still `slow`) holds the OpenDota parity checks the
+    parity audit repeats on every fixture: chat-event times (`runes_log`,
+    `objectives`), the interval arrays, the hero-name combat dicts, and the gold
+    ledger on 8855242704 and 8856501050. Run them with the audit:
+    `uv run pytest -m corpus -n 4 --dist loadgroup`. The `integration` tier now
+    parses 10 replays.
+  - `canonical_replay_pass` (`tests/conftest.py`) runs the parser once over the
+    canonical replay for the tests that read the parser or its extractors
+    directly. The camp-spawner check stops after the tick the spawners appear.
+  - pytest-xdist joins the dev dependencies. Run `uv run pytest -m "integration
+    and not network" -n 4 --dist loadgroup`: a collection hook puts every test
+    that shares a parsed replay on one worker, so it is parsed once.
 
 ### Removed
 

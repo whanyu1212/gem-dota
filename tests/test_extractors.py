@@ -18,27 +18,10 @@ import pytest
 @pytest.mark.integration
 class TestExtractorsIntegration:
     @pytest.fixture(scope="class")
-    def extractors(self, full_replay_path):
-        """Parse the replay once per class and share the attached extractors.
-
-        Class-scoped so the full replay fixture is parsed a single time for the whole
-        class instead of once per test method.
-
-        Returns:
-            A ``(players, objectives, wards)`` tuple of populated extractors.
-        """
-        from gem.extractors import ObjectivesExtractor, PlayerExtractor, WardsExtractor
-        from gem.parser import ReplayParser
-
-        parser = ReplayParser(str(full_replay_path))
-        players = PlayerExtractor(sample_interval=300)
-        objectives = ObjectivesExtractor()
-        wards = WardsExtractor()
-        players.attach(parser)
-        objectives.attach(parser)
-        wards.attach(parser)
-        parser.parse()
-        return players, objectives, wards
+    def extractors(self, canonical_replay_pass):
+        """The shared canonical run's ``(players, objectives, wards)`` extractors."""
+        run = canonical_replay_pass
+        return run.players, run.objectives, run.wards
 
     def test_objectives_tower_kills_positive(self, extractors):
         _, objectives, _ = extractors

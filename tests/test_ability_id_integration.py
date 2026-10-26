@@ -12,13 +12,10 @@ Reference: skadistats/clarity S2DecoderFactory.java (signed ID types such as
 from __future__ import annotations
 
 from collections import Counter
-from pathlib import Path
 
 import pytest
 
-from gem.parser import ReplayParser
-from gem.results.models import NeutralItemFoundEvent
-from gem.state.entities import Entity, EntityOp
+from gem.state.entities import Entity
 
 _TEAM_DATA = ("CDOTA_DataRadiant", "CDOTA_DataDire", "CDOTADataRadiant", "CDOTADataDire")
 _TIERS = 5
@@ -44,24 +41,17 @@ def _picks(entity: Entity) -> tuple[Counter[int], Counter[int]]:
 
 @pytest.mark.integration
 @pytest.mark.slow
-def test_neutral_craft_picks_match_found_neutral_items(ti2026_short_replay_path: Path) -> None:
-    team_data: dict[int, Entity] = {}
-    finds: list[NeutralItemFoundEvent] = []
-
-    def track(entity: Entity, op: EntityOp) -> None:
-        if not op & EntityOp.DELETED and entity.cls.name.startswith(_TEAM_DATA):
-            team_data[entity.index] = entity
-
-    parser = ReplayParser(str(ti2026_short_replay_path))
-    parser.on_entity(track)
-    parser.on_neutral_item_found(finds.append)
-    parser.parse()
-
+def test_neutral_craft_picks_match_found_neutral_items(canonical_replay_pass) -> None:
+    parser, finds = canonical_replay_pass.parser, canonical_replay_pass.neutral_item_finds
     assert parser.parse_error is None
+    assert parser.entity_manager is not None
+    team_data = parser.entity_manager.filter(lambda e: e.cls.name.startswith(_TEAM_DATA))
+
+    assert len(team_data) == 2
     assert finds, "fixture has no neutral item finds"
     trinkets: Counter[int] = Counter()
     enhancements: Counter[int] = Counter()
-    for entity in team_data.values():
+    for entity in team_data:
         t, e = _picks(entity)
         trinkets += t
         enhancements += e

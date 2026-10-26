@@ -2,29 +2,6 @@
   "schema_version": 2,
   "matches": [
     {
-      "match_id": 8821954344,
-      "name": "dreamleague-s29-long",
-      "dem": "8821954344.dem",
-      "opendota_json": "8821954344.opendota.json",
-      "status": "deprecated",
-      "tier": "archive",
-      "capabilities": [
-        "long-match",
-        "opendota-parity"
-      ],
-      "replaced_by": 8856501050,
-      "fetched_at": "2026-05-24T01:34:19Z",
-      "duration": 5763,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay272.valve.net/570/8821954344_416769358.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 324684755,
-      "dem_sha256": "56c794a8af0a38703fca4181930033619404eec2aa36b8cf3c84168b823429fd",
-      "note": "DreamLeague Season 29 patch 60 long late-game fixture; superseded as the default long stress role by TI2026 match 8856501050"
-    },
-    {
       "match_id": 8822520406,
       "name": "dreamleague-s29-performance-baseline",
       "dem": "8822520406.dem",
@@ -46,7 +23,10 @@
       "artifact_url": null,
       "dem_size_bytes": 98983300,
       "dem_sha256": "5f976ab73b2efb0e4eca9f7f14d5980f3aae5f63e7952e16a8497eeded57d39d",
-      "note": "DreamLeague Season 29 patch 60 short playoff fixture; retained through issues #144-#148 for comparison with performance baseline #143"
+      "note": "DreamLeague Season 29 patch 60 short playoff fixture; retained through issues #144-#148 for comparison with performance baseline #143",
+      "opendota_json_predates": [
+        "efe5794b"
+      ]
     },
     {
       "match_id": 8822593932,
@@ -69,7 +49,10 @@
       "artifact_url": null,
       "dem_size_bytes": 146656180,
       "dem_sha256": "0860d4bd6c50d82dbaf863cae244c8aaf9af78a1b53d0a5915988593db3177fa",
-      "note": "DreamLeague Season 29 patch 60 recent playoff fixture; superseded as the default medium validation role by TI2026 match 8860187335"
+      "note": "DreamLeague Season 29 patch 60 recent playoff fixture; superseded as the default medium validation role by TI2026 match 8860187335",
+      "opendota_json_predates": [
+        "efe5794b"
+      ]
     },
     {
       "match_id": 8855188139,
@@ -95,7 +78,10 @@
       "artifact_url": null,
       "dem_size_bytes": 184151707,
       "dem_sha256": "3fa4e1e9b2e4168f421c975f8f591ad34e9de2ff01c92977ed20c19ab7866044",
-      "note": "Feature-specific regression fixture for Roshan drops, banner plants, purchases, final inventory, and derived kills"
+      "note": "Feature-specific regression fixture for Roshan drops, banner plants, purchases, final inventory, and derived kills",
+      "opendota_json_predates": [
+        "efe5794b"
+      ]
     },
     {
       "match_id": 8855242704,
@@ -119,7 +105,10 @@
       "artifact_url": null,
       "dem_size_bytes": 300386331,
       "dem_sha256": "8775c564a7062672443921ddc91f9b16235e16ec85368e6b3943b72fa32398cd",
-      "note": "Feature-specific regression fixture for the final interval XP source and boundary behavior"
+      "note": "Feature-specific regression fixture for the final interval XP source and boundary behavior",
+      "opendota_json_predates": [
+        "efe5794b"
+      ]
     },
     {
       "match_id": 8856501050,
@@ -143,7 +132,10 @@
       "artifact_url": null,
       "dem_size_bytes": 385487555,
       "dem_sha256": "0f7577525b995347ed9df0c793cc8661c2a9db4ee176bf35cb5dd940e5af17e2",
-      "note": "TI2026 China regional qualifier: long 93-minute fixture for stress, memory, and OpenDota parity validation"
+      "note": "TI2026 China regional qualifier: long 93-minute fixture for stress, memory, and OpenDota parity validation",
+      "opendota_json_predates": [
+        "efe5794b"
+      ]
     },
     {
       "match_id": 8860187335,
@@ -167,7 +159,10 @@
       "artifact_url": null,
       "dem_size_bytes": 212649245,
       "dem_sha256": "b42f5d07d62d5c09a55c429dd7cb0f57c03c2f0c90e16e4397eb8c26d717cee4",
-      "note": "TI2026 Southeast Asia regional qualifier: medium 50-minute fixture for extended OpenDota parity validation"
+      "note": "TI2026 Southeast Asia regional qualifier: medium 50-minute fixture for extended OpenDota parity validation",
+      "opendota_json_predates": [
+        "efe5794b"
+      ]
     },
     {
       "match_id": 8868259993,
@@ -192,7 +187,10 @@
       "artifact_url": null,
       "dem_size_bytes": 89720955,
       "dem_sha256": "a0560e349ccd30d7f58a97747d33e3d2a6033c11d54a848fe3918a044650a622",
-      "note": "TI2026 North America regional qualifier: short 19-minute canonical integration and OpenDota parity fixture"
+      "note": "TI2026 North America regional qualifier: short 19-minute canonical integration and OpenDota parity fixture",
+      "opendota_json_predates": [
+        "efe5794b"
+      ]
     },
     {
       "match_id": 8974053011,
@@ -217,6 +215,52 @@
       "dem_size_bytes": 128411224,
       "dem_sha256": "8e17a913425908be62aa85d0fd501a3527c54f8a76d896120f3943249886b1da",
       "note": "Roshan conversion calibration fixture with a denied Aegis followed by a later normal pickup"
+    },
+    {
+      "match_id": 9018736585,
+      "name": "pgl-wallachia-s9-short",
+      "dem": "9018736585.dem",
+      "opendota_json": "9018736585.opendota.json",
+      "status": "active",
+      "tier": "regression",
+      "capabilities": [
+        "opendota-parity",
+        "short-match"
+      ],
+      "replaced_by": null,
+      "fetched_at": "2026-10-26T12:52:03Z",
+      "duration": 1510,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay191.valve.net/570/9018736585_1634939129.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 99656328,
+      "dem_sha256": "47983661bbf5b78917a3a8a93ca2133e286b0a07d97567b0cb53cd6303dc4561",
+      "note": "PGL Wallachia 2026 Season 9 final, game 1 (Natus Vincere vs Team Yandex), 25 min; OpenDota parsed it after odota/parser efe5794b"
+    },
+    {
+      "match_id": 9038120227,
+      "name": "blast-slam-viii-long",
+      "dem": "9038120227.dem",
+      "opendota_json": "9038120227.opendota.json",
+      "status": "active",
+      "tier": "regression",
+      "capabilities": [
+        "long-match",
+        "opendota-parity"
+      ],
+      "replaced_by": null,
+      "fetched_at": "2026-10-26T12:53:10Z",
+      "duration": 3916,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay271.valve.net/570/9038120227_1341401166.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 216231019,
+      "dem_sha256": "93542be5101bdc220e2fbb434db5887e088c979639cbdc9490fc3c2c47afcb7c",
+      "note": "BLAST SLAM VIII playoffs (PARIVISION vs Aurora Gaming), 65 min; OpenDota parsed it after odota/parser efe5794b"
     },
     {
       "match_id": 9039619076,
@@ -265,6 +309,29 @@
       "dem_size_bytes": 182086072,
       "dem_sha256": "301965d2711bb38ffe4424eb68b924bd78c66cf9c65ce9f2f3c0a42797dd80ca",
       "note": "BLAST SLAM VIII (Team Spirit vs Team Yandex), game build 6956: Kez reincarnates on two Aegises (2388 s, 3087 s), and OpenDota's August 2026 reincarnation rule (odota/parser efe5794b) counts neither death; regression for HY-178"
+    },
+    {
+      "match_id": 9040578015,
+      "name": "blast-slam-viii-grand-final-decider",
+      "dem": "9040578015.dem",
+      "opendota_json": "9040578015.opendota.json",
+      "status": "active",
+      "tier": "regression",
+      "capabilities": [
+        "medium-match",
+        "opendota-parity"
+      ],
+      "replaced_by": null,
+      "fetched_at": "2026-10-26T12:52:16Z",
+      "duration": 3400,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay271.valve.net/570/9040578015_350559250.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 184606189,
+      "dem_sha256": "8c84fe54c3b67fe8d8bbe3b9e7f45ab16d0b49a13de04ed18978e6be0d402181",
+      "note": "BLAST SLAM VIII grand final, game 4 (Team Yandex vs Team Spirit), 57 min, the game that decided the series; OpenDota parsed it after odota/parser efe5794b"
     }
   ]
 }

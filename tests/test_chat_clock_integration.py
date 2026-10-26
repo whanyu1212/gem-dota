@@ -5,8 +5,9 @@ its running clock from ``@OnTickStart`` (odota/parser Parse.java). gem
 reproduces that clock per outer tick; rune pickups and chat-type objectives must
 carry OpenDota's exact times.
 
-Marked ``slow`` + ``integration``: needs the full ``.dem`` plus its
-``.opendota.json``.
+Marked ``slow`` + ``corpus``: needs the full ``.dem`` plus its ``.opendota.json``.
+The parity audit compares the same ``runes_log`` and ``objectives`` on every
+fixture.
 """
 
 from __future__ import annotations
@@ -36,7 +37,7 @@ def _objective_key(entry: dict) -> tuple:
 
 
 @pytest.mark.slow
-@pytest.mark.integration
+@pytest.mark.corpus
 class TestChatEventClock:
     @pytest.fixture(scope="class", params=_MATCH_IDS)
     def parsed(self, request):

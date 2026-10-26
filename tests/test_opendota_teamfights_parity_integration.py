@@ -11,6 +11,10 @@ HY-87 fixed:
 The stored OpenDota JSON predates odota/parser ``efe5794b`` (August 2026): its
 fight at 1847 s counts Ember Spirit's Aegis reincarnation at 1865 s. gem follows
 the new rule (HY-178), so that fight has two deaths and is not a teamfight.
+OpenDota does not re-parse a match it has already parsed, so this JSON cannot be
+refreshed (HY-238); the manifest marks it with ``opendota_json_predates``.
+``test_aegis_reincarnation_integration.py`` checks exact equality under the new
+rule on 9040268873.
 
 Marked ``slow`` + ``integration``: needs a real ``.dem`` plus its
 ``.opendota.json``.
