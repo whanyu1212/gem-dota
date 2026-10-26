@@ -573,9 +573,9 @@ class TestOnServerInfo:
         seen: list[int] = []
         real_parse = parser_module.parse_send_tables
 
-        def spy(data, game_build=0):
+        def spy(data, game_build=0, aliases=()):
             seen.append(game_build)
-            return real_parse(data, game_build)
+            return real_parse(data, game_build, aliases)
 
         with patch("gem.parser.parse_send_tables", side_effect=spy):
             p = ReplayParser(str(replay))

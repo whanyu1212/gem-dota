@@ -11,6 +11,11 @@ if TYPE_CHECKING:
     from gem.binary.reader import BitReader
 
 
+#: Bits per angle under ``qangle_precise``. Build 6956 replays declare it in the send
+#: tables (``coord_size_params.angle_bits``), which are checked against it.
+PRECISE_ANGLE_BITS = 20
+
+
 def _vector_normal_decoder(r: BitReader) -> list[float]:
     """Read a packed normalized 3D vector."""
     return list(r.read_3bit_normal())
@@ -50,7 +55,7 @@ def _qangle_factory(field: _FieldLike) -> FieldDecoder:
 
         def precise_angle(r: BitReader) -> list[float]:
             present = (r.read_boolean(), r.read_boolean(), r.read_boolean())
-            return [r.read_angle(20) if has else 0.0 for has in present]
+            return [r.read_angle(PRECISE_ANGLE_BITS) if has else 0.0 for has in present]
 
         return precise_angle
 
