@@ -132,6 +132,8 @@ class TestParsedMatchFieldOrder:
         "parse_error",
         "truncated_at_tick",
         "runes",
+        "neutral_creeps",
+        "camp_stacks",
     ]
 
     def test_positional_order_is_append_only(self):

@@ -121,6 +121,7 @@ TARGETS_BY_PAGE: dict[str, list[str]] = {
     "extractors/courier.md": ["gem.extractors.courier"],
     "extractors/draft.md": ["gem.extractors.draft"],
     "extractors/lane.md": ["gem.extractors.lane"],
+    "extractors/neutral_camps.md": ["gem.extractors.neutral_camps"],
     "extractors/objectives.md": ["gem.extractors.objectives"],
     "extractors/players.md": ["gem.extractors.players"],
     "extractors/runes.md": ["gem.extractors.runes"],

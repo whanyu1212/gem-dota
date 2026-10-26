@@ -13,6 +13,7 @@ extractor's output properties are ready to read.
 | `ObjectivesExtractor` | `gem.extractors.objectives` | Tower kills, barracks, Roshan kills, Tormentor kills |
 | `WardsExtractor` | `gem.extractors.wards` | Ward placements with coordinates |
 | `RuneExtractor` | `gem.extractors.runes` | Every rune: spawn, type, place, and how it ended |
+| `NeutralCampExtractor` | `gem.extractors.neutral_camps` | Every camp creep and camp stack, with stackers and killers |
 | `CourierExtractor` | `gem.extractors.courier` | Courier state per tick |
 | `DraftExtractor` | `gem.extractors.draft` | Pick and ban events |
 | `TeamfightsExtractor` | `gem.extractors.fights` | Fight window detection |

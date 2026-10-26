@@ -16,6 +16,7 @@ from gem.combat.log import CombatLogEntry, CombatLogSource
 from gem.extractors.courier import CourierSnapshot
 from gem.extractors.draft import DraftEvent
 from gem.extractors.fights import Fight, OpenDotaTeamfight
+from gem.extractors.neutral_camps import CampStack, NeutralCreep
 from gem.extractors.objectives import (
     AegisEvent,
     BannerPlant,
@@ -1113,6 +1114,12 @@ class ParsedMatch:
             Bottle and when it was used, denied, not taken, or still there).
             Wisdom runes are no entity; they are ``PICKUP_RUNE`` entries in
             ``combat_log``.
+        neutral_creeps: Every creep a neutral camp spawned, in spawn order: its
+            camp, when it spawned and died, and who killed it.
+        camp_stacks: Every camp that spawned a wave while an earlier wave was
+            still alive, in tick order, with the player the game credited
+            (``m_iCampsStacked``). A stacked creep is one of the camp's
+            ``neutral_creeps`` alive at the stack's tick.
         duration: OpenDota-style match duration in seconds. Complete replays use
             the exact value from the embedded ``CMsgDOTAMatch`` postgame summary;
             otherwise this falls back to horn-anchored combat-log time at
@@ -1192,6 +1199,8 @@ class ParsedMatch:
     parse_error: str | None = None
     truncated_at_tick: int | None = None
     runes: list[Rune] = field(default_factory=list)
+    neutral_creeps: list[NeutralCreep] = field(default_factory=list)
+    camp_stacks: list[CampStack] = field(default_factory=list)
     # Internal provenance for match-level values copied from CMsgDOTAMatch.
     _match_details_fields: set[str] = field(
         default_factory=set,

@@ -170,11 +170,13 @@ from gem.replays.fetch import (
 from gem.results.models import (
     BannerPlant,
     BuybackEvent,
+    CampStack,
     ChatEntry,
     EntityVisibilityEvent,
     GoldLedger,
     GoldLedgerSnapshot,
     HeroVisibilityEvent,
+    NeutralCreep,
     NeutralItemFoundEvent,
     ParsedMatch,
     ParsedPlayer,
@@ -227,6 +229,7 @@ def parse(path: str | Path) -> ParsedMatch:
     from gem.extractors.draft import DraftExtractor
     from gem.extractors.gold_ledger import BuybackSpendTracker
     from gem.extractors.intervals import IntervalExtractor
+    from gem.extractors.neutral_camps import NeutralCampExtractor
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.runes import RuneExtractor
@@ -246,6 +249,7 @@ def parse(path: str | Path) -> ParsedMatch:
     visibility_ext = VisibilityExtractor(player_ext)
     buyback_tracker = BuybackSpendTracker()
     rune_ext = RuneExtractor()
+    neutral_camp_ext = NeutralCampExtractor()
 
     player_ext.attach(p)
     visibility_ext.attach(p)
@@ -256,6 +260,7 @@ def parse(path: str | Path) -> ParsedMatch:
     draft_ext.attach(p)
     buyback_tracker.attach(p)
     rune_ext.attach(p)
+    neutral_camp_ext.attach(p)
 
     combat_agg = _CombatAggregator(player_ext)
     p.on_combat_log_entry(combat_agg.on_entry)
@@ -320,6 +325,7 @@ def parse(path: str | Path) -> ParsedMatch:
         buyback_spends=buyback_tracker.spends,
         chat_event_times=chat_event_times,
         runes=rune_ext.finalize(),
+        neutral_camp_ext=neutral_camp_ext,
     )
 
 
@@ -486,6 +492,8 @@ __all__ = [
     "GoldLedgerSnapshot",
     "BannerPlant",
     "Rune",
+    "NeutralCreep",
+    "CampStack",
     "GameClock",
     "GamePause",
     "SmokeEvent",

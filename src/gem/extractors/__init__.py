@@ -25,6 +25,7 @@ Example:
 
 from gem.extractors.courier import CourierExtractor, CourierSnapshot
 from gem.extractors.draft import DraftEvent, DraftExtractor
+from gem.extractors.neutral_camps import CampStack, NeutralCampExtractor, NeutralCreep
 from gem.extractors.objectives import BarracksKill, ObjectivesExtractor, RoshanKill, TowerKill
 from gem.extractors.players import PlayerExtractor, PlayerStateSnapshot, PlayerTimeSeries
 from gem.extractors.runes import Rune, RuneExtractor
@@ -46,4 +47,7 @@ __all__ = [
     "DraftEvent",
     "RuneExtractor",
     "Rune",
+    "NeutralCampExtractor",
+    "NeutralCreep",
+    "CampStack",
 ]

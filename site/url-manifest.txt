@@ -153,6 +153,7 @@
 /reference/extractors/draft
 /reference/extractors/fights
 /reference/extractors/lane
+/reference/extractors/neutral_camps
 /reference/extractors/objectives
 /reference/extractors/players
 /reference/extractors/runes
