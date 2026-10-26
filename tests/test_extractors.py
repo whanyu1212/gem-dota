@@ -84,6 +84,16 @@ class TestExtractorsIntegration:
 
 @pytest.mark.slow
 @pytest.mark.integration
+def test_ward_placer_is_the_players_hero(canonical_parsed_match):
+    """Ember Spirit entities with ``m_iPlayerID`` -1 read as slot 0 when unsigned (HY-176)."""
+    hero_by_slot = {player.player_id: player.hero_name for player in canonical_parsed_match.players}
+    attributed = [w for w in canonical_parsed_match.wards if w.player_id >= 0 and w.placer]
+    assert attributed
+    assert [w.placer for w in attributed] == [hero_by_slot[w.player_id] for w in attributed]
+
+
+@pytest.mark.slow
+@pytest.mark.integration
 def test_hero_hp_and_mana_follow_the_hero(canonical_parsed_match):
     """HP and mana are parallel to ``times``, bounded by their maxima, and 0 HP after a death."""
     import bisect

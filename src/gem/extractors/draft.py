@@ -195,16 +195,10 @@ class DraftExtractor:
         Resolution order:
         1. Live map built from hero entity class names (most accurate; populated
            by ``_update_live_map`` once hero entities spawn in the game phase).
-        2. ``heroes.json`` lookup with ``hero_id // 2`` — modern Dota 2 replays
-           store ALL pick/ban IDs as ``api_id * 2`` in entity fields, so halving
-           is always preferred over a direct lookup when the halved value resolves.
-        3. Static ``heroes.json`` direct lookup — fallback for legacy replays.
+        2. Static ``heroes.json`` lookup, for heroes without a spawned entity.
         """
         if hero_id in self._live_id_to_npc:
             return self._live_id_to_npc[hero_id]
-        half = hero_id // 2
-        if half in _HERO_ID_TO_NPC:
-            return _HERO_ID_TO_NPC[half]
         return _HERO_ID_TO_NPC.get(hero_id, "")
 
     def _update_live_map(self, pr: Entity) -> None:
@@ -300,9 +294,8 @@ class DraftExtractor:
         """Re-resolve all hero names using the fully-populated live map.
 
         During the draft phase hero entities have not yet spawned, so picks are
-        recorded with whatever the static fallback yields — which may be wrong
-        (e.g. direct-ID lookup returns ``kotl`` when the correct hero is
-        ``pugna`` because the replay stores ``api_id * 2``).  Call this after
+        recorded with whatever the static fallback yields, which misses heroes
+        newer than the bundled ``heroes.json``.  Call this after
         ``parser.parse()`` completes so that the live map (populated once hero
         entities appear) takes priority and corrects any mismatches.
         """

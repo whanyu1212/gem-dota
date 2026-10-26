@@ -649,12 +649,18 @@ class TestFindDecoderExtended:
         r = BitReader(b"\x01")  # zigzag -1
         assert dec(r) == -1
 
-    def test_ability_id_is_zigzag_signed(self):
-        # 3212 on the wire is item 1606 (polliwog_charm); 1 is the -1 padding.
-        field = FakeField(base_type="AbilityID_t")
-        dec = find_decoder(field)
-        assert dec(BitReader(_pack_varuint32(3212))) == 1606
-        assert dec(BitReader(b"\x01")) == -1
+    @pytest.mark.parametrize(
+        ("base_type", "wire", "value"),
+        [
+            ("AbilityID_t", 3212, 1606),  # item polliwog_charm
+            ("HeroID_t", 158, 79),  # shadow_demon
+            ("PlayerID_t", 12, 6),
+        ],
+    )
+    def test_id_types_are_zigzag_signed(self, base_type, wire, value):
+        dec = find_decoder(FakeField(base_type=base_type))
+        assert dec(BitReader(_pack_varuint32(wire))) == value
+        assert dec(BitReader(b"\x01")) == -1  # the "none" value
 
     def test_string_type(self):
         field = FakeField(base_type="CUtlString")
@@ -690,10 +696,13 @@ class TestFindDecoderByBaseType:
         r = BitReader(b"\x0a")
         assert dec(r) == 10
 
-    def test_ability_id_vector_elements_are_signed(self):
-        # CNetworkUtlVectorBase< AbilityID_t > children use this path.
-        dec = find_decoder_by_base_type("AbilityID_t")
-        assert dec(BitReader(_pack_varuint32(3730))) == 1865
+    @pytest.mark.parametrize(
+        ("base_type", "wire", "value"), [("AbilityID_t", 3730, 1865), ("HeroID_t", 158, 79)]
+    )
+    def test_id_vector_elements_are_signed(self, base_type, wire, value):
+        # CNetworkUtlVectorBase< AbilityID_t / HeroID_t > children use this path.
+        dec = find_decoder_by_base_type(base_type)
+        assert dec(BitReader(_pack_varuint32(wire))) == value
 
 
 # ---------------------------------------------------------------------------

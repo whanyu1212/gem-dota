@@ -107,8 +107,8 @@ def _pos(entity: Entity) -> tuple[float, float] | None:
 def _player_id_from_entity(entity: Entity | None, *, allow_owner: bool = False) -> int | None:
     """Resolve a hero/controller/owned-unit entity to a player slot (0-9).
 
-    Reads ``m_nPlayerID`` then ``m_iPlayerID`` and halves the raw value (the
-    replay stores ``slot * 2``). When ``allow_owner`` is set, also falls back to
+    Reads ``m_nPlayerID`` then ``m_iPlayerID``, skipping the ``-1`` "none"
+    value. When ``allow_owner`` is set, also falls back to
     ``m_iPlayerOwnerID`` — needed when the entity is an *owned unit* (e.g. a
     ward's owner unit) whose slot lives on the owning-player field.
 
@@ -120,7 +120,8 @@ def _player_id_from_entity(entity: Entity | None, *, allow_owner: bool = False) 
     so they never need the owner fallback.
 
     Mirrors ``getPlayerSlotFromEntity`` in
-    ``odota/parser src/main/java/opendota/Parse.java``.
+    ``odota/parser src/main/java/opendota/Parse.java``, except that OpenDota
+    halves the unsigned value and so reads ``-1`` as slot 0.
 
     Args:
         entity: The entity to read from, or ``None``.
@@ -185,7 +186,7 @@ def _resolve_player_id(entity: Entity, mode: int) -> int | None:
             if mode == 2:
                 return None
             continue
-        player_id = val // 2
+        player_id = val
         if all(field.path is None or len(field.path) == 1 for field in fields[:field_count]):
             state = entity._field_state._state
             dependencies = tuple(
