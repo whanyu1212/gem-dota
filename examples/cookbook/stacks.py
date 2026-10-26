@@ -88,7 +88,8 @@ def stack_table(match: gem.ParsedMatch, role: dict[str, str] | None = None) -> p
     Returns:
         One row per stack, in time order, with ``STACK_COLUMNS``. ``exact`` is
         ``True`` when the game's credit left no choice of camp; ``creeps`` counts
-        the stacked creeps (the earlier waves alive and the new one).
+        the stacked creeps (the earlier waves alive and the new one), none for a
+        stack whose camp is unknown.
     """
     role = roles(match) if role is None else role
     heroes = {p.player_id: p for p in match.players}
@@ -111,16 +112,24 @@ def stack_table(match: gem.ParsedMatch, role: dict[str, str] | None = None) -> p
                 "creeps": held[id(stack)],
             }
         )
-    return pd.DataFrame(rows, columns=STACK_COLUMNS)
+    frame = pd.DataFrame(rows, columns=STACK_COLUMNS)
+    frame["camp"] = frame["camp"].astype("Int64")  # a camp off the catalog is <NA>
+    return frame
 
 
 def _stacked(match: gem.ParsedMatch) -> list[tuple[gem.CampStack, gem.NeutralCreep]]:
-    """Each stacked creep with the first stack of its camp it was alive at."""
+    """Each stacked creep with the first stack of its camp it was alive at.
+
+    A stack whose camp is unknown (its spawner matches no catalogued camp) gets
+    no creeps: they can't be told apart from another unknown camp's.
+    """
     by_camp: dict[int | None, list[gem.NeutralCreep]] = defaultdict(list)
     for creep in match.neutral_creeps:
         by_camp[creep.camp_id].append(creep)
     first: dict[int, tuple[gem.CampStack, gem.NeutralCreep]] = {}
     for stack in sorted(match.camp_stacks, key=lambda s: s.tick):
+        if stack.camp_id is None:
+            continue
         for creep in by_camp[stack.camp_id]:
             alive = creep.spawned_tick <= stack.tick and (
                 creep.died_tick is None or creep.died_tick > stack.tick

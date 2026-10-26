@@ -26,6 +26,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     for 95–98% of the creeps of non-flooded camps; the rest died on a tick another
     neutral died to someone else.
 
+- **Recipe: who stacked each camp, who cleared it, and what did the stacks give?**
+  (HY-379). `examples/cookbook/stacks.py` reads `match.camp_stacks` and
+  `match.neutral_creeps`: every stack with its stacker, every stacked creep (the
+  camp's creeps alive at the stack) with its killer and the gold it gave (the
+  killer's neutral-kill gold on its death tick, split over that tick's kills),
+  who cleared each player's stacks, and each player's stacks, stacked creeps
+  killed and gold. Supports are the two players per side with the fewest last
+  hits at 10:00, a choice the recipe states. On the 9 fixtures, supports made 129
+  of the 229 stacks, 41% of the stacked creeps were killed by their own stacker,
+  and cores took 10% of their neutral gold from stacked creeps. Its page has a
+  figure of the home page's match: who stacked for whom, the stacked camps on the
+  map, when each stack was made, and each player's numbers.
+
 ### Removed
 
 - **The HTML report** (HY-137), deprecated in 0.13: `gem.reports`

@@ -23,8 +23,8 @@ export interface Camp {
 /** [hero, side, stacked creeps killed]. */
 export type Clearer = [string, Side, number];
 
-/** [time_s, camp, hero, side, role, exact, waves, creeps, pulled, gold, cleared]. */
-export type Stack = [number, number, string | null, Side | "", Role | "", boolean, number, number, number, number, Clearer[]];
+/** [time_s, camp (null: off the camp catalog, so not on the map), hero, side, role, exact, waves, creeps, pulled, gold, cleared]. */
+export type Stack = [number, number | null, string | null, Side | "", Role | "", boolean, number, number, number, number, Clearer[]];
 
 /** [stacker, side, role, killer, side, role, creeps, gold]. */
 export type Flow = [string, Side, Role, string, Side, Role, number, number];

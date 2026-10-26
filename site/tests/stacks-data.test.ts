@@ -90,6 +90,6 @@ describe("stacks", () => {
     expect(snapshot.stacks.length).toBeGreaterThan(0);
     expect(snapshot.players).toHaveLength(10);
     const camps = new Set(snapshot.camps.map((c) => c.id));
-    expect(snapshot.stacks.every((s) => camps.has(s[1]))).toBe(true);
+    expect(snapshot.stacks.every((s) => s[1] === null || camps.has(s[1]))).toBe(true);
   });
 });

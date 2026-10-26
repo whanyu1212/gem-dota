@@ -1067,3 +1067,19 @@ def test_stacks_recipe_writes_each_stack_who_cleared_it_and_each_player() -> Non
     assert data["stacks"][1] == [300, 3, "Lion", "r", "s", True, 3, 1, 1, 0, []]
     assert data["flows"][0] == ["Lion", "r", "s", "Timbersaw", "r", "c", 2, 100]
     assert data["players"][0] == ["Lion", "r", "s", 2, 2, 1, 40, 75]
+
+
+def test_stacks_recipe_keeps_a_stack_whose_camp_is_unknown() -> None:
+    from gem.extractors.neutral_camps import CampStack, NeutralCreep
+    from tests._stacks import stacks_match
+
+    match = stacks_match()
+    # A spawner off the camp catalog: its stack and creeps have no camp id.
+    match.camp_stacks.append(CampStack(18000, None, "small", 1, 2, player_id=6, player_exact=True))
+    match.neutral_creeps.append(NeutralCreep(None, 17000, None))
+
+    data = export.stacks_recipe(match)
+
+    assert data["stacks"][-1] == [600, None, "Treant Protector", "d", "s", True, 2, 0, 0, 0, []]
+    assert [camp["id"] for camp in data["camps"]] == [3, 6]
+    assert data["players"][4][3] == 1  # Treant's stack still counts

@@ -898,7 +898,8 @@ def stacks_recipe(match: ParsedMatch) -> dict:
     per player who killed its creeps, most first. Each flow is ``[stacker, side,
     role, killer, side, role, creeps, gold]``, and each player ``[hero, side,
     role, stacks, exact, killed, gold, neutral_gold]``. Sides are ``r``/``d``,
-    roles ``s``/``c``.
+    roles ``s``/``c``. A stack whose camp is off the catalog has camp ``None``
+    and no creeps, and its camp is not on the map.
     """
     recipe = _cookbook("stacks")
     role = recipe.roles(match)
@@ -919,13 +920,14 @@ def stacks_recipe(match: ParsedMatch) -> dict:
         )
         out_stacks.append(
             [
-                int(s.time_s), int(s.camp), hero_display(s.hero) if s.hero else None, side.get(s.side or "", ""),
+                int(s.time_s), None if pd.isna(s.camp) else int(s.camp),
+                hero_display(s.hero) if s.hero else None, side.get(s.side or "", ""),
                 short.get(s.role or "", ""), bool(s.exact), int(s.waves), int(s.creeps),
                 int(mine["pulled"].sum()), round(killed["gold"].sum()),
                 [[hero_display(h), side[t], int(n)] for (h, t), n in cleared.items()],
             ]
         )  # fmt: skip
-    stacked = sorted({int(c) for c in stacks["camp"]})
+    stacked = sorted({int(c) for c in stacks["camp"].dropna()})
     end_tick = match.post_game_tick or match.game_end_tick or 0
     return {
         "end_s": match.game_clock.game_seconds_at(end_tick) if match.game_clock and end_tick else 0,
