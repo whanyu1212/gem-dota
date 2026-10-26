@@ -227,7 +227,10 @@ uv run python scripts/audit_opendota_parity.py --save-gem-json tmp/gem-json-afte
 It maps gem's output format onto OpenDota's and reports every shared field's match
 rate on the local fixtures OpenDota parsed. `--compare` lists what improved or got
 worse, and exits non-zero if any field got worse. `--gem-json-dir` re-audits cached
-output in seconds instead of re-parsing.
+output in seconds instead of re-parsing. OpenDota does not re-parse a match it has
+already parsed, so a fixture's JSON keeps the rules it was parsed with: a manifest
+entry's `opendota_json_predates` names the odota/parser rule changes it is older
+than, and the audit reports mismatches on the fields those touch as stale.
 The live draft smoke still supports `GEM_DRAFT_INTEGRATION_FULL=1` for its broader
 five-replay sample.
 

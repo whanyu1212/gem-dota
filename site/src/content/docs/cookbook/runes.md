@@ -62,7 +62,7 @@ A power rune's buff starts when it is taken, or when it is used from a Bottle.
 The combat log adds its modifier then and removes it when the buff ends, or
 earlier when the hero dies. The recipe takes that window as it is. A buff can
 run longer than its usual length, and the combat log's own duration agrees: in
-8821954344 a shield buff that began at 42:08 lasted 99.75 s.
+8855242704 a double damage buff that began at 26:48 lasted 57.6 s, not 45.
 
 An illusion rune has no buff. Its two illusions appear a few ticks after the
 pickup, and the window runs until both are gone, at most `ILLUSION_S` (75 s;

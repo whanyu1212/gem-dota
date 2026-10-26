@@ -60,6 +60,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     field-path depth (4,096 for a top-level field, 2,048 one level down, …) raises
     `EntityStateError` as a decoder desync, as Clarity does, instead of growing the
     entity's state.
+- **`scripts/audit_opendota_parity.py` reports mismatches against OpenDota JSON
+  older than a rule change as stale, apart from gem's mismatches** (HY-238).
+  OpenDota does not re-parse a match it has already parsed, so the JSON of the 7
+  fixtures it parsed before odota/parser `efe5794b` (August 2026: an Aegis
+  reincarnation is no longer a death) cannot be refreshed. Their manifest entries
+  now carry `opendota_json_predates: ["efe5794b"]`, and the audit counts their
+  `teamfights`, `kills_log`, `killed` and `killed_by` mismatches (3 fixtures)
+  apart from the field's total. Every other field is compared as before.
+- **The fixture corpus gains three post-TI2026 matches and drops 8821954344.**
+  9018736585 (PGL Wallachia Season 9 final, 25 min), 9040578015 (BLAST SLAM VIII
+  grand final, game 4, 57 min) and 9038120227 (BLAST SLAM VIII playoffs, 65 min)
+  have OpenDota parses made after `efe5794b`, so the parity audit compares every
+  field on them. No pytest test parses them; the integration suite takes as long
+  as before. 8821954344, a deprecated DreamLeague replay OpenDota never parsed,
+  is removed from the manifest, and the runes recipe's example of a buff longer
+  than usual now comes from 8855242704.
 
 ### Removed
 

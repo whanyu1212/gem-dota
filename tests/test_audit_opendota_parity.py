@@ -160,6 +160,26 @@ class TestAuditMatch:
         assert [audit.od_player_slot(i) for i in (0, 4, 5, 9)] == [0, 4, 128, 132]
 
 
+class TestStaleReference:
+    def test_mismatch_counts_apart_from_the_total(self):
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", _match(), _opendota(), results, frozenset({"player.deaths"}))
+
+        deaths = results["player.deaths"]
+        assert (deaths.total, deaths.mismatches, deaths.stale) == (0, {}, {"1": 1})
+        assert "player.deaths: OpenDota JSON predates a rule change on 1×1" in (
+            audit.format_report(results)
+        )
+
+    def test_fields_come_from_the_manifest(self, tmp_path):
+        (tmp_path / "manifest.json").write_text(
+            json.dumps({"matches": [{"match_id": 1, "opendota_json_predates": ["efe5794b"]}]})
+        )
+
+        assert audit.stale_fields(tmp_path, "1") == audit.RULE_CHANGES["efe5794b"]
+        assert audit.stale_fields(tmp_path, "2") == frozenset()
+
+
 class TestReport:
     def test_merge_adds_counts_and_keeps_the_first_example(self):
         total = {"player.kills": audit.FieldResult(1, 2, {"a": 1}, ("a", 1, 2))}
@@ -230,6 +250,7 @@ class TestCommandLine:
             "matched": 0,
             "total": 1,
             "mismatches": {"1": 1},
+            "stale": {},
         }
 
     def test_compare_fails_when_a_field_got_worse(self, tmp_path):

@@ -24,6 +24,12 @@ The mapping keeps only value differences:
   when the reference JSON predates it (see :func:`_annotated_objectives`).
 - Every other field name both sides share is compared as-is.
 
+OpenDota does not re-parse a match it has already parsed, so a fixture's JSON
+keeps the rules of the odota/parser that parsed it. The manifest's
+``opendota_json_predates`` lists the rule changes a fixture's JSON is older
+than; a mismatch on a field such a change touches is reported as stale, not
+counted against gem (see :data:`RULE_CHANGES`).
+
 Reference: odota/parser src/main/java/opendota/CreateParsedDataBlob.java
 (pinned revision in CLAUDE.md) defines the OpenDota output fields.
 ``scripts/validate_opendota.py`` is the online, tolerance-based check of a
@@ -63,6 +69,14 @@ _MINUTE_ARRAYS = (
     ("dn_t_min", "dn_t"),
     ("game_times_min", "times"),
 )
+
+# odota/parser commit -> the audited fields its rule change touches.
+RULE_CHANGES = {
+    # August 2026: an Aegis reincarnation is no longer a death.
+    "efe5794b": frozenset(
+        {"match.teamfights", "player.kills_log", "player.killed", "player.killed_by"}
+    ),
+}
 
 Seconds = Callable[[int], "int | None"]
 PlayerCheck = Callable[["ParsedPlayer", dict[str, Any], Seconds], tuple[Any, Any]]
@@ -174,15 +188,21 @@ class FieldResult:
         total: Items compared.
         mismatches: Match id -> number of mismatched items in that match.
         example: The first mismatch as ``(match_id, gem value, OpenDota value)``.
+        stale: Match id -> number of mismatched items whose OpenDota JSON
+            predates a rule change touching this field; not in ``total``.
     """
 
     matched: int = 0
     total: int = 0
     mismatches: dict[str, int] = field(default_factory=dict)
     example: tuple[str, Any, Any] | None = None
+    stale: dict[str, int] = field(default_factory=dict)
 
-    def record(self, match_id: str, gem: Any, od: Any) -> None:
-        """Count one comparison."""
+    def record(self, match_id: str, gem: Any, od: Any, *, stale: bool = False) -> None:
+        """Count one comparison; a mismatch against a ``stale`` reference counts apart."""
+        if gem != od and stale:
+            self.stale[match_id] = self.stale.get(match_id, 0) + 1
+            return
         self.total += 1
         if gem == od:
             self.matched += 1
@@ -213,6 +233,7 @@ def audit_match(
     match: ParsedMatch,
     od: dict[str, Any],
     results: dict[str, FieldResult],
+    stale_fields: frozenset[str] = frozenset(),
 ) -> None:
     """Compare one match with OpenDota, adding to ``results`` in place.
 
@@ -222,6 +243,8 @@ def audit_match(
         od: OpenDota's parsed match JSON.
         results: Field name -> accumulated result. Match fields are keyed
             ``match.<name>``, player fields ``player.<name>``.
+        stale_fields: Fields whose rules changed after OpenDota parsed this
+            match (see :func:`stale_fields`).
     """
     from gem.state.game_clock import game_clock_for
 
@@ -235,7 +258,8 @@ def audit_match(
     for name in sorted(compared - {"players"}):
         check = MATCH_CHECKS.get(name)
         gem, ref = check(match, od) if check else (_plain(getattr(match, name)), od[name])
-        results.setdefault(f"match.{name}", FieldResult()).record(match_id, gem, ref)
+        key = f"match.{name}"
+        results.setdefault(key, FieldResult()).record(match_id, gem, ref, stale=key in stale_fields)
 
     od_players = {p["player_slot"]: p for p in od["players"]}
     for player in match.players:
@@ -248,7 +272,10 @@ def audit_match(
             gem, ref = (
                 check_p(player, o, seconds) if check_p else (_plain(getattr(player, name)), o[name])
             )
-            results.setdefault(f"player.{name}", FieldResult()).record(match_id, gem, ref)
+            key = f"player.{name}"
+            results.setdefault(key, FieldResult()).record(
+                match_id, gem, ref, stale=key in stale_fields
+            )
 
 
 def fixture_ids(fixtures_dir: Path) -> list[str]:
@@ -265,6 +292,21 @@ def fixture_ids(fixtures_dir: Path) -> list[str]:
     return ids
 
 
+def stale_fields(fixtures_dir: Path, match_id: str) -> frozenset[str]:
+    """Return the fields whose rules changed after OpenDota parsed ``match_id``.
+
+    Read from the manifest's ``opendota_json_predates``; empty when the
+    directory has no manifest or the match no entry.
+    """
+    manifest = fixtures_dir / "manifest.json"
+    if not manifest.exists():
+        return frozenset()
+    entries = json.loads(manifest.read_text())["matches"]
+    entry: dict[str, Any] = next((e for e in entries if str(e["match_id"]) == match_id), {})
+    changes = entry.get("opendota_json_predates", [])
+    return frozenset().union(*(RULE_CHANGES[commit] for commit in changes))
+
+
 def merge_results(into: dict[str, FieldResult], part: dict[str, FieldResult]) -> None:
     """Add one match's results to the running totals in place."""
     for name, result in part.items():
@@ -272,6 +314,7 @@ def merge_results(into: dict[str, FieldResult], part: dict[str, FieldResult]) ->
         total.matched += result.matched
         total.total += result.total
         total.mismatches.update(result.mismatches)
+        total.stale.update(result.stale)
         if total.example is None:
             total.example = result.example
 
@@ -307,7 +350,7 @@ def audit_fixture(
     match = gem.from_dict(json.loads(text))
     od = json.loads((fixtures_dir / f"{match_id}.opendota.json").read_text())
     results: dict[str, FieldResult] = {}
-    audit_match(match_id, match, od, results)
+    audit_match(match_id, match, od, results, stale_fields(fixtures_dir, match_id))
     return results
 
 
@@ -349,7 +392,7 @@ def run_audit(
 def results_to_json(results: dict[str, FieldResult]) -> dict[str, Any]:
     """Return the JSON-serializable summary written by ``--json-out``."""
     return {
-        name: {"matched": r.matched, "total": r.total, "mismatches": r.mismatches}
+        name: {"matched": r.matched, "total": r.total, "mismatches": r.mismatches, "stale": r.stale}
         for name, r in results.items()
     }
 
@@ -397,6 +440,10 @@ def format_report(
                 lines.append(f"{name:36s} now exact (was {before['matched']}/{before['total']})")
     lines.append("")
     lines.append(f"{len(exact)} of {len(results)} fields match exactly: {', '.join(exact)}")
+    for name, result in results.items():
+        if result.stale:
+            matches = ", ".join(f"{mid}×{n}" for mid, n in sorted(result.stale.items()))
+            lines.append(f"{name}: OpenDota JSON predates a rule change on {matches}")
     if baseline is not None:
         for name in missing_fields(results, baseline):
             tally["worse"] += 1

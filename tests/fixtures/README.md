@@ -37,3 +37,11 @@ manifest `artifact_url` takes precedence when present; the original Valve
 Deprecation is metadata-only: keep the manifest entry, set `status` to
 `deprecated`, and point `replaced_by` at an active fixture. Do not commit full
 replays to normal Git history.
+
+## OpenDota JSON older than a rule change
+
+OpenDota does not re-parse a match it has already parsed, so a fixture's
+`.opendota.json` keeps the odota/parser rules it was parsed with. A manifest
+entry's `opendota_json_predates` lists the rule changes (odota/parser commits) it
+is older than; `scripts/audit_opendota_parity.py` maps each commit to the fields
+it touches (`RULE_CHANGES`) and reports their mismatches as stale.
