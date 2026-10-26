@@ -20,7 +20,7 @@ def read_fields(r: BitReader, serializer: Serializer, state: FieldState) -> None
 
 Read all field-path/value pairs from *r* into *state*.
 
-Source: [src/gem/schema/field_reader.py:125](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_reader.py#L125)
+Source: [src/gem/schema/field_reader.py:129](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/field_reader.py#L129)
 
 ## `gem.schema.field_state.FieldState`
 

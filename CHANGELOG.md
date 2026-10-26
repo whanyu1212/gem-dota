@@ -56,9 +56,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     field that declares its own settings and disagrees with the alias is refused.
   - A field the send tables flag as a signed enum (`is_signed_enum`) that gem would
     read unsigned is refused.
-  - A variable-length field longer than Clarity's limit at its field-path depth
-    (2,048 at the top level, 4,096 one level down, …) raises `EntityStateError`
-    as a decoder desync, as Clarity does, instead of growing the entity's state.
+  - A variable-length field longer than Clarity's limit at its elements'
+    field-path depth (4,096 for a top-level field, 2,048 one level down, …) raises
+    `EntityStateError` as a decoder desync, as Clarity does, instead of growing the
+    entity's state.
 
 ### Removed
 

@@ -638,8 +638,9 @@ class TestReadFields:
 
 @pytest.mark.parametrize(
     ("path", "length", "ok"),
-    [((0,), 2048, True), ((0,), 2049, False), ((1, 0), 4096, True), ((1, 0), 4097, False)],
-    ids=["depth-0-max", "depth-0-over", "depth-1-max", "depth-1-over"],
+    # A length's elements sit one level deeper: depth 1 (4,096) for (0,), depth 2 (2,048) for (1, 0).
+    [((0,), 4096, True), ((0,), 4097, False), ((1, 0), 2048, True), ((1, 0), 2049, False)],
+    ids=["top-level-max", "top-level-over", "nested-max", "nested-over"],
 )
 def test_variable_length_is_bounded_by_depth(path, length, ok) -> None:
     array = _make_field(FIELD_MODEL_VARIABLE_ARRAY, base_decoder=_constant_decoder(length))
@@ -650,5 +651,5 @@ def test_variable_length_is_bounded_by_depth(path, length, ok) -> None:
     if ok:
         assert decoder(None) == length
     else:
-        with pytest.raises(EntityStateError, match=f"length {length} at field-path depth"):
+        with pytest.raises(EntityStateError, match=f"length {length} with elements"):
             decoder(None)

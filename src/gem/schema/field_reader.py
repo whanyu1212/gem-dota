@@ -32,7 +32,11 @@ _MAX_INDEX_AT_DEPTH = (2047, 4095, 2047, 255, 127, 15, 15)
 
 
 def _bounded_length(decoder: FieldDecoder | None, depth: int) -> FieldDecoder | None:
-    """Wrap a variable-length field's length decoder with Clarity's bound at ``depth``."""
+    """Wrap a variable-length field's length decoder with Clarity's bound at ``depth``.
+
+    ``depth`` is its elements' field-path depth, one past the length's own: Clarity
+    checks ``fp.last() + 1`` (``S2FieldReader``).
+    """
     if decoder is None:
         return None
     limit = _MAX_INDEX_AT_DEPTH[depth] + 1 if depth < len(_MAX_INDEX_AT_DEPTH) else 0
@@ -41,8 +45,8 @@ def _bounded_length(decoder: FieldDecoder | None, depth: int) -> FieldDecoder | 
         length = decoder(r)
         if isinstance(length, int) and length > limit:
             raise EntityStateError(
-                f"decoder desync: variable-length field of length {length} at field-path "
-                f"depth {depth} exceeds the maximum of {limit}; an earlier field was "
+                f"decoder desync: variable-length field of length {length} with elements "
+                f"at field-path depth {depth} exceeds the maximum of {limit}; an earlier field was "
                 "likely read with the wrong decoder"
             )
         return length
@@ -85,7 +89,7 @@ def _resolve_field_decoder(
         # child decoder for element slots.
         if last == pos:
             return f.child_decoder
-        return _bounded_length(f.base_decoder, last)
+        return _bounded_length(f.base_decoder, last + 1)
 
     if model == FIELD_MODEL_VARIABLE_TABLE:
         # Variable tables encode a length/index layer before nested fields, so
@@ -93,7 +97,7 @@ def _resolve_field_decoder(
         if last >= pos + 1:
             return _resolve_decoder(_require_serializer(f, path, pos), path, pos + 1)
         if last == pos - 1:
-            return _bounded_length(f.base_decoder, last)
+            return _bounded_length(f.base_decoder, last + 1)
         return f.base_decoder
 
     return f.decoder
