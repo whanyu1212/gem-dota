@@ -8,11 +8,12 @@ with the replay's embedded postgame summary, which OpenDota reports:
 - each buyback's exact cost sums to the ledger's gold spent on buybacks;
 - the earned sources minus shared gold == total earned gold.
 
-Fixtures: 8855242704 (16 buybacks), 8856501050 (31 buybacks) and 8855188139,
-where the last dense net-worth sample was 1 gold off the summary for one player.
+Fixtures: 8855188139, where the last dense net-worth sample was 1 gold off the
+summary for one player, in the ``integration`` tier (it shares the feature parity
+parse); 8855242704 (16 buybacks) and 8856501050 (31 buybacks) in the ``corpus``
+tier, run with the parity audit.
 
-Marked ``slow`` + ``integration``: needs the full ``.dem`` plus its
-``.opendota.json``.
+Marked ``slow``: needs the full ``.dem`` plus its ``.opendota.json``.
 """
 
 from __future__ import annotations
@@ -23,7 +24,7 @@ from pathlib import Path
 import pytest
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "opendota"
-_MATCH_IDS = (8855242704, 8856501050, 8855188139)
+_CORPUS_MATCH_IDS = (8855242704, 8856501050)
 _EARNED_SOURCES = (
     "hero_kill_gold",
     "creep_kill_gold",
@@ -45,20 +46,13 @@ def _od_player_slot(player_id: int) -> int:
     return player_id if player_id < 5 else 128 + (player_id - 5)
 
 
-@pytest.mark.slow
-@pytest.mark.integration
-class TestGoldLedgerOnReplays:
-    @pytest.fixture(scope="class", params=_MATCH_IDS)
-    def pairs(self, request):
-        dem = FIXTURES_DIR / f"{request.param}.dem"
-        reference = dem.with_suffix(".opendota.json")
-        if not dem.exists() or not reference.exists():
-            pytest.skip(f"OpenDota fixture {request.param} (.dem + .opendota.json) not available")
-        import gem
+def _pairs(match, reference: dict) -> list:
+    by_slot = {p["player_slot"]: p for p in reference["players"]}
+    return [(player, by_slot[_od_player_slot(player.player_id)]) for player in match.players]
 
-        match = gem.parse(dem)
-        by_slot = {p["player_slot"]: p for p in json.loads(reference.read_text())["players"]}
-        return [(player, by_slot[_od_player_slot(player.player_id)]) for player in match.players]
+
+class GoldLedgerChecks:
+    """The checks, run by the two tiers below on their own replays."""
 
     def test_terminal_gold_scalars_match_opendota(self, pairs):
         mismatches = {
@@ -106,3 +100,25 @@ class TestGoldLedgerOnReplays:
             assert [snap.game_time_s for snap in per_minute] == player.game_times_min
             spent = [snap.spent_on_items for snap in per_minute]
             assert spent == sorted(spent)
+
+
+@pytest.mark.slow
+@pytest.mark.integration
+class TestGoldLedgerOnFeatureReplay(GoldLedgerChecks):
+    @pytest.fixture(scope="class")
+    def pairs(self, feature_parity_match, feature_parity_reference):
+        return _pairs(feature_parity_match, feature_parity_reference)
+
+
+@pytest.mark.slow
+@pytest.mark.corpus
+class TestGoldLedgerOnCorpus(GoldLedgerChecks):
+    @pytest.fixture(scope="class", params=_CORPUS_MATCH_IDS)
+    def pairs(self, request):
+        dem = FIXTURES_DIR / f"{request.param}.dem"
+        reference = dem.with_suffix(".opendota.json")
+        if not dem.exists() or not reference.exists():
+            pytest.skip(f"OpenDota fixture {request.param} (.dem + .opendota.json) not available")
+        import gem
+
+        return _pairs(gem.parse(dem), json.loads(reference.read_text()))

@@ -731,23 +731,9 @@ class TestTimeSeriesInclusion:
 @pytest.mark.integration
 class TestMLTotalsIntegration:
     @pytest.fixture(scope="class")
-    def player_ext(self, full_replay_path):
-        """Parse the replay once per class and share the populated extractor.
-
-        Class-scoped so the full replay fixture is parsed a single time for the whole
-        class instead of once per test method.
-
-        Returns:
-            A ``PlayerExtractor`` populated from a full parse of the fixture.
-        """
-        from gem.extractors.players import PlayerExtractor
-        from gem.parser import ReplayParser
-
-        parser = ReplayParser(str(full_replay_path))
-        ext = PlayerExtractor(sample_interval=300)
-        ext.attach(parser)
-        parser.parse()
-        return ext
+    def player_ext(self, canonical_replay_pass):
+        """The shared canonical run's ``PlayerExtractor``."""
+        return canonical_replay_pass.players
 
     def test_running_totals_populated(self, player_ext):
         # At least one player should have non-zero hero damage by end of game

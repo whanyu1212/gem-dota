@@ -1,11 +1,14 @@
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 
 if TYPE_CHECKING:
-    from gem.results.models import ParsedMatch
+    from gem.extractors import ObjectivesExtractor, PlayerExtractor, WardsExtractor
+    from gem.parser import ReplayParser
+    from gem.results.models import NeutralItemFoundEvent, ParsedMatch
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 OPENDOTA_FIXTURES_DIR = FIXTURES_DIR / "opendota"
@@ -26,12 +29,45 @@ PREFERRED_OPENDOTA_REPLAY_IDS = (
     TI2026_LONG_MATCH_ID,
     PERFORMANCE_BASELINE_MATCH_ID,
 )
+# Session fixtures that parse a whole replay. Tests using one share an xdist
+# worker (see pytest_collection_modifyitems), so each replay is parsed once.
+SHARED_PARSE_FIXTURES = (
+    "canonical_parsed_match",
+    "canonical_replay_pass",
+    "feature_parity_match",
+    "fixed8_encoder_match",
+)
 
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "slow: marks expensive tests requiring full replay files")
     config.addinivalue_line("markers", "integration: marks integration tests against full replays")
     config.addinivalue_line("markers", "network: marks tests that contact live external services")
+    config.addinivalue_line(
+        "markers", "corpus: marks slow OpenDota parity checks the parity audit repeats"
+    )
+
+
+def _shared_parse(item: pytest.Item) -> str | None:
+    names = set(getattr(item, "fixturenames", ()))
+    callspec = getattr(item, "callspec", None)
+    if callspec is not None:
+        # A test parametrized over fixture names loads them with getfixturevalue.
+        names |= {value for value in callspec.params.values() if isinstance(value, str)}
+    return next((name for name in SHARED_PARSE_FIXTURES if name in names), None)
+
+
+# tryfirst: xdist's own hook reads the groups into each test's node id.
+@pytest.hookimpl(tryfirst=True)
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    """Group tests for ``pytest -n N --dist loadgroup``.
+
+    A test that uses a shared parsed replay joins that replay's group; any other
+    test joins its module's group, so a module- or class-scoped parse runs once.
+    """
+    for item in items:
+        group = _shared_parse(item) or item.module.__name__
+        item.add_marker(pytest.mark.xdist_group(group))
 
 
 def available_opendota_replay_paths() -> list[Path]:
@@ -108,6 +144,39 @@ def canonical_parsed_match(full_replay_path: Path) -> "ParsedMatch":
     import gem
 
     return gem.parse(str(full_replay_path))
+
+
+@dataclass
+class ReplayPass:
+    """A finished parser run with the extractors tests read directly."""
+
+    parser: "ReplayParser"
+    players: "PlayerExtractor"
+    objectives: "ObjectivesExtractor"
+    wards: "WardsExtractor"
+    neutral_item_finds: "list[NeutralItemFoundEvent]"
+
+
+@pytest.fixture(scope="session")
+def canonical_replay_pass(full_replay_path: Path) -> ReplayPass:
+    """Run the parser over the canonical replay once, for tests below ``gem.parse``.
+
+    Consumers must treat the parser, its final entity and string-table state, and
+    the extractors as read-only.
+    """
+    from gem.extractors import ObjectivesExtractor, PlayerExtractor, WardsExtractor
+    from gem.parser import ReplayParser
+
+    parser = ReplayParser(str(full_replay_path))
+    run = ReplayPass(
+        parser, PlayerExtractor(sample_interval=300), ObjectivesExtractor(), WardsExtractor(), []
+    )
+    run.players.attach(parser)
+    run.objectives.attach(parser)
+    run.wards.attach(parser)
+    parser.on_neutral_item_found(run.neutral_item_finds.append)
+    parser.parse()
+    return run
 
 
 @pytest.fixture(scope="session")

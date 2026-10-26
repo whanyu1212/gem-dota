@@ -11,20 +11,13 @@ CLAUDE.md)
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
-
-from gem.parser import ReplayParser
 
 
 @pytest.mark.integration
 @pytest.mark.slow
-def test_active_modifiers_entries_sit_at_the_index_their_name_says(
-    ti2026_short_replay_path: Path,
-) -> None:
-    parser = ReplayParser(str(ti2026_short_replay_path))
-    parser.parse()
+def test_active_modifiers_entries_sit_at_the_index_their_name_says(canonical_replay_pass) -> None:
+    parser = canonical_replay_pass.parser
     assert parser.parse_error is None
 
     table = parser.string_tables.get_by_name("ActiveModifiers")

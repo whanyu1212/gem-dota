@@ -8,7 +8,8 @@ rounded game start, which can precede the tick where the start becomes visible
 hit between the two). These fixtures lock in exact parity, length included,
 against the published arrays.
 
-Marked ``slow`` + ``integration`` — needs a real ``.dem`` plus its ``.opendota.json``.
+Marked ``slow`` + ``corpus``: needs a real ``.dem`` plus its ``.opendota.json``. The
+parity audit compares the same per-minute arrays on every fixture.
 """
 
 from __future__ import annotations
@@ -45,7 +46,7 @@ def _mismatches(series_fn, od_by_logical: dict[int, dict]) -> dict[str, list[int
 
 
 @pytest.mark.slow
-@pytest.mark.integration
+@pytest.mark.corpus
 class TestIntervalAxisLockIn:
     @pytest.fixture(scope="class", params=_MATCH_IDS)
     def mismatches(self, request):

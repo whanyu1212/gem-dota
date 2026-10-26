@@ -46,6 +46,8 @@ def _spawners(replay_path: Path) -> list[tuple[float, float, int]]:
         x = entity.get("CBodyComponent.m_cellX") * _CELL_SIZE + entity.get("CBodyComponent.m_vecX")
         y = entity.get("CBodyComponent.m_cellY") * _CELL_SIZE + entity.get("CBodyComponent.m_vecY")
         spawners.append((x, y, entity.get("m_Type")))
+        # The spawners are all created on one tick; the rest of the replay is not needed.
+        parser.stop_after_tick(parser.tick)
 
     parser.on_entity(on_entity)
     parser.parse()

@@ -76,6 +76,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   as before. 8821954344, a deprecated DreamLeague replay OpenDota never parsed,
   is removed from the manifest, and the runes recipe's example of a buff longer
   than usual now comes from 8855242704.
+- **The offline integration tests parse each replay once and run on 4 workers**
+  (HY-383). A run used to parse 25 whole replays; the canonical one alone
+  was parsed 9 times by tests that ran their own parser.
+  - A new `corpus` marker (still `slow`) holds the OpenDota parity checks the
+    parity audit repeats on every fixture: chat-event times (`runes_log`,
+    `objectives`), the interval arrays, the hero-name combat dicts, and the gold
+    ledger on 8855242704 and 8856501050. Run them with the audit:
+    `uv run pytest -m corpus -n 4 --dist loadgroup`. The `integration` tier now
+    parses 10 replays.
+  - `canonical_replay_pass` (`tests/conftest.py`) runs the parser once over the
+    canonical replay for the tests that read the parser or its extractors
+    directly. The camp-spawner check stops after the tick the spawners appear.
+  - pytest-xdist joins the dev dependencies. Run `uv run pytest -m "integration
+    and not network" -n 4 --dist loadgroup`: a collection hook puts every test
+    that shares a parsed replay on one worker, so it is parsed once.
 
 ### Removed
 

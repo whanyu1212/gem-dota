@@ -392,16 +392,8 @@ class TestPhase8Integration:
     def match(self, canonical_parsed_match):
         return canonical_parsed_match
 
-    def test_ability_levels_populated(self, full_replay_path):
-        from gem.extractors.players import PlayerExtractor
-
-        # Re-parse to access snapshots directly
-        from gem.parser import ReplayParser
-
-        p = ReplayParser(str(full_replay_path))
-        ext = PlayerExtractor()
-        ext.attach(p)
-        p.parse()
+    def test_ability_levels_populated(self, canonical_replay_pass):
+        ext = canonical_replay_pass.players
         # At least one snapshot should have non-empty ability_levels
         snaps_with_abilities = [s for s in ext.snapshots if s.ability_levels]
         assert snaps_with_abilities, "Expected at least one snapshot with ability levels"

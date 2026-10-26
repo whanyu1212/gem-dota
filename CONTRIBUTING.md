@@ -198,20 +198,25 @@ uv run pytest --cov=gem --cov-report=html
 | Purpose | Command |
 |---|---|
 | Developer/PR fast suite | `uv run pytest` |
-| Offline integration | `uv run pytest -m "integration and not network"` |
+| Offline integration | `uv run pytest -m "integration and not network" -n 4 --dist loadgroup` |
+| OpenDota parity checks the audit repeats | `uv run pytest -m corpus -n 4 --dist loadgroup` |
 | All offline tests | `uv run pytest -m "not network"` |
 | Live network smoke | `uv run pytest -m network` |
 | Everything, including network | `uv run pytest -m ""` |
 
 The default suite and PR CI exclude `slow`, `integration`, and `network`.
 `slow` covers expensive full-replay tests; `integration` covers full-replay
-integration checks; `network` identifies live external services. Mocked network
+integration checks; `corpus` covers OpenDota parity checks the parity audit
+repeats; `network` identifies live external services. `-n 4 --dist loadgroup`
+runs on 4 workers (pytest-xdist); `tests/conftest.py` puts every test that uses a
+shared parsed replay on the same worker, so each replay is parsed once. Mocked network
 tests remain in the fast suite, as do small committed truncated replay checks.
 Offline commands do not download missing fixtures; missing assets are reported as
 skips. Synchronize fixtures explicitly before required integration validation.
 
 Run focused tests during iteration and fast tests plus lint/type checks for every
-PR. Parser changes also need relevant offline integration. Broader parity matrices
+PR. Parser changes also need relevant offline integration; changes to
+OpenDota-compatible output also need the `corpus` tier and the audit below. Broader parity matrices
 and performance benchmarks belong to releases or changes that warrant them.
 
 For changes that affect OpenDota-compatible output, run the offline parity audit

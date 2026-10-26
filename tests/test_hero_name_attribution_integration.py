@@ -6,8 +6,8 @@ hero names must still resolve to the real hero's player, as OpenDota's
 ``name_to_slot`` does (pinned odota/parser ``Parse.java``), so the per-player
 combat dicts match OpenDota for every player.
 
-Marked ``slow`` + ``integration``: needs the full ``.dem`` plus its
-``.opendota.json``.
+Marked ``slow`` + ``corpus``: needs the full ``.dem`` plus its ``.opendota.json``.
+The parity audit compares the same combat dicts on every fixture.
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ def _od_player_slot(player_id: int) -> int:
 
 
 @pytest.mark.slow
-@pytest.mark.integration
+@pytest.mark.corpus
 class TestEnemyIllusionAttribution:
     @pytest.fixture(scope="class")
     def pairs(self):

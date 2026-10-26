@@ -63,6 +63,7 @@ dev = [
     "pymdown-extensions>=10.21",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
+    "pytest-xdist>=3.8.0",
     "ruff>=0.15.5",
 ]
 
@@ -77,6 +78,7 @@ addopts = [
 markers = [
     "slow: marks expensive tests requiring full replay files",
     "integration: marks integration tests against full replays",
+    "corpus: marks slow OpenDota parity checks the parity audit repeats; run them with it",
     "network: marks tests that contact live external services",
 ]
 
