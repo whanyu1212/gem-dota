@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from gem.schema.field_decoder.contracts import FieldDecoder, _FieldLike
+from gem.schema.field_decoder.scalar_codecs import noscale_decoder
 
 if TYPE_CHECKING:
     from gem.binary.reader import BitReader
@@ -16,23 +17,47 @@ def _vector_normal_decoder(r: BitReader) -> list[float]:
 
 
 def _qangle_factory(field: _FieldLike) -> FieldDecoder:
-    """Build a QAngle decoder for the field's encoder and bit-count metadata."""
+    """Build a QAngle decoder for the field's encoder and bit-count metadata.
+
+    Branch order follows Clarity's ``QAngleDecoderFactory``: a 32-bit count means
+    raw floats even under ``qangle_precise`` (18e6bdf6, a CS2 declaration). Manta
+    tests ``qangle_precise`` first; no Dota field declares it.
+    """
     encoder = field.encoder
-    bc = field.bit_count
+    bc = field.bit_count or 0
 
     if encoder == "qangle_pitch_yaw":
-        n = bc or 0
+        if bc in (0, 32):
+
+            def pitch_yaw_floats(r: BitReader) -> list[float]:
+                return [noscale_decoder(r), noscale_decoder(r), 0.0]
+
+            return pitch_yaw_floats
 
         def pitch_yaw(r: BitReader) -> list[float]:
-            return [r.read_angle(n), r.read_angle(n), 0.0]
+            return [r.read_angle(bc), r.read_angle(bc), 0.0]
 
         return pitch_yaw
 
-    if bc is not None and bc != 0:
-        n = bc
+    if bc == 32:
+
+        def raw_floats(r: BitReader) -> list[float]:
+            return [noscale_decoder(r), noscale_decoder(r), noscale_decoder(r)]
+
+        return raw_floats
+
+    if encoder == "qangle_precise":
+
+        def precise_angle(r: BitReader) -> list[float]:
+            present = (r.read_boolean(), r.read_boolean(), r.read_boolean())
+            return [r.read_angle(20) if has else 0.0 for has in present]
+
+        return precise_angle
+
+    if bc != 0:
 
         def fixed_angle(r: BitReader) -> list[float]:
-            return [r.read_angle(n), r.read_angle(n), r.read_angle(n)]
+            return [r.read_angle(bc), r.read_angle(bc), r.read_angle(bc)]
 
         return fixed_angle
 

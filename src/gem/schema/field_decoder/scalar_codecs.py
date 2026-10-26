@@ -54,6 +54,21 @@ def unsigned64_decoder(r: BitReader) -> int:
     return r.read_varuint64()
 
 
+def signed64_decoder(r: BitReader) -> int:
+    """Read a zigzag-encoded varint64."""
+    return r.read_varint64()
+
+
+def hsequence_decoder(r: BitReader) -> int:
+    """Read an ``HSequence``: a varuint32 holding the index plus one (``-1`` = none)."""
+    return r.read_varuint32() - 1
+
+
+def binary_block_decoder(r: BitReader) -> bytes:
+    """Read a ``CUtlBinaryBlock``: a varuint32 length, then that many bytes."""
+    return r.read_bytes(r.read_varuint32())
+
+
 def fixed64_decoder(r: BitReader) -> int:
     """Read a little-endian 64-bit unsigned integer."""
     return r.read_le_uint64()

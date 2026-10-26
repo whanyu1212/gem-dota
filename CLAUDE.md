@@ -132,8 +132,8 @@ the pinned upstream sources directly so reviews use stable reference revisions:
 
 | Repository | Revision | Language | Role |
 |---|---|---|---|
-| [dotabuff/manta](https://github.com/dotabuff/manta/tree/096933cf157ace54902463ff0599ea46a6673f98) | `096933cf` | Go | Primary reference for binary parsing logic |
-| [skadistats/clarity](https://github.com/skadistats/clarity/tree/7fb3f1d07564a12efa99194d45cfbf5762ba5910) | `7fb3f1d0` | Java | Correctness authority for edge cases and combat-log ingestion |
+| [dotabuff/manta](https://github.com/dotabuff/manta/tree/d4e46471014a651801c045c001816168a93e4e5e) | `d4e46471` | Go | Primary reference for binary parsing logic |
+| [skadistats/clarity](https://github.com/skadistats/clarity/tree/bd37eab0a572cd963dcfeaeaf9afb195f12c43aa) | `bd37eab0` | Java | Correctness authority for edge cases and combat-log ingestion |
 | [odota/parser](https://github.com/odota/parser/tree/5018d0193a46138f7768509132c310439599775d) | `5018d019` | Java | Output-schema authority (`Entry.java`, `CreateParsedDataBlob.java`) |
 
 The pins live in `upstream-refs.lock.json`, the source of truth; a test keeps

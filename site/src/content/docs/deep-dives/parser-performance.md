@@ -74,8 +74,8 @@ Adding a dictionary alongside slots is not a drop-in repair: declared slots
 still live outside that dictionary, so `vars(record)` would not expose the
 same fields or support the same dictionary writes. See Python's
 [`__slots__` rules](https://docs.python.org/3.10/reference/datamodel.html#slots).
-[Manta's combat callback registration](https://github.com/dotabuff/manta/blob/096933cf157ace54902463ff0599ea46a6673f98/callbacks.go#L1322),
-[Clarity's S1/S2 combat event dispatch](https://github.com/skadistats/clarity/blob/7fb3f1d07564a12efa99194d45cfbf5762ba5910/src/main/java/skadistats/clarity/processor/gameevents/CombatLog.java),
+[Manta's combat callback registration](https://github.com/dotabuff/manta/blob/d4e46471014a651801c045c001816168a93e4e5e/callbacks.go#L1322),
+[Clarity's S1/S2 combat event dispatch](https://github.com/skadistats/clarity/blob/bd37eab0a572cd963dcfeaeaf9afb195f12c43aa/src/main/java/skadistats/clarity/processor/gameevents/CombatLog.java),
 and [OpenDota's `Entry` record](https://github.com/odota/parser/blob/5018d0193a46138f7768509132c310439599775d/src/main/java/opendota/Entry.java) establish dataflow and output context; none
 establish Python object-layout compatibility. A future change needs a separate
 compatibility proposal. Internal replacement records and retention options are

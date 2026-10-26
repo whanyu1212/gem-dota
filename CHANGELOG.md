@@ -22,6 +22,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Entity fields decode as manta and Clarity decode them** (HY-179, #314). gem
+  now maps every field type manta `d4e46471` and Clarity `bd37eab0` map:
+  - `int64` reads a 64-bit varint. A 32-bit read stops after 5 bytes, so a
+    `m_nTotalDamageTaken` past 2^34 would have shifted the rest of the entity.
+  - `BloodType` reads 8 raw bits (it agreed with a varint only below 128).
+  - `HSequence` is the varint minus one, so `-1` means no sequence. Raw
+    `m_hSequence` values read through the entity API drop by one.
+  - `Quaternion` reads four floats, `CUtlBinaryBlock` a length and that many
+    bytes, `CGlobalSymbol` a string and `ResourceId_t` a varuint64.
+  - QAngle follows Clarity's `QAngleDecoderFactory`: `qangle_pitch_yaw` with a
+    bit count of 0 or 32 and any 32-bit QAngle read raw floats, and
+    `qangle_precise` reads 20-bit angles behind presence bits.
+
+  No output changes on the local fixtures; the values seen there decode the same
+  either way. The changes guard against desyncs on values or entities the
+  fixtures don't contain.
 - **Draft hero IDs are the real hero IDs** (HY-176). `HeroID_t` entity fields are
   zigzag-signed varints, as in Clarity and manta `0efe7e11`, but gem decoded them
   unsigned, so every ID read twice its value and the empty value `-1` read `1`.

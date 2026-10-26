@@ -4,7 +4,7 @@
     {
       "repository": "dotabuff/manta",
       "branch": "master",
-      "commit": "096933cf157ace54902463ff0599ea46a6673f98",
+      "commit": "d4e46471014a651801c045c001816168a93e4e5e",
       "role": "Primary reference for binary parsing logic",
       "watch": [
         "*.go"
@@ -17,16 +17,18 @@
     {
       "repository": "skadistats/clarity",
       "branch": "master",
-      "commit": "7fb3f1d07564a12efa99194d45cfbf5762ba5910",
+      "commit": "bd37eab0a572cd963dcfeaeaf9afb195f12c43aa",
       "role": "Correctness authority for edge cases and combat-log ingestion",
       "watch": [
         "src/main/java/skadistats/clarity/io/s2/**",
         "src/main/java/skadistats/clarity/io/decoder/**",
         "src/main/java/skadistats/clarity/io/bitstream/**",
+        "src/main/java/skadistats/clarity/model/s2/**",
         "src/main/java/skadistats/clarity/processor/entities/**",
         "src/main/java/skadistats/clarity/processor/gameevents/**",
         "src/main/java/skadistats/clarity/processor/sendtables/**",
-        "src/main/java/skadistats/clarity/processor/stringtables/**"
+        "src/main/java/skadistats/clarity/processor/stringtables/**",
+        "src/main/java/skadistats/clarity/state/s2/**"
       ],
       "ignore": []
     },
