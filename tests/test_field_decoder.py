@@ -491,6 +491,32 @@ class TestQAngleFactory:
         assert result[0] == 0.0
         assert result[1] == 0.0
 
+    @pytest.mark.parametrize(
+        ("encoder", "bit_count", "floats"),
+        [
+            ("qangle_pitch_yaw", 0, 2),
+            ("qangle_pitch_yaw", 32, 2),
+            ("", 32, 3),
+            # Clarity 18e6bdf6: a 32-bit count wins over qangle_precise.
+            ("qangle_precise", 32, 3),
+        ],
+    )
+    def test_raw_float_branches(self, encoder, bit_count, floats):
+        values = [1.5, -2.25, 3.0][:floats]
+        decoder = _qangle_factory(
+            FakeField(base_type="QAngle", encoder=encoder, bit_count=bit_count)
+        )
+        r = BitReader(struct.pack(f"<{floats}f", *values) + b"\xff")
+        assert decoder(r) == values + [0.0] * (3 - floats)
+        assert r.rem_bits() == 8
+
+    def test_precise_branch_reads_present_20_bit_angles(self):
+        decoder = _qangle_factory(FakeField(base_type="QAngle", encoder="qangle_precise"))
+        half_turn = format(1 << 19, "020b")[::-1]  # LSB first: 2^19 / 2^20 of 360
+        r = _r("101" + half_turn + half_turn + "1")
+        assert decoder(r) == [pytest.approx(180.0), 0.0, pytest.approx(180.0)]
+        assert r.read_boolean()
+
 
 # ---------------------------------------------------------------------------
 # _vector_factory with normal encoder
@@ -703,6 +729,61 @@ class TestFindDecoderByBaseType:
         # CNetworkUtlVectorBase< AbilityID_t / HeroID_t > children use this path.
         dec = find_decoder_by_base_type(base_type)
         assert dec(BitReader(_pack_varuint32(wire))) == value
+
+
+# ---------------------------------------------------------------------------
+# Types manta #180 and pinned Clarity map (HY-179)
+# ---------------------------------------------------------------------------
+
+
+def _pack_varuint64(value: int) -> bytes:
+    out = []
+    while True:
+        bits = value & 0x7F
+        value >>= 7
+        if not value:
+            return bytes(out + [bits])
+        out.append(bits | 0x80)
+
+
+class TestUpstreamTypeTable:
+    @pytest.mark.parametrize(
+        ("base_type", "data", "value"),
+        [
+            # 2^40 needs a 6-byte varint; a varint32 read stops after 5.
+            ("int64", _pack_varuint64((1 << 41) - 1), -(1 << 40)),
+            ("BloodType", b"\xff", 255),
+            ("HSequence", b"\x00", -1),
+            ("HSequence", b"\x05", 4),
+            ("CUtlBinaryBlock", b"\x03abc", b"abc"),
+            ("CGlobalSymbol", b"hi\x00", "hi"),
+            ("ResourceId_t", _pack_varuint64(1 << 40), 1 << 40),
+        ],
+        ids=[
+            "int64",
+            "BloodType",
+            "HSequence-none",
+            "HSequence",
+            "CUtlBinaryBlock",
+            "CGlobalSymbol",
+            "ResourceId_t",
+        ],
+    )
+    def test_value_and_bits_consumed(self, base_type, data, value):
+        # Vector elements resolve by base type alone; scalars go through find_decoder.
+        for decoder in (
+            find_decoder_by_base_type(base_type),
+            find_decoder(FakeField(base_type=base_type)),
+        ):
+            r = BitReader(data + b"\x7f")
+            assert decoder(r) == value
+            assert r.rem_bits() == 8
+
+    def test_quaternion_is_four_floats(self):
+        decoder = find_decoder(FakeField(base_type="Quaternion", bit_count=32))
+        r = BitReader(struct.pack("<4f", 0.5, -0.5, 0.25, 1.0) + b"\x7f")
+        assert decoder(r) == [0.5, -0.5, 0.25, 1.0]
+        assert r.rem_bits() == 8
 
 
 # ---------------------------------------------------------------------------

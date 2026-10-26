@@ -15,6 +15,7 @@ from gem.schema.field_decoder.composite_codecs import _qangle_factory, _vector_n
 from gem.schema.field_decoder.contracts import FieldDecoder, _FieldLike
 from gem.schema.field_decoder.quantized_float import QuantizedFloatDecoder
 from gem.schema.field_decoder.scalar_codecs import (
+    binary_block_decoder,
     boolean_decoder,
     component_decoder,
     default_decoder,
@@ -22,8 +23,10 @@ from gem.schema.field_decoder.scalar_codecs import (
     fixed8_signed_decoder,
     fixed64_decoder,
     float_coord_decoder,
+    hsequence_decoder,
     noscale_decoder,
     rune_time_decoder,
+    signed64_decoder,
     signed_decoder,
     simulation_time_decoder,
     string_decoder,
@@ -95,6 +98,7 @@ _FIELD_TYPE_FACTORIES: dict[str, Callable[[_FieldLike], FieldDecoder]] = {
     "Vector2D": _vector_factory(2),
     "Vector4D": _vector_factory(4),
     "VectorWS": _vector_factory(3),
+    "Quaternion": _vector_factory(4),
     "uint64": _unsigned64_factory,
     "QAngle": _qangle_factory,
     "CHandle": _unsigned_factory,
@@ -109,7 +113,7 @@ _FIELD_TYPE_DECODERS: dict[str, FieldDecoder] = {
     "int8": signed_decoder,
     "int16": signed_decoder,
     "int32": signed_decoder,
-    "int64": signed_decoder,
+    "int64": signed64_decoder,
     "uint8": unsigned_decoder,
     "uint16": unsigned_decoder,
     "uint32": unsigned_decoder,
@@ -121,7 +125,8 @@ _FIELD_TYPE_DECODERS: dict[str, FieldDecoder] = {
     "HeroID_t": signed_decoder,
     "GameTime_t": noscale_decoder,
     "HeroFacetKey_t": unsigned64_decoder,
-    "BloodType": unsigned_decoder,
+    "HSequence": hsequence_decoder,
+    "BloodType": fixed8_decoder,
     "CBodyComponent": component_decoder,
     "CGameSceneNodeHandle": unsigned_decoder,
     "Color": unsigned_decoder,
@@ -130,6 +135,9 @@ _FIELD_TYPE_DECODERS: dict[str, FieldDecoder] = {
     "CUtlString": string_decoder,
     "CUtlStringToken": unsigned_decoder,
     "CUtlSymbolLarge": string_decoder,
+    "CUtlBinaryBlock": binary_block_decoder,
+    "CGlobalSymbol": string_decoder,
+    "ResourceId_t": unsigned64_decoder,
 }
 
 _FIELD_NAME_DECODERS: dict[str, FieldDecoder] = {}
