@@ -66,6 +66,8 @@ def test_main_writes_to_paths_outside_the_repository(
         str(tmp_path / "lanes.json"),
         "--runes-data",
         str(tmp_path / "runes.json"),
+        "--stacks-data",
+        str(tmp_path / "stacks.json"),
     ]
     assert export.main([*args, "--map-image", str(image)]) == 0
     assert (tmp_path / "figures" / "map.webp").stat().st_size > 0
@@ -75,6 +77,7 @@ def test_main_writes_to_paths_outside_the_repository(
     assert json.loads((tmp_path / "lead.json").read_text())["times"] == []
     assert json.loads((tmp_path / "lanes.json").read_text())["events"] == []
     assert json.loads((tmp_path / "runes.json").read_text())["runes"] == []
+    assert json.loads((tmp_path / "stacks.json").read_text())["stacks"] == []
     assert json.loads(playback.read_text()) is None
     assert json.loads(ward_data.read_text())["wards"] == []
     written = json.loads(data.read_text())
@@ -1047,3 +1050,20 @@ def test_objectives_recipe_puts_each_wisdom_rune_at_its_shrine() -> None:
         [840, "r", "", None, None, "e"],
         [840, "d", "", None, None, "e"],
     ]
+
+
+def test_stacks_recipe_writes_each_stack_who_cleared_it_and_each_player() -> None:
+    from tests._stacks import stacks_match
+
+    data = export.stacks_recipe(stacks_match())
+
+    assert [(camp["id"], camp["type"]) for camp in data["camps"]] == [(3, "ancient"), (6, "medium")]
+    assert all(0 <= v <= 1000 for camp in data["camps"] for v in camp["xy"])
+    # Lion's first stack: Timbersaw killed two of its creeps, Lion one, Shadow Fiend one.
+    assert data["stacks"][0] == [
+        240, 3, "Lion", "r", "s", True, 2, 5, 0, 210,
+        [["Timbersaw", "r", 2], ["Lion", "r", 1], ["Shadow Fiend", "d", 1]],
+    ]  # fmt: skip
+    assert data["stacks"][1] == [300, 3, "Lion", "r", "s", True, 3, 1, 1, 0, []]
+    assert data["flows"][0] == ["Lion", "r", "s", "Timbersaw", "r", "c", 2, 100]
+    assert data["players"][0] == ["Lion", "r", "s", 2, 2, 1, 40, 75]

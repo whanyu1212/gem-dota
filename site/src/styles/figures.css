@@ -1719,3 +1719,302 @@
     grid-column: 2;
   }
 }
+
+/* The stacks recipe's figure: who stacked for whom, the stacked camps, when, and each player. */
+.stacks-fig,
+.prose .stacks-fig {
+  margin: 24px 0;
+}
+.prose .stacks-fig :is(ul, ol, p) {
+  margin: 0;
+  padding: 0;
+}
+.prose .stacks-fig li + li {
+  margin-top: 0;
+}
+.prose .stacks-fig figcaption > p {
+  margin-top: 12px;
+}
+.prose .stacks-fig .legend {
+  margin-top: 10px;
+}
+.stacks-fig .legend-item {
+  text-transform: none;
+}
+.stacks-legend-enemy i {
+  border-radius: 2px;
+  background: var(--warning);
+}
+.prose .stacks-fig .stacks-sub {
+  margin: 18px 0 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  font-weight: 600;
+}
+.prose .stacks-fig .stacks-sub:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.stacks-flows {
+  display: grid;
+  gap: 22px;
+}
+.prose .stacks-fig .stacks-flow-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.stacks-flow-body {
+  display: grid;
+  grid-template-columns: auto minmax(32px, 1fr) auto;
+}
+.prose .stacks-fig .stacks-nodes {
+  position: relative;
+  list-style: none;
+  font-size: 12.5px;
+  line-height: 1.2;
+}
+.stacks-node {
+  position: absolute;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  color: var(--ink);
+}
+.stacks-node b {
+  color: var(--muted);
+  font-weight: 500;
+}
+.stacks-nodes--left .stacks-node {
+  justify-content: flex-end;
+  padding-right: 8px;
+  border-right: 6px solid var(--node);
+}
+.stacks-nodes--right .stacks-node {
+  padding-left: 8px;
+  border-left: 6px solid var(--node);
+}
+.stacks-node--radiant {
+  --node: var(--map-radiant-mark);
+}
+.stacks-node--dire {
+  --node: var(--map-dire-mark);
+}
+.stacks-node.stacks-node--sizer {
+  position: static;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  border-color: transparent;
+}
+.fig svg.stacks-ribbons {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+.stacks-ribbon {
+  fill: none;
+  stroke-opacity: 0.38;
+  vector-effect: non-scaling-stroke;
+}
+.stacks-ribbon--radiant {
+  stroke: var(--map-radiant-mark);
+}
+.stacks-ribbon--dire {
+  stroke: var(--map-dire-mark);
+}
+.stacks-ribbon--enemy {
+  stroke: var(--warning);
+  stroke-opacity: 0.85;
+}
+.prose .stacks-fig .stacks-enemy-note {
+  margin-top: 8px;
+  color: var(--warning);
+  font-size: 13px;
+}
+.prose .stacks-fig .stacks-none {
+  color: var(--muted);
+  font-size: 13px;
+}
+.stacks-fig-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 680px) {
+  .stacks-fig-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.stacks-camp {
+  cursor: pointer;
+  outline: none;
+}
+.stacks-halo {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 4;
+}
+.stacks-camp:hover .stacks-halo,
+.stacks-camp:focus-visible .stacks-halo,
+.stacks-camp.is-selected .stacks-halo {
+  stroke: var(--map-label);
+}
+.stacks-dot {
+  fill: var(--camp);
+  stroke: var(--camp-ring);
+  stroke-width: 2;
+}
+.stacks-ring {
+  fill: none;
+  stroke-width: 7;
+}
+.stacks-ring--radiant {
+  stroke: var(--map-radiant-mark);
+}
+.stacks-ring--dire {
+  stroke: var(--map-dire-mark);
+}
+.stacks-count {
+  fill: var(--camp-ring);
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 700;
+}
+.prose .stacks-fig .stacks-camp-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.stacks-chip {
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--camp);
+  color: var(--camp-ring);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.stacks-list {
+  margin-top: 6px;
+  list-style: none;
+  font-size: 13px;
+}
+.stacks-list li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px;
+  padding: 7px 2px;
+  border-top: 1px solid var(--line);
+}
+.stacks-list time {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.stacks-hero {
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.stacks-hero::before {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  content: "";
+  vertical-align: 1px;
+}
+.stacks-hero--radiant::before {
+  background: var(--map-radiant-mark);
+}
+.stacks-hero--dire::before {
+  background: var(--map-dire-mark);
+}
+.stacks-muted {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.stacks-enemy {
+  color: var(--warning);
+  font-weight: 600;
+}
+.stacks-timeline {
+  padding-inline: 12px;
+}
+.stacks-timeline-track {
+  position: relative;
+  height: 112px;
+}
+.stacks-timeline-track::before {
+  position: absolute;
+  inset-inline: 0;
+  top: 56px;
+  height: 2px;
+  background: var(--line);
+  content: "";
+}
+.stacks-tick {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+}
+.stacks-tick--radiant {
+  top: calc(56px - var(--row) * 10px - 3px);
+  background: var(--map-radiant-mark);
+}
+.stacks-tick--dire {
+  top: calc(56px + var(--row) * 10px - 3px);
+  background: var(--map-dire-mark);
+}
+.stacks-timeline-labels {
+  position: relative;
+  height: 16px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+.stacks-timeline-labels span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .stacks-timeline-labels .stacks-minor {
+    display: none;
+  }
+}
+.prose .stacks-fig .stacks-table table {
+  margin: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.prose .stacks-fig .stacks-table :is(th, td):nth-child(n + 3) {
+  text-align: right;
+}
+.stacks-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.stacks-gold i {
+  display: inline-block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--accent);
+}

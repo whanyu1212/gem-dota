@@ -91,6 +91,7 @@ DEFAULT_OBJECTIVES_DATA = REPO_ROOT / "site" / "src" / "data" / "objectives.json
 DEFAULT_LEAD_DATA = REPO_ROOT / "site" / "src" / "data" / "lead.json"
 DEFAULT_LANES_DATA = REPO_ROOT / "site" / "src" / "data" / "lanes.json"
 DEFAULT_RUNES_DATA = REPO_ROOT / "site" / "src" / "data" / "runes.json"
+DEFAULT_STACKS_DATA = REPO_ROOT / "site" / "src" / "data" / "stacks.json"
 DEFAULT_MAP_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-map.jpg"
 DEFAULT_FIGHT_IMAGE = REPO_ROOT / "site" / "src" / "assets" / "home-fight.jpg"
 DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
@@ -887,6 +888,85 @@ def runes_recipe(match: ParsedMatch) -> dict:
     }
 
 
+def stacks_recipe(match: ParsedMatch) -> dict:
+    """The stacked camps, every stack and who cleared it, for the stacks recipe's figure.
+
+    From the recipe itself (``examples/cookbook/stacks.py``). Each stacked camp
+    is ``{id, type, xy}`` (its ``camp_zones.json`` type, placed on the map
+    square). Each stack is ``[time_s, camp, hero, side, role, exact, waves,
+    creeps, pulled, gold, cleared]``, ``cleared`` being ``[hero, side, creeps]``
+    per player who killed its creeps, most first. Each flow is ``[stacker, side,
+    role, killer, side, role, creeps, gold]``, and each player ``[hero, side,
+    role, stacks, exact, killed, gold, neutral_gold]``. Sides are ``r``/``d``,
+    roles ``s``/``c``.
+    """
+    recipe = _cookbook("stacks")
+    role = recipe.roles(match)
+    stacks = recipe.stack_table(match, role)
+    creeps = recipe.stacked_creeps(match)
+    side = {"radiant": "r", "dire": "d"}
+    short = {"support": "s", "core": "c"}
+    camps = {camp["id"]: camp for camp in load_camp_zones()["camps"]}
+    by_stack = dict(iter(creeps.groupby(["stack_s", "camp"])))
+    out_stacks = []
+    for s in stacks.itertuples(index=False):
+        mine = by_stack.get((s.time_s, s.camp), creeps.iloc[:0])
+        killed = mine.dropna(subset=["killer_side"])
+        cleared = (
+            killed.groupby(["killer", "killer_side"])
+            .size()
+            .sort_values(ascending=False, kind="stable")
+        )
+        out_stacks.append(
+            [
+                int(s.time_s), int(s.camp), hero_display(s.hero) if s.hero else None, side.get(s.side or "", ""),
+                short.get(s.role or "", ""), bool(s.exact), int(s.waves), int(s.creeps),
+                int(mine["pulled"].sum()), round(killed["gold"].sum()),
+                [[hero_display(h), side[t], int(n)] for (h, t), n in cleared.items()],
+            ]
+        )  # fmt: skip
+    stacked = sorted({int(c) for c in stacks["camp"]})
+    end_tick = match.post_game_tick or match.game_end_tick or 0
+    return {
+        "end_s": match.game_clock.game_seconds_at(end_tick) if match.game_clock and end_tick else 0,
+        "camps": [
+            {
+                "id": c,
+                "type": camps[c]["type"],
+                "xy": _project(camps[c]["center"]["x"], camps[c]["center"]["y"]),
+            }
+            for c in stacked
+        ],
+        "stacks": out_stacks,
+        "flows": [
+            [
+                hero_display(f.stacker),
+                side[f.stacker_side],
+                short[role[f.stacker]],
+                hero_display(f.killer),
+                side[f.killer_side],
+                short[role[f.killer]],
+                int(f.creeps),
+                int(f.gold),
+            ]
+            for f in recipe.flows(creeps).itertuples(index=False)
+        ],
+        "players": [
+            [
+                hero_display(p.hero),
+                side.get(p.side or "", ""),
+                short.get(p.role or "", ""),
+                int(p.stacks),
+                int(p.exact),
+                int(p.killed),
+                int(p.gold),
+                int(p.neutral_gold),
+            ]
+            for p in recipe.player_table(match, stacks, creeps, role).itertuples(index=False)
+        ],
+    }
+
+
 #: The wards recipe's figure opens on Figure 3's fight, with this much on each
 #: side (whole minutes).
 WARD_RANGE_PAD_S = 120
@@ -1678,6 +1758,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--lead-data", type=Path, default=DEFAULT_LEAD_DATA)
     parser.add_argument("--lanes-data", type=Path, default=DEFAULT_LANES_DATA)
     parser.add_argument("--runes-data", type=Path, default=DEFAULT_RUNES_DATA)
+    parser.add_argument("--stacks-data", type=Path, default=DEFAULT_STACKS_DATA)
     parser.add_argument("--map-image", type=Path, default=DEFAULT_MAP_IMAGE)
     parser.add_argument("--fight-image", type=Path, default=DEFAULT_FIGHT_IMAGE)
     parser.add_argument("--icons-dir", type=Path, default=DEFAULT_ICONS)
@@ -1770,9 +1851,11 @@ def main(argv: list[str] | None = None) -> int:
     args.lanes_data.write_text(json.dumps(lanes_recipe(match), separators=(",", ":")) + "\n")
     args.runes_data.parent.mkdir(parents=True, exist_ok=True)
     args.runes_data.write_text(json.dumps(runes_recipe(match), separators=(",", ":")) + "\n")
+    args.stacks_data.parent.mkdir(parents=True, exist_ok=True)
+    args.stacks_data.write_text(json.dumps(stacks_recipe(match), separators=(",", ":")) + "\n")
     write_map_image(args.map_image)
     written = [args.data, args.fight_data, args.wards_data, args.fights_data, args.objectives_data]
-    written += [args.lead_data, args.lanes_data, args.runes_data]
+    written += [args.lead_data, args.lanes_data, args.runes_data, args.stacks_data]
     written.append(args.map_image)
     if fight is not None:
         write_map_image(args.fight_image, fight["box"])

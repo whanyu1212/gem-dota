@@ -11,6 +11,7 @@ import { lanesFigure } from "../figures/lanes";
 import { leadFigure } from "../figures/lead";
 import { objectivesFigure } from "../figures/objectives";
 import { runesFigure } from "../figures/runes";
+import { stacksFigure } from "../figures/stacks";
 import { wardsFigure } from "../figures/wards";
 import { preprocess, type PreprocessOptions } from "./preprocess";
 import rehypeHeadingIds from "./rehype-heading-ids";
@@ -44,6 +45,7 @@ export function docsMarkdown(options: DocsMarkdownOptions) {
             lead: () => leadFigure(options.base),
             lanes: () => lanesFigure(),
             runes: () => runesFigure(options.base),
+            stacks: () => stacksFigure(options.base),
           },
         },
       ],
