@@ -111,7 +111,7 @@ from gem.proto.netmessages_pb2 import (
     svc_UpdateStringTable,
     svc_UserMessage,
 )
-from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick, net_Tick
+from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick, QuantizedFloatEncoderAlias_t, net_Tick
 from gem.results.models import ChatEntry, NeutralItemFoundEvent
 from gem.schema.sendtable import parse_send_tables
 from gem.schema.sendtable.models import FieldAccessPlan
@@ -270,6 +270,8 @@ class ReplayParser:
         self._neutral_item_found_callbacks: list[NeutralItemFoundCallback] = []
         self._stop_at_tick: int | None = None
         self._pending_server_info: CSVCMsg_ServerInfo | None = None
+        # The server's quantized-float encoder aliases, which send-table fields can name.
+        self._float_aliases: list[QuantizedFloatEncoderAlias_t] = []
         self.match_id: int = 0
         self.game_mode: int = 0
         self.leagueid: int = 0
@@ -820,7 +822,7 @@ class ReplayParser:
     # ------------------------------------------------------------------
 
     def _on_send_tables(self, data: bytes) -> None:
-        serializers = parse_send_tables(data, self.game_build)
+        serializers = parse_send_tables(data, self.game_build, self._float_aliases)
         self.entity_manager = EntityManager(
             serializers, self.string_tables, tracker=self._entity_tracker
         )
@@ -835,6 +837,7 @@ class ReplayParser:
         build = game_build_from_game_dir(msg.game_dir)
         if build:
             self.game_build = build
+        self._float_aliases = list(msg.game_session_config.quantized_float_encoder_aliases)
         if self.entity_manager is None:
             # Entity manager not built yet — cache and apply after send tables
             self._pending_server_info = msg

@@ -39,6 +39,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   figure of the home page's match: who stacked for whom, the stacked camps on the
   map, when each stack was made, and each player's numbers.
 
+### Changed
+
+- **A replay that declares an encoding gem doesn't decode now stops with a named
+  error instead of decoding wrong values** (HY-378). gem used to assume these;
+  a future build that changed one would have shifted every later field silently,
+  as `fixed8` did (HY-177). On the local fixtures every check passes or does not
+  apply, and output is unchanged.
+  - The coordinate, normal and angle sizes the send tables declare from build 6956
+    (`coord_size_params`) must be the ones gem reads (coord 14+5 bits, normal 11,
+    angle 20); otherwise `UnsupportedReplayError` names the parameter and both
+    values.
+  - A field whose encoder names one of the server's quantized-float aliases
+    (`quantized_float_encoder_aliases`, `origin_cell_offset` from build 6956)
+    takes the alias's bit count, flags and range; it used to read 32 raw bits. A
+    field that declares its own settings and disagrees with the alias is refused.
+  - A field the send tables flag as a signed enum (`is_signed_enum`) that gem would
+    read unsigned is refused.
+  - A variable-length field longer than Clarity's limit at its elements'
+    field-path depth (4,096 for a top-level field, 2,048 one level down, …) raises
+    `EntityStateError` as a decoder desync, as Clarity does, instead of growing the
+    entity's state.
+
 ### Removed
 
 - **The HTML report** (HY-137), deprecated in 0.13: `gem.reports`

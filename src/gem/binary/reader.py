@@ -17,6 +17,12 @@ import struct
 
 from gem.errors import ReplayDataError, VarintOverflowError
 
+#: Bit sizes of the coordinate and normal encodings. Build 6956 replays declare
+#: them in the send tables (``coord_size_params``), which are checked against these.
+COORD_INTEGER_BITS = 14
+COORD_FRACTIONAL_BITS = 5
+NORMAL_FRACTIONAL_BITS = 11
+
 
 class BufferReadError(ReplayDataError, EOFError):
     """Raised when a reader operation runs past the available buffer."""
@@ -438,10 +444,10 @@ class BitReader:
             return 0.0
 
         negative = self.read_boolean()
-        int_val = (self.read_bits(14) + 1) if has_int else 0
-        frac_val = self.read_bits(5) if has_frac else 0
+        int_val = (self.read_bits(COORD_INTEGER_BITS) + 1) if has_int else 0
+        frac_val = self.read_bits(COORD_FRACTIONAL_BITS) if has_frac else 0
 
-        value = int_val + frac_val * (1.0 / 32.0)
+        value = int_val + frac_val * (1.0 / (1 << COORD_FRACTIONAL_BITS))
         return -value if negative else value
 
     def read_angle(self, n: int) -> float:
@@ -464,8 +470,8 @@ class BitReader:
             float: The normalised float value.
         """
         negative = self.read_boolean()
-        magnitude = self.read_bits(11)
-        value = magnitude * (1.0 / ((1 << 11) - 1.0))
+        magnitude = self.read_bits(NORMAL_FRACTIONAL_BITS)
+        value = magnitude * (1.0 / ((1 << NORMAL_FRACTIONAL_BITS) - 1.0))
         return -value if negative else value
 
     def read_3bit_normal(self) -> list[float]:

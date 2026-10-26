@@ -618,3 +618,99 @@ class TestParseSendTables:
         r = repr(s)
         assert "Serializer(" in r
         assert "fields" in r
+
+
+# ---------------------------------------------------------------------------
+# The replay's declared encodings (HY-378)
+# ---------------------------------------------------------------------------
+
+
+def _one_field_tables(field: dict, symbols: list[str]) -> bytes:
+    """Send tables with one serializer ``S`` holding one field."""
+    from gem.proto.netmessages_pb2 import CSVCMsg_FlattenedSerializer
+
+    flattened = CSVCMsg_FlattenedSerializer(
+        symbols=["S", *symbols],
+        serializers=[{"serializer_name_sym": 0, "serializer_version": 0, "fields_index": [0]}],
+        fields=[field],
+    )
+    return _wrap_flattened_serializer(flattened)
+
+
+# Build 6956's declared sizes: coord 14+5, coord_mp 11+3, normal 11, angle 20.
+_DECLARED = {
+    "coord_integer_bits": 14, "coord_fractional_bits": 5, "coord_integer_bits_mp": 11,
+    "coord_fractional_bits_mp": 3, "normal_fractional_bits": 11, "angle_bits": 20,
+}  # fmt: skip
+
+
+@pytest.mark.parametrize(
+    ("changed", "message"),
+    [
+        ({}, None),
+        ({"coord_integer_bits_mp": 12}, None),  # gem has no coord_mp decoder
+        ({"coord_integer_bits": 15}, "coord_integer_bits=15; gem decodes coord_integer_bits=14"),
+        ({"angle_bits": 16}, "angle_bits=16; gem decodes angle_bits=20"),
+    ],
+    ids=["as-gem-decodes", "coord-mp", "coord-bits", "angle-bits"],
+)
+def test_declared_coord_sizes_must_match(changed, message) -> None:
+    from gem.errors import UnsupportedReplayError
+    from gem.proto.netmessages_pb2 import CSVCMsg_FlattenedSerializer
+    from gem.schema.sendtable import parse_send_tables
+
+    flattened = CSVCMsg_FlattenedSerializer(coord_size_params=_DECLARED | changed)
+    if message is None:
+        assert parse_send_tables(_wrap_flattened_serializer(flattened)) == {}
+    else:
+        with pytest.raises(UnsupportedReplayError, match=message):
+            parse_send_tables(_wrap_flattened_serializer(flattened))
+
+
+def _alias():
+    from gem.proto.networkbasetypes_pb2 import QuantizedFloatEncoderAlias_t
+
+    return QuantizedFloatEncoderAlias_t(
+        name="origin_cell_offset", bit_count=13, encode_flags=1, min_value=0, max_value=256
+    )
+
+
+def test_a_field_naming_an_alias_decodes_with_its_settings() -> None:
+    from gem.binary.reader import BitReader
+    from gem.schema.field_decoder import QuantizedFloatDecoder
+    from gem.schema.sendtable import parse_send_tables
+
+    tables = _one_field_tables(
+        {"var_type_sym": 1, "var_name_sym": 2, "var_encoder_sym": 3},
+        ["float32", "m_vecX", "origin_cell_offset"],
+    )
+    field = parse_send_tables(tables, aliases=[_alias()])["S"].fields[0]
+
+    expected = QuantizedFloatDecoder(bit_count=13, flags=1, low_value=0.0, high_value=256.0)
+    data = bytes([0xA5, 0x3C, 0x00, 0x00])
+    assert field.decoder is not None
+    assert field.decoder(BitReader(data)) == expected.decode(BitReader(data))
+
+
+def test_a_field_disagreeing_with_its_alias_is_refused() -> None:
+    from gem.errors import UnsupportedReplayError
+    from gem.schema.sendtable import parse_send_tables
+
+    tables = _one_field_tables(
+        {"var_type_sym": 1, "var_name_sym": 2, "var_encoder_sym": 3, "bit_count": 10},
+        ["float32", "m_vecX", "origin_cell_offset"],
+    )
+    with pytest.raises(UnsupportedReplayError, match="bit_count=10 \\(the alias: 13\\)"):
+        parse_send_tables(tables, aliases=[_alias()])
+
+
+def test_a_signed_enum_read_unsigned_is_refused() -> None:
+    from gem.errors import UnsupportedReplayError
+    from gem.schema.sendtable import parse_send_tables
+
+    tables = _one_field_tables(
+        {"var_type_sym": 1, "var_name_sym": 2, "var_enum_info": {"is_signed_enum": True}},
+        ["TeamFlag_t", "m_eTeam"],
+    )
+    with pytest.raises(UnsupportedReplayError, match="'m_eTeam' \\(TeamFlag_t\\) is a signed enum"):
+        parse_send_tables(tables)

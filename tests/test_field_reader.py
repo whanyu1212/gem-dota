@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import pytest
 
+from gem.errors import EntityStateError
 from gem.schema.field_path import FieldPath
 from gem.schema.field_reader import (
     _resolve_cached_decoder,
@@ -187,10 +188,10 @@ class TestGetDecoderVariableArray:
             return "elem"
 
         f = _make_field(FIELD_MODEL_VARIABLE_ARRAY, base_decoder=base_dec, child_decoder=child_dec)
-        # last < pos  → last=0, pos=1
+        # last < pos  → last=0, pos=1: the length, read by the base decoder
         path = (0,)
         result = _resolve_field_decoder(f, path, 1)
-        assert result is base_dec
+        assert result is not None and result(None) == 3
 
 
 # ---------------------------------------------------------------------------
@@ -204,10 +205,10 @@ class TestGetDecoderVariableTable:
             return 2
 
         f = _make_field(FIELD_MODEL_VARIABLE_TABLE, base_decoder=base_dec)
-        # last < pos+1  → last=0, pos=1  → 0 < 2 → base
+        # last < pos+1  → last=0, pos=1  → 0 < 2 → the length, read by the base decoder
         path = (0,)
         result = _resolve_field_decoder(f, path, 1)
-        assert result is base_dec
+        assert result is not None and result(None) == 2
 
     def test_returns_base_decoder_at_boundary(self):
         def base_dec(r):
@@ -353,8 +354,9 @@ class TestDecoderResolutionByModel:
             )
         )
 
-        for path, expected in (((0,), base_decoder), ((0, 4), child_decoder)):
-            assert _resolve_decoder(serializer, path, 0) is expected
+        for path, expected in (((0,), 3), ((0, 4), "element")):
+            decoder = _resolve_decoder(serializer, path, 0)
+            assert decoder is not None and decoder(None) == expected
 
     def test_variable_table_boundaries_and_deep_path(self):
         base_decoder = _constant_decoder(2)
@@ -371,12 +373,9 @@ class TestDecoderResolutionByModel:
             )
         )
 
-        for path, expected in (
-            ((0,), base_decoder),
-            ((0, 3), base_decoder),
-            ((0, 3, 0), child_decoder),
-        ):
-            assert _resolve_decoder(serializer, path, 0) is expected
+        for path, expected in (((0,), 2), ((0, 3), 2), ((0, 3, 0), "deep")):
+            decoder = _resolve_decoder(serializer, path, 0)
+            assert decoder is not None and decoder(None) == expected
 
     def test_missing_nested_serializer_preserves_error(self):
         serializer = _make_serializer(
@@ -635,3 +634,22 @@ class TestReadFields:
 
         assert ser._resolved_decoders == {(0,): None}
         assert state._get_compact((0,)) is None
+
+
+@pytest.mark.parametrize(
+    ("path", "length", "ok"),
+    # A length's elements sit one level deeper: depth 1 (4,096) for (0,), depth 2 (2,048) for (1, 0).
+    [((0,), 4096, True), ((0,), 4097, False), ((1, 0), 2048, True), ((1, 0), 2049, False)],
+    ids=["top-level-max", "top-level-over", "nested-max", "nested-over"],
+)
+def test_variable_length_is_bounded_by_depth(path, length, ok) -> None:
+    array = _make_field(FIELD_MODEL_VARIABLE_ARRAY, base_decoder=_constant_decoder(length))
+    table = _make_serializer(array, name="Inner")
+    serializer = _make_serializer(array, _make_field(FIELD_MODEL_FIXED_TABLE, serializer=table))
+    decoder = _resolve_decoder(serializer, path, 0)
+    assert decoder is not None
+    if ok:
+        assert decoder(None) == length
+    else:
+        with pytest.raises(EntityStateError, match=f"length {length} with elements"):
+            decoder(None)

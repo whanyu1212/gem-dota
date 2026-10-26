@@ -15,12 +15,12 @@ for an explanation with real data, and
 ### `parse_send_tables`
 
 ```python
-def parse_send_tables(data: bytes, game_build: int = 0) -> dict[str, Serializer]
+def parse_send_tables(data: bytes, game_build: int = 0, aliases: Iterable[QuantizedFloatEncoderAlias_t] = ()) -> dict[str, Serializer]
 ```
 
 Parse a CDemoSendTables payload into a serializer dictionary.
 
-Source: [src/gem/schema/sendtable/parser.py:205](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/parser.py#L205)
+Source: [src/gem/schema/sendtable/parser.py:289](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/schema/sendtable/parser.py#L289)
 
 ## `gem.schema.sendtable.Serializer`
 

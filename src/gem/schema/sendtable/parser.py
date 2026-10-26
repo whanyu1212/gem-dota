@@ -6,21 +6,37 @@ unpacking separate from field construction so validation errors can point at the
 bad layer: outer payload, inner serializer payload, symbol lookup, or field
 reference resolution.
 
+The replay's own declarations are checked against what gem decodes: the
+coordinate, normal and angle sizes (``coord_size_params``, build 6956 on), a
+field's quantized-float encoder alias (``CSVCMsg_GameSessionConfiguration``), and
+a signed-enum flag (``var_enum_info.is_signed_enum``). Neither pinned manta nor
+Clarity reads these; on the local fixtures every check passes or does not apply.
+
 Reference: manta/sendtable.go, manta/field.go
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from google.protobuf.message import DecodeError
 
-from gem.binary.reader import BitReader
-from gem.errors import ReplayDataError
+from gem.binary.reader import (
+    COORD_FRACTIONAL_BITS,
+    COORD_INTEGER_BITS,
+    NORMAL_FRACTIONAL_BITS,
+    BitReader,
+)
+from gem.errors import ReplayDataError, UnsupportedReplayError
 from gem.proto.demo_pb2 import CDemoSendTables
 from gem.proto.netmessages_pb2 import (
     CSVCMsg_FlattenedSerializer,
     ProtoFlattenedSerializer_t,
     ProtoFlattenedSerializerField_t,
 )
+from gem.proto.networkbasetypes_pb2 import QuantizedFloatEncoderAlias_t
+from gem.schema.field_decoder import default_decoder, unsigned_decoder
+from gem.schema.field_decoder.composite_codecs import PRECISE_ANGLE_BITS
 from gem.schema.sendtable.models import (
     _POINTER_TYPES,
     FIELD_MODEL_FIXED_ARRAY,
@@ -167,6 +183,7 @@ def _get_or_build_field(
     field_cache: dict[int, Field],
     active_patches: list[_FieldPatch],
     game_build: int,
+    aliases: dict[str, QuantizedFloatEncoderAlias_t],
 ) -> Field:
     """Return a cached field object or construct and validate it.
 
@@ -178,7 +195,11 @@ def _get_or_build_field(
     if idx < 0 or idx >= len(msg.fields):
         raise ReplayDataError(f"invalid field index {idx} for serializer {owner_name!r}")
 
-    f = _build_field(msg.fields[idx], symbols, owner_name, game_build)
+    field_proto = msg.fields[idx]
+    f = _build_field(field_proto, symbols, owner_name, game_build)
+    alias = aliases.get(f.encoder)
+    if alias is not None:
+        _apply_alias(f, alias)
 
     if f.var_type not in field_type_cache:
         field_type_cache[f.var_type] = _parse_field_type(f.var_type)
@@ -198,11 +219,78 @@ def _get_or_build_field(
         patch.patch(f)
 
     f.set_model(_select_field_model(f))
+    if field_proto.var_enum_info.is_signed_enum:
+        _check_signed_enum(f)
     field_cache[idx] = f
     return f
 
 
-def parse_send_tables(data: bytes, game_build: int = 0) -> dict[str, Serializer]:
+def _apply_alias(f: Field, alias: QuantizedFloatEncoderAlias_t) -> None:
+    """Give a field the quantized-float settings its encoder's alias names.
+
+    A field with its own bit count keeps it, as long as it agrees with the alias.
+    """
+    settings = {
+        "bit_count": alias.bit_count,
+        "encode_flags": alias.encode_flags,
+        "low_value": alias.min_value,
+        "high_value": alias.max_value,
+    }
+    if f.bit_count is None:
+        for name, value in settings.items():
+            setattr(f, name, value)
+        return
+    differ = {
+        name: (getattr(f, name), value)
+        for name, value in settings.items()
+        if getattr(f, name) != value
+    }
+    if differ:
+        raise UnsupportedReplayError(
+            f"field {f.var_name!r} names quantized-float alias {alias.name!r} but declares "
+            + ", ".join(
+                f"{name}={own} (the alias: {value})" for name, (own, value) in differ.items()
+            )
+        )
+
+
+def _check_signed_enum(f: Field) -> None:
+    """Refuse a field the replay flags as a signed enum but gem would read unsigned."""
+    decoder = f.child_decoder if f.child_decoder is not None else f.decoder
+    if decoder in (unsigned_decoder, default_decoder):
+        raise UnsupportedReplayError(
+            f"field {f.var_name!r} ({f.var_type}) is a signed enum, which gem reads unsigned"
+        )
+
+
+def _check_coord_size_params(msg: CSVCMsg_FlattenedSerializer) -> None:
+    """Refuse send tables whose coordinate, normal or angle sizes differ from gem's.
+
+    ``coord_integer_bits_mp``/``coord_fractional_bits_mp`` are not checked: no
+    Dota field uses the ``coord_mp`` encoder, and gem has no decoder for it.
+    """
+    if not msg.HasField("coord_size_params"):
+        return
+    params = msg.coord_size_params
+    expected = {
+        "coord_integer_bits": COORD_INTEGER_BITS,
+        "coord_fractional_bits": COORD_FRACTIONAL_BITS,
+        "normal_fractional_bits": NORMAL_FRACTIONAL_BITS,
+        "angle_bits": PRECISE_ANGLE_BITS,
+    }
+    for name, ours in expected.items():
+        declared = getattr(params, name)
+        if params.HasField(name) and declared != ours:
+            raise UnsupportedReplayError(
+                f"send tables declare {name}={declared}; gem decodes {name}={ours}"
+            )
+
+
+def parse_send_tables(
+    data: bytes,
+    game_build: int = 0,
+    aliases: Iterable[QuantizedFloatEncoderAlias_t] = (),
+) -> dict[str, Serializer]:
     """Parse a CDemoSendTables payload into a serializer dictionary.
 
     Args:
@@ -210,12 +298,22 @@ def parse_send_tables(data: bytes, game_build: int = 0) -> dict[str, Serializer]
         game_build: Server build number (from ``CSVCMsg_ServerInfo``).
             Used to select build-range field patches. Pass 0 to apply only
             the always-on patches.
+        aliases: The server's quantized-float encoder aliases
+            (``CSVCMsg_GameSessionConfiguration.quantized_float_encoder_aliases``).
+            A field whose encoder names one takes its settings.
 
     Returns:
         Mapping of serializer name to Serializer, containing every entity
         class schema defined in this replay.
+
+    Raises:
+        UnsupportedReplayError: If the send tables declare coordinate, normal or
+            angle sizes gem does not decode, a field disagrees with the alias it
+            names, or a field flagged as a signed enum would be read unsigned.
     """
     msg = _parse_flattened_serializer(data)
+    _check_coord_size_params(msg)
+    by_alias = {alias.name: alias for alias in aliases}
     symbols = list(msg.symbols)
 
     active_patches = [p for p in _FIELD_PATCHES if p.should_apply(game_build)]
@@ -248,6 +346,7 @@ def parse_send_tables(data: bytes, game_build: int = 0) -> dict[str, Serializer]
                 field_cache=field_cache,
                 active_patches=active_patches,
                 game_build=game_build,
+                aliases=by_alias,
             )
             serializer.fields.append(field_obj)
 
