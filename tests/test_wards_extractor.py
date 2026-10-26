@@ -183,13 +183,13 @@ class TestOnCombatLogKillerQueue:
 class TestOnEntityHeroTracking:
     def test_hero_player_id_recorded(self):
         ext, _ = _ward_extractor()
-        e = _ent("CDOTA_Unit_Hero_Axe", **{"m_nPlayerID": 4, "m_iTeamNum": 2})
+        e = _ent("CDOTA_Unit_Hero_Axe", **{"m_nPlayerID": 2, "m_iTeamNum": 2})
         ext._on_entity(e, EntityOp.CREATED)
         assert ext._hero_by_player_id[2] == "npc_dota_hero_axe"
 
     def test_hero_fallback_to_m_iPlayerID(self):
         ext, _ = _ward_extractor()
-        e = _ent("CDOTA_Unit_Hero_Lina", **{"m_iPlayerID": 6, "m_iTeamNum": 2})
+        e = _ent("CDOTA_Unit_Hero_Lina", **{"m_iPlayerID": 3, "m_iTeamNum": 2})
         ext._on_entity(e, EntityOp.CREATED)
         assert ext._hero_by_player_id[3] == "npc_dota_hero_lina"
 
@@ -206,14 +206,14 @@ class TestOnEntityHeroTracking:
         parser.string_tables = tables
         e = _ent(
             "CDOTA_Unit_Hero_AncientApparition",
-            **{"m_nPlayerID": 4, "m_iTeamNum": 2, "m_pEntity.m_nameStringTableIndex": 9},
+            **{"m_nPlayerID": 2, "m_iTeamNum": 2, "m_pEntity.m_nameStringTableIndex": 9},
         )
         ext._on_entity(e, EntityOp.CREATED)
         assert ext._hero_by_player_id[2] == "npc_dota_hero_ancient_apparition"
 
     def test_class_name_is_the_fallback_without_entity_names(self):
         ext, _ = _ward_extractor()
-        e = _ent("CDOTA_Unit_Hero_AncientApparition", **{"m_nPlayerID": 4, "m_iTeamNum": 2})
+        e = _ent("CDOTA_Unit_Hero_AncientApparition", **{"m_nPlayerID": 2, "m_iTeamNum": 2})
         ext._on_entity(e, EntityOp.CREATED)
         assert ext._hero_by_player_id[2] == "npc_dota_hero_ancientapparition"
 
@@ -389,7 +389,7 @@ class TestFinalize:
         ev.placer = ""
 
         # Hero seen later in game
-        hero_e = _ent("CDOTA_Unit_Hero_Axe", **{"m_nPlayerID": 4, "m_iTeamNum": 2})
+        hero_e = _ent("CDOTA_Unit_Hero_Axe", **{"m_nPlayerID": 2, "m_iTeamNum": 2})
         ext._on_entity(hero_e, EntityOp.UPDATED)
 
         ext.finalize()
@@ -403,7 +403,7 @@ class TestFinalize:
         ev.player_id = -1
         ev.placer = ""
 
-        hero_e = _ent("CDOTA_Unit_Hero_Axe", **{"m_nPlayerID": 4, "m_iTeamNum": 2})
+        hero_e = _ent("CDOTA_Unit_Hero_Axe", **{"m_nPlayerID": 2, "m_iTeamNum": 2})
         ext._on_entity(hero_e, EntityOp.UPDATED)
 
         ext.finalize()
@@ -543,7 +543,7 @@ class TestTickEndPairing:
         # OpenDota resolves the owner's slot at leave time; an owner that no
         # longer resolves leaves the leave with no player (-1).
         ext, parser = _ward_extractor(tick=100)
-        owners = {7: _ent("CDOTAPlayerController", index=50, m_nPlayerID=6)}
+        owners = {7: _ent("CDOTAPlayerController", index=50, m_nPlayerID=3)}
         parser.entity_manager = SimpleNamespace(find_by_handle=lambda handle: owners.get(handle))
         placed = _observer_entity(index=0, life_state=0)
         set_fields(placed, {"m_hOwnerEntity": 7})

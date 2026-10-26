@@ -654,6 +654,7 @@ class TestFindDecoderExtended:
         [
             ("AbilityID_t", 3212, 1606),  # item polliwog_charm
             ("HeroID_t", 158, 79),  # shadow_demon
+            ("PlayerID_t", 12, 6),
         ],
     )
     def test_id_types_are_zigzag_signed(self, base_type, wire, value):

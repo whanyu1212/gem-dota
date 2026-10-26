@@ -282,8 +282,8 @@ not re-derive them:
   `_snapshot_hero`. (fights does not call `_pos`; it reads positions off the
   already-built snapshot `.x`/`.y` via its own `_nearest_pos`.)
 - `_player_id_from_entity(entity, *, allow_owner=False)` — resolves an entity to
-  a player slot 0-9 by reading `m_nPlayerID`/`m_iPlayerID` and halving the
-  doubled raw value. `allow_owner` adds an `m_iPlayerOwnerID` fallback for
+  a player slot 0-9 by reading `m_nPlayerID`/`m_iPlayerID` (skipping the `-1`
+  "none" value). `allow_owner` adds an `m_iPlayerOwnerID` fallback for
   *owned units* (e.g. a ward's owner unit), but **must stay False for hero-name
   lookups** so a hero-class illusion is not misattributed to the real hero.
 - `_snapshot_hero(entity, tick)` — builds a base `PlayerStateSnapshot` (gold and

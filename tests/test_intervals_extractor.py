@@ -537,7 +537,7 @@ def test_interval_hero_name_source_survives_stale_delete_and_slot_recycle():
         "CDOTA_Unit_Hero_Pudge",
         index=11,
         serial=2,
-        m_nPlayerID=2,
+        m_nPlayerID=1,
         **{"m_pEntity.m_nameStringableIndex": 2},
     )
 

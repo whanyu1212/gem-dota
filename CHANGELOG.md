@@ -31,6 +31,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that is now removed. Raw `HeroID_t` reads through the entity API
   (`m_nSelectedHeroID`, `m_BannedHeroes`, `m_SelectedHeroes`, …) change the same
   way. JSON written by earlier versions keeps the doubled draft IDs when loaded.
+- **Ward placers are no longer misnamed by a unit with no player** (HY-176).
+  `PlayerID_t` fields (`m_nPlayerID`, `m_iPlayerID`, `m_iPlayerOwnerID`, …) are
+  zigzag-signed too. gem halved the unsigned value, as OpenDota does, which reads
+  the "no player" value `-1` as slot 0. On 8868259993 an Ember Spirit entity with
+  `m_iPlayerID` -1 took slot 0's name, so five of player 0's observer wards named
+  Ember Spirit as the placer instead of Winter Wyvern (`wards[].placer`,
+  `obs_log[].placer`). Their `player_id` was already right, and no other output
+  changes on the local fixtures. Raw `PlayerID_t` reads through the entity API now
+  return the slot, or `-1`.
 - **`python -m gem` runs from a pip install.** `rich`, which the CLI imports, was
   only a dev dependency, so the command failed with `ModuleNotFoundError: No module
   named 'rich'` outside a development checkout. It is a runtime dependency now.

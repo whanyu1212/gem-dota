@@ -109,7 +109,7 @@ def _make_combat_entry(**kwargs):
     return CombatLogEntry(**defaults)
 
 
-def _attach_hero(parser: FakeParser, npc_name: str, player_id_raw: int = 0):
+def _attach_hero(parser: FakeParser, npc_name: str, player_id: int = 0):
     """Register a hero entity so _hero_to_pid() can resolve it."""
     from gem.state.entities import EntityOp
 
@@ -119,7 +119,7 @@ def _attach_hero(parser: FakeParser, npc_name: str, player_id_raw: int = 0):
     hero = _make_entity(
         cls_name,
         {
-            "m_nPlayerID": player_id_raw,  # raw value; extractor divides by 2
+            "m_nPlayerID": player_id,
             "m_iTeamNum": 2,
             "m_nCurrentLevel": 1,
             "m_iCurrentXP": 0,
@@ -220,19 +220,19 @@ class TestTimeSeriesFields:
 
 
 class TestPlayerExtractorAccumulation:
-    def _setup(self, npc_name="npc_dota_hero_axe", player_id_raw=0):
+    def _setup(self, npc_name="npc_dota_hero_axe", player_id=0):
         from gem.extractors.players import PlayerExtractor
 
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=30, minute_snapshots=False)
         ext.attach(parser)
-        _attach_hero(parser, npc_name, player_id_raw)
+        _attach_hero(parser, npc_name, player_id)
         return parser, ext
 
     # --- DAMAGE ---
 
     def test_hero_damage_increments(self):
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         entry = _make_combat_entry(
             log_type="DAMAGE",
             attacker_name="npc_dota_hero_axe",
@@ -245,7 +245,7 @@ class TestPlayerExtractorAccumulation:
         assert ext._total_hero_damage.get(0, 0) == 200
 
     def test_hero_damage_accumulates(self):
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         for _ in range(3):
             parser.fire_combat_log(
                 _make_combat_entry(
@@ -261,7 +261,7 @@ class TestPlayerExtractorAccumulation:
 
     def test_non_hero_damage_excluded(self):
         """Damage dealt to a non-hero target (tower, creep) must not count."""
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="DAMAGE",
@@ -276,7 +276,7 @@ class TestPlayerExtractorAccumulation:
 
     def test_damage_from_non_hero_attacker_excluded(self):
         """Tower/creep damage dealt to a hero must not count."""
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="DAMAGE",
@@ -293,7 +293,7 @@ class TestPlayerExtractorAccumulation:
         """Projectile/spell damage credits the damage source hero, matching the
         aggregator so the minute curves stay consistent with the hero_damage scalar.
         """
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="DAMAGE",
@@ -309,7 +309,7 @@ class TestPlayerExtractorAccumulation:
 
     def test_hero_damage_excludes_illusion_target(self):
         """Damage to an illusion target is excluded, matching the scalar."""
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="DAMAGE",
@@ -327,7 +327,7 @@ class TestPlayerExtractorAccumulation:
     # --- HEALING ---
 
     def test_healing_increments(self):
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="HEAL",
@@ -342,7 +342,7 @@ class TestPlayerExtractorAccumulation:
 
     def test_healing_non_hero_target_excluded(self):
         """Healing a non-hero (e.g. creep) must not count."""
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="HEAL",
@@ -359,7 +359,7 @@ class TestPlayerExtractorAccumulation:
         """Self-heal must not count — total_hero_healing tracks healing to allied
         heroes, matching the aggregator's hero_healing scalar.
         """
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="HEAL",
@@ -376,7 +376,7 @@ class TestPlayerExtractorAccumulation:
     # --- DEATHS ---
 
     def test_death_increments(self):
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="DEATH",
@@ -390,7 +390,7 @@ class TestPlayerExtractorAccumulation:
 
     def test_death_counts_all_causes(self):
         """Deaths from towers, creeps, and heroes all count."""
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         # killed by tower
         parser.fire_combat_log(
             _make_combat_entry(
@@ -415,7 +415,7 @@ class TestPlayerExtractorAccumulation:
 
     def test_non_hero_death_excluded(self):
         """Deaths of non-hero units (creeps) must not be attributed to a player."""
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="DEATH",
@@ -431,7 +431,7 @@ class TestPlayerExtractorAccumulation:
     # --- STUNS ---
 
     def test_stun_accumulates(self):
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="ABILITY",
@@ -455,7 +455,7 @@ class TestPlayerExtractorAccumulation:
         assert abs(ext._total_stuns[0] - 3.5) < 1e-9
 
     def test_stun_zero_duration_not_counted(self):
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="DAMAGE",
@@ -471,7 +471,7 @@ class TestPlayerExtractorAccumulation:
 
     def test_stun_non_hero_attacker_excluded(self):
         """Stuns applied by non-hero units must not be credited to a player."""
-        parser, ext = self._setup("npc_dota_hero_axe", player_id_raw=0)
+        parser, ext = self._setup("npc_dota_hero_axe", player_id=0)
         parser.fire_combat_log(
             _make_combat_entry(
                 log_type="ABILITY",
@@ -492,8 +492,8 @@ class TestPlayerExtractorAccumulation:
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=30, minute_snapshots=False)
         ext.attach(parser)
-        _attach_hero(parser, "npc_dota_hero_axe", player_id_raw=0)  # pid=0
-        _attach_hero(parser, "npc_dota_hero_juggernaut", player_id_raw=2)  # pid=1
+        _attach_hero(parser, "npc_dota_hero_axe", player_id=0)
+        _attach_hero(parser, "npc_dota_hero_juggernaut", player_id=1)
 
         # axe deals damage to jugg
         parser.fire_combat_log(
@@ -534,7 +534,7 @@ class TestSnapshotStamping:
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=False)
         ext.attach(parser)
-        hero = _attach_hero(parser, "npc_dota_hero_axe", player_id_raw=0)
+        hero = _attach_hero(parser, "npc_dota_hero_axe", player_id=0)
 
         # Fire a damage event before the next sample
         parser.fire_combat_log(
@@ -566,7 +566,7 @@ class TestSnapshotStamping:
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=False)
         ext.attach(parser)
-        hero = _attach_hero(parser, "npc_dota_hero_axe", player_id_raw=0)
+        hero = _attach_hero(parser, "npc_dota_hero_axe", player_id=0)
         parser.tick = 10
         parser.fire_entity(hero, EntityOp.UPDATED)
         snaps = [s for s in ext.snapshots if s.player_id == 0]
@@ -583,7 +583,7 @@ class TestSnapshotStamping:
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=False)
         ext.attach(parser)
-        hero = _attach_hero(parser, "npc_dota_hero_axe", player_id_raw=0)
+        hero = _attach_hero(parser, "npc_dota_hero_axe", player_id=0)
 
         for tick in range(1, 11):
             parser.fire_combat_log(
@@ -617,7 +617,7 @@ class TestTimeSeriesInclusion:
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=True)
         ext.attach(parser)
-        hero = _attach_hero(parser, "npc_dota_hero_axe", player_id_raw=0)
+        hero = _attach_hero(parser, "npc_dota_hero_axe", player_id=0)
 
         # Simulate game start so minute snapshots are enabled
         parser.fire_game_start(0)
@@ -681,7 +681,7 @@ class TestTimeSeriesInclusion:
         parser = FakeParser(tick=0)
         ext = PlayerExtractor(sample_interval=1, minute_snapshots=True)
         ext.attach(parser)
-        hero = _attach_hero(parser, "npc_dota_hero_axe", player_id_raw=0)
+        hero = _attach_hero(parser, "npc_dota_hero_axe", player_id=0)
         parser.fire_game_start(0)
 
         # Fire 100 damage in minute 0 (ticks 0–1799)

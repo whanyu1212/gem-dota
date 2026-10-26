@@ -51,7 +51,7 @@ def _hero(ending: str = "Axe", player_id: int = 0, **extra) -> Entity:
     return _ent(
         f"CDOTA_Unit_Hero_{ending}",
         **{
-            "m_nPlayerID": player_id * 2,
+            "m_nPlayerID": player_id,
             "m_iTeamNum": 2,
             "m_nCurrentLevel": 5,
             "m_iCurrentXP": 1000,
@@ -72,18 +72,17 @@ class TestPlayerIdFromEntity:
     Consolidates the resolvers that previously lived in
     players/wards/intervals/aggregator. Locks in the resolution chain
     (m_nPlayerID -> m_iPlayerID, plus m_iPlayerOwnerID only when
-    ``allow_owner=True``) and the slot halving.
+    ``allow_owner=True``).
     """
 
     def test_none_entity(self):
         assert _player_id_from_entity(None) is None
 
-    def test_reads_m_nplayerid_halved(self):
-        # raw value is slot * 2
-        assert _player_id_from_entity(_ent(m_nPlayerID=6)) == 3
+    def test_reads_m_nplayerid(self):
+        assert _player_id_from_entity(_ent(m_nPlayerID=3)) == 3
 
     def test_falls_back_to_m_iplayerid(self):
-        e = _ent(m_iPlayerID=8)  # no m_nPlayerID
+        e = _ent(m_iPlayerID=4)  # no m_nPlayerID
         assert _player_id_from_entity(e) == 4
 
     def test_owner_id_ignored_by_default(self):
@@ -95,11 +94,11 @@ class TestPlayerIdFromEntity:
 
     def test_owner_id_used_when_allowed(self):
         # Owned-unit context (e.g. a ward's owner) opts into the fallback.
-        e = _ent(m_iPlayerOwnerID=4)
+        e = _ent(m_iPlayerOwnerID=2)
         assert _player_id_from_entity(e, allow_owner=True) == 2
 
     def test_prefers_nplayerid_over_others(self):
-        e = _ent(m_nPlayerID=2, m_iPlayerID=8, m_iPlayerOwnerID=18)
+        e = _ent(m_nPlayerID=1, m_iPlayerID=4, m_iPlayerOwnerID=9)
         assert _player_id_from_entity(e, allow_owner=True) == 1
 
     def test_negative_slot_is_unresolved(self):
@@ -110,7 +109,7 @@ class TestPlayerIdFromEntity:
 
     def test_skips_negative_and_uses_next_field(self):
         # m_nPlayerID == -1 (unset sentinel) should fall through to m_iPlayerID.
-        e = _ent(m_nPlayerID=-1, m_iPlayerID=10)
+        e = _ent(m_nPlayerID=-1, m_iPlayerID=5)
         assert _player_id_from_entity(e) == 5
 
 
@@ -307,7 +306,7 @@ class TestSnapshotHero:
         assert snap.player_id == 2
 
     def test_player_id_halved(self):
-        e = _hero("Pudge", player_id=3)  # m_nPlayerID = 6
+        e = _hero("Pudge", player_id=3)
         snap = _snapshot_hero(e, tick=0)
         assert snap is not None
         assert snap.player_id == 3
@@ -323,7 +322,7 @@ class TestSnapshotHero:
         assert snap is None
 
     def test_fallback_to_m_iPlayerID(self):
-        e = _ent("CDOTA_Unit_Hero_Axe", **{"m_iPlayerID": 4})  # player 2
+        e = _ent("CDOTA_Unit_Hero_Axe", **{"m_iPlayerID": 2})
         snap = _snapshot_hero(e, tick=0)
         assert snap is not None
         assert snap.player_id == 2
@@ -468,7 +467,7 @@ class TestOnEntityHero:
         ext = PlayerExtractor()
         parser = FakeParser()
         ext.attach(parser)
-        e = _ent("CDOTAPlayerController", **{"m_nPlayerID": 2})  # player 1
+        e = _ent("CDOTAPlayerController", **{"m_nPlayerID": 1})
         ext._on_entity(e, EntityOp.CREATED)
         assert 1 in ext._controllers
 
@@ -476,7 +475,7 @@ class TestOnEntityHero:
         ext = PlayerExtractor()
         parser = FakeParser()
         ext.attach(parser)
-        e = _ent("CDOTAPlayerController", **{"m_iPlayerID": 4})  # player 2
+        e = _ent("CDOTAPlayerController", **{"m_iPlayerID": 2})
         ext._on_entity(e, EntityOp.CREATED)
         assert 2 in ext._controllers
 
@@ -902,7 +901,7 @@ class TestMaybeSample:
         hero = _ent(
             "CDOTA_Unit_Hero_Axe",
             **{
-                "m_nPlayerID": 10,  # player 5
+                "m_nPlayerID": 5,
                 "m_iTeamNum": 3,
                 "m_nCurrentLevel": 1,
                 "m_iCurrentXP": 0,
@@ -1804,7 +1803,7 @@ class TestPlayerExtractorAttach:
         hero = _ent(
             "CDOTA_Unit_Hero_Juggernaut",
             **{
-                "m_nPlayerID": 2,  # player_id 1
+                "m_nPlayerID": 1,
                 "m_iTeamNum": 3,
                 "m_nCurrentLevel": 10,
                 "m_iCurrentXP": 5000,
@@ -1910,7 +1909,7 @@ def _linear_player_id(entity, mode):
         if value is None:
             continue
         if value >= 0:
-            return value // 2
+            return value
         if mode == 2:
             return None
     return None
@@ -2000,7 +1999,7 @@ class TestGuardedPlayerIds:
         from gem.schema.field_state import FieldState
 
         entity = _decoded_id_entity((6, None, None))
-        assert _resolve_id_mode(entity, 0) == 3
+        assert _resolve_id_mode(entity, 0) == 6
         old = entity._player_id_cache[0]
         if change == "index":
             entity.index += 1
@@ -2013,29 +2012,29 @@ class TestGuardedPlayerIds:
         else:
             entity._field_state = FieldState()
             entity._field_state._set_compact((0,), 6)
-        assert _resolve_id_mode(entity, 0) == 3
+        assert _resolve_id_mode(entity, 0) == 6
         assert entity._player_id_cache[0] is not old
 
     def test_current_root_storage_and_extra_slot_bound(self):
         entity = _decoded_id_entity((None, 8, None))
-        assert _resolve_id_mode(entity, 0) == 4
+        assert _resolve_id_mode(entity, 0) == 8
         entity._field_state._state = [None, 8]
         assert _resolve_id_mode(entity, 0) is None  # index 1 requires length >= 3
         entity._field_state._state.append(None)
-        assert _resolve_id_mode(entity, 0) == 4
+        assert _resolve_id_mode(entity, 0) == 8
         entity._field_state._state = [0, 8, None]
         assert _resolve_id_mode(entity, 0) == 0
 
     def test_raw_identity_does_not_confuse_equal_float_and_int(self):
         entity = _decoded_id_entity((6, 8, None))
-        assert _resolve_id_mode(entity, 0) == 3
+        assert _resolve_id_mode(entity, 0) == 6
         entity._field_state._state[0] = 6.0
-        assert _resolve_id_mode(entity, 0) == 4
+        assert _resolve_id_mode(entity, 0) == 8
         entity._field_state._state[0] = int("1000")
-        assert _resolve_id_mode(entity, 0) == 500
+        assert _resolve_id_mode(entity, 0) == 1000
         entry = entity._player_id_cache[0]
         entity._field_state._state[0] = int("1000")
-        assert _resolve_id_mode(entity, 0) == 500
+        assert _resolve_id_mode(entity, 0) == 1000
         assert entity._player_id_cache[0] is not entry
 
     def test_cache_follows_changed_field_values(self):
@@ -2050,7 +2049,7 @@ class TestGuardedPlayerIds:
     @pytest.mark.parametrize("mode", range(3))
     def test_nested_paths_are_uncached(self, mode):
         entity = _decoded_id_entity((None, 8, 10), nested=True)
-        assert _resolve_id_mode(entity, mode) == 4
+        assert _resolve_id_mode(entity, mode) == 8
         assert entity._player_id_cache is None
         entity._field_state._set_compact((0, 0), 0)
         assert _resolve_id_mode(entity, mode) == 0
@@ -2060,7 +2059,7 @@ class TestGuardedPlayerIds:
         first = _decoded_id_entity((6, None, None))
         second = _decoded_id_entity((8, None, None), serial=2)
         third = _decoded_id_entity((0, None, None))
-        for e, expected in [(first, 3), (second, 4), (third, 0)]:
+        for e, expected in [(first, 6), (second, 8), (third, 0)]:
             assert e._player_id_cache is None
             assert _resolve_id_mode(e, 0) == expected
         assert first._player_id_cache is not second._player_id_cache
@@ -2070,12 +2069,12 @@ class TestGuardedPlayerIds:
         entity = _decoded_id_entity((None, None, 8))
         entity.cls.serializer.fields = entity.cls.serializer.fields[2:]
         entity._field_state._state = [8, None]
-        assert _resolve_id_mode(entity, 1) == 4
+        assert _resolve_id_mode(entity, 1) == 8
         assert _resolve_id_mode(entity, 0) is None
         assert _resolve_id_mode(entity, 2) is None
         assert set(entity._player_id_cache) == {1}
         entity._field_state._state[0] = 10
-        assert _resolve_id_mode(entity, 1) == 5
+        assert _resolve_id_mode(entity, 1) == 10
 
 
 @pytest.mark.parametrize("minute", [False, True])
@@ -2234,13 +2233,13 @@ def test_decoded_cache_and_canonical_handles_remain_parser_local():
         controller = _ent("CDOTAPlayerController", m_hAssignedHero=100)
         ext._controllers[0] = controller
         ext._sample(1)
-        assert entity._player_id_cache[2].player_id == raw // 2
+        assert entity._player_id_cache[2].player_id == raw
         assert replacement._player_id_cache is None
         set_fields(controller, {"m_hAssignedHero": 200})
         ext._sample(2)
-        assert replacement._player_id_cache[2].player_id == raw // 2
+        assert replacement._player_id_cache[2].player_id == raw
         set_fields(controller, {"m_hAssignedHero": 999})
         ext._sample(3)
-        assert [s.player_id for s in ext.snapshots] == [raw // 2, raw // 2]
+        assert [s.player_id for s in ext.snapshots] == [raw, raw]
         extractors.append(ext)
     assert extractors[0].snapshots[0].player_id != extractors[1].snapshots[0].player_id
