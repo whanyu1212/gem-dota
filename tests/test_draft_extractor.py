@@ -202,81 +202,20 @@ class TestResolveNameLiveMapHit:
         result = ext._resolve_name(2)
         assert result == "npc_dota_hero_pudge"
 
-    def test_live_map_used_for_doubled_id(self):
-        # Doubled IDs (api_id * 2) are typically what live map contains
-        ext = DraftExtractor()
-        ext._live_id_to_npc[158] = "npc_dota_hero_shadow_demon"  # 79 * 2
-        assert ext._resolve_name(158) == "npc_dota_hero_shadow_demon"
 
+class TestResolveNameStaticLookup:
+    """Static ``heroes.json`` lookup when no hero entity has been seen."""
 
-class TestResolveNameHalving:
-    """Halved lookup (tier 2): applied when direct ID is NOT in static dict.
-
-    heroes.json uses sequential IDs (1=antimage, 2=axe, ... 155=largo).
-    Modern replays store hero IDs as api_id*2, which exceed 155 and therefore
-    fall outside the static dict — those get resolved via halving.
-    """
-
-    def test_doubled_shadow_demon_resolves_via_halving(self):
-        # shadow_demon api_id=79; stored as 158 in modern replays
-        # 158 is NOT in dict (max id is 155), but 158//2=79 IS → shadow_demon
-        ext = DraftExtractor()
-        assert 158 not in _HERO_ID_TO_NPC
-        assert 79 in _HERO_ID_TO_NPC
-        assert ext._resolve_name(158) == "npc_dota_hero_shadow_demon"
-
-    def test_doubled_lone_druid_resolves_via_halving(self):
-        # lone_druid api_id=80; stored as 160 in modern replays
-        ext = DraftExtractor()
-        assert 160 not in _HERO_ID_TO_NPC
-        assert 80 in _HERO_ID_TO_NPC
-        assert ext._resolve_name(160) == "npc_dota_hero_lone_druid"
-
-    def test_doubled_dawnbreaker_resolves_via_halving(self):
-        # dawnbreaker api_id=135; stored as 270 in modern replays
-        ext = DraftExtractor()
-        assert 270 not in _HERO_ID_TO_NPC
-        assert 135 in _HERO_ID_TO_NPC
-        assert ext._resolve_name(270) == "npc_dota_hero_dawnbreaker"
-
-    def test_halving_always_applied_first(self):
-        # hero_id=2: 2//2=1 → antimage. halving always takes priority over direct lookup.
-        ext = DraftExtractor()
-        assert ext._resolve_name(2) == "npc_dota_hero_antimage"
-
-    def test_halving_applied_for_pudge_doubled(self):
-        # pudge api_id=14; stored as 28 in modern replays (14*2); 28//2=14 → pudge
-        ext = DraftExtractor()
-        assert ext._resolve_name(28) == "npc_dota_hero_pudge"
-
-    def test_axe_doubled_id_resolves_via_halving(self):
-        # axe api_id=2; stored as 4 in modern replays (2*2); 4//2=2 → axe
-        ext = DraftExtractor()
-        assert ext._resolve_name(4) == "npc_dota_hero_axe"
-
-
-class TestResolveNameDirectLookup:
-    """Direct lookup (tier 3): fires when hero_id//2 is not in the dict.
-
-    Halving always runs first. Direct lookup only applies when the halved value
-    has no entry — e.g. odd IDs where (id//2) resolves to a different hero or
-    doesn't exist. In practice this tier is a safety net for legacy replays.
-    """
-
-    def test_antimage_id_1_halved_to_0_falls_back_to_direct(self):
-        # 1//2=0, which is not in the dict → falls back to direct lookup of 1 → antimage
-        ext = DraftExtractor()
-        assert ext._resolve_name(1) == "npc_dota_hero_antimage"
-
-    def test_axe_doubled_resolves_via_halving_not_direct(self):
-        # Confirm axe is reached via halving (4//2=2 → axe), not direct lookup of 4
-        ext = DraftExtractor()
-        assert ext._resolve_name(4) == "npc_dota_hero_axe"
-
-    def test_riki_doubled_resolves_via_halving(self):
-        # riki api_id=32; stored as 64 in modern replays; 64//2=32 → riki
-        ext = DraftExtractor()
-        assert ext._resolve_name(64) == "npc_dota_hero_riki"
+    @pytest.mark.parametrize(
+        ("hero_id", "name"),
+        [
+            (1, "npc_dota_hero_antimage"),
+            (14, "npc_dota_hero_pudge"),
+            (79, "npc_dota_hero_shadow_demon"),
+        ],
+    )
+    def test_resolves_real_hero_id(self, hero_id, name):
+        assert DraftExtractor()._resolve_name(hero_id) == name
 
 
 class TestResolveNameUnknown:
@@ -303,21 +242,20 @@ class TestResolveNameUnknown:
 class TestFinalize:
     def test_finalize_updates_empty_hero_name(self):
         ext = DraftExtractor()
-        # Add event with empty hero_name (hero_id=158 → shadow_demon when live map set)
-        ev = DraftEvent(tick=0, slot_index=0, hero_id=158, hero_name="", is_pick=False)
+        ev = DraftEvent(tick=0, slot_index=0, hero_id=79, hero_name="", is_pick=False)
         ext.draft_events.append(ev)
-        ext._live_id_to_npc[158] = "npc_dota_hero_shadow_demon"
+        ext._live_id_to_npc[79] = "npc_dota_hero_shadow_demon"
         ext.finalize()
         assert ev.hero_name == "npc_dota_hero_shadow_demon"
 
     def test_finalize_overwrites_wrong_static_lookup(self):
-        # hero_id=158 was resolved via halving, but live map corrects it
+        # The live map corrects a name recorded during the draft
         ext = DraftExtractor()
         ev = DraftEvent(
-            tick=0, slot_index=0, hero_id=158, hero_name="npc_dota_hero_wrong", is_pick=True
+            tick=0, slot_index=0, hero_id=79, hero_name="npc_dota_hero_wrong", is_pick=True
         )
         ext.draft_events.append(ev)
-        ext._live_id_to_npc[158] = "npc_dota_hero_shadow_demon"
+        ext._live_id_to_npc[79] = "npc_dota_hero_shadow_demon"
         ext.finalize()
         assert ev.hero_name == "npc_dota_hero_shadow_demon"
 
@@ -340,11 +278,11 @@ class TestFinalize:
 
     def test_finalize_updates_multiple_events(self):
         ext = DraftExtractor()
-        ev1 = DraftEvent(tick=0, slot_index=0, hero_id=158, hero_name="", is_pick=False)
-        ev2 = DraftEvent(tick=0, slot_index=1, hero_id=160, hero_name="", is_pick=False)
+        ev1 = DraftEvent(tick=0, slot_index=0, hero_id=79, hero_name="", is_pick=False)
+        ev2 = DraftEvent(tick=0, slot_index=1, hero_id=80, hero_name="", is_pick=False)
         ext.draft_events.extend([ev1, ev2])
-        ext._live_id_to_npc[158] = "npc_dota_hero_shadow_demon"
-        ext._live_id_to_npc[160] = "npc_dota_hero_lone_druid"
+        ext._live_id_to_npc[79] = "npc_dota_hero_shadow_demon"
+        ext._live_id_to_npc[80] = "npc_dota_hero_lone_druid"
         ext.finalize()
         assert ev1.hero_name == "npc_dota_hero_shadow_demon"
         assert ev2.hero_name == "npc_dota_hero_lone_druid"
@@ -353,10 +291,10 @@ class TestFinalize:
         # finalize re-resolves ALL events to let live map override wrong static ones
         ext = DraftExtractor()
         ev = DraftEvent(
-            tick=0, slot_index=0, hero_id=158, hero_name="npc_dota_hero_shadow_demon", is_pick=True
+            tick=0, slot_index=0, hero_id=79, hero_name="npc_dota_hero_shadow_demon", is_pick=True
         )
         ext.draft_events.append(ev)
-        ext._live_id_to_npc[158] = "npc_dota_hero_pudge"  # live map says pudge (hypothetical)
+        ext._live_id_to_npc[79] = "npc_dota_hero_pudge"  # live map says pudge (hypothetical)
         ext.finalize()
         # finalize must re-resolve even non-empty names so live map wins
         assert ev.hero_name == "npc_dota_hero_pudge"
@@ -449,7 +387,7 @@ class TestCheckDraftIdempotency:
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
-            {"m_pGameRules.m_BannedHeroes.0000": 4},  # axe doubled id (2*2) → axe via halving
+            {"m_pGameRules.m_BannedHeroes.0000": 2},
         )
         ext._check_draft(entity)
         assert ext.draft_events[0].hero_name == "npc_dota_hero_axe"
@@ -460,24 +398,10 @@ class TestCheckDraftIdempotency:
 
         entity = _make_entity(
             "CDOTAGamerulesProxy",
-            {
-                "m_pGameRules.m_SelectedHeroes.0000": 28
-            },  # pudge doubled id (14*2) → pudge via halving
+            {"m_pGameRules.m_SelectedHeroes.0000": 14},
         )
         ext._check_draft(entity)
         assert ext.draft_events[0].hero_name == "npc_dota_hero_pudge"
-
-    def test_hero_name_resolved_for_doubled_id(self):
-        # hero_id=158 (shadow_demon=79*2): not in dict, halved to 79 → shadow_demon
-        ext = DraftExtractor()
-        ext._parser = None
-
-        entity = _make_entity(
-            "CDOTAGamerulesProxy",
-            {"m_pGameRules.m_BannedHeroes.0000": 158},
-        )
-        ext._check_draft(entity)
-        assert ext.draft_events[0].hero_name == "npc_dota_hero_shadow_demon"
 
     def test_tick_recorded_from_parser(self):
         from gem.extractors.draft import DraftExtractor as DE
@@ -627,8 +551,8 @@ class TestDraftPollingCutoff:
         entity = _make_entity(
             "CDOTAGamerulesProxy",
             {
-                "m_pGameRules.m_BannedHeroes.0000": 4,
-                "m_pGameRules.m_SelectedHeroes.0000": 28,
+                "m_pGameRules.m_BannedHeroes.0000": 2,
+                "m_pGameRules.m_SelectedHeroes.0000": 14,
                 "m_pGameRules.m_iActiveTeam": 2,
             },
         )
@@ -636,13 +560,13 @@ class TestDraftPollingCutoff:
         dispatch(entity, EntityOp.CREATED_ENTERED)
         dispatch(entity, EntityOp.UPDATED)
         parser.tick = 20
-        set_fields(entity, {"m_pGameRules.m_SelectedHeroes.0000": 4})
+        set_fields(entity, {"m_pGameRules.m_SelectedHeroes.0000": 2})
         set_fields(entity, {"m_pGameRules.m_iActiveTeam": 3})
         dispatch(entity, EntityOp.UPDATED)
         assert ext.draft_events == [
-            DraftEvent(10, 0, 4, "npc_dota_hero_axe", False, 2),
-            DraftEvent(10, 0, 28, "npc_dota_hero_pudge", True, 2),
-            DraftEvent(20, 0, 4, "npc_dota_hero_axe", True, 3),
+            DraftEvent(10, 0, 2, "npc_dota_hero_axe", False, 2),
+            DraftEvent(10, 0, 14, "npc_dota_hero_pudge", True, 2),
+            DraftEvent(20, 0, 2, "npc_dota_hero_axe", True, 3),
         ]
 
     def test_start_update_and_same_tick_are_scanned(self, monkeypatch):

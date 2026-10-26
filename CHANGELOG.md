@@ -22,6 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Draft hero IDs are the real hero IDs** (HY-176). `HeroID_t` entity fields are
+  zigzag-signed varints, as in Clarity and manta `0efe7e11`, but gem decoded them
+  unsigned, so every ID read twice its value and the empty value `-1` read `1`.
+  `ParsedMatch.draft[].hero_id` and the draft DataFrame's `hero_id` column were
+  doubled; they now equal OpenDota's `picks_bans`. Hero names were already right:
+  the draft extractor halved the ID before its `heroes.json` lookup, a workaround
+  that is now removed. Raw `HeroID_t` reads through the entity API
+  (`m_nSelectedHeroID`, `m_BannedHeroes`, `m_SelectedHeroes`, …) change the same
+  way. JSON written by earlier versions keeps the doubled draft IDs when loaded.
 - **`python -m gem` runs from a pip install.** `rich`, which the CLI imports, was
   only a dev dependency, so the command failed with `ModuleNotFoundError: No module
   named 'rich'` outside a development checkout. It is a runtime dependency now.

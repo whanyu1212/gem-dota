@@ -116,6 +116,7 @@ _FIELD_TYPE_DECODERS: dict[str, FieldDecoder] = {
     # Zigzag-signed, though neither pinned Manta nor Clarity maps it: decoded
     # unsigned, every ID reads 2x and the -1 padding reads 1 (HY-174).
     "AbilityID_t": signed_decoder,
+    "HeroID_t": signed_decoder,
     "GameTime_t": noscale_decoder,
     "HeroFacetKey_t": unsigned64_decoder,
     "BloodType": unsigned_decoder,

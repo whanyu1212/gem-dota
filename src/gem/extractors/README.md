@@ -163,9 +163,8 @@ Tracks `CDOTA_Unit_Courier*` entities and emits a `CourierSnapshot` (team,
 Polls `CDOTAGamerulesProxy` for `m_pGameRules.m_BannedHeroes.{i:04d}` (14 ban
 slots) and `m_pGameRules.m_SelectedHeroes.{i:04d}` (10 pick slots), emitting an
 idempotent `DraftEvent` per new `(is_pick, slot_index, hero_id)`. Hero-ID
-resolution is three-tier (`_resolve_name`): live map from hero entity class
-names, then `hero_id // 2` against bundled `heroes.json` (modern replays store
-`api_id * 2`), then a direct `heroes.json` lookup. `resolve_pick_team` is a
+resolution is two-tier (`_resolve_name`): live map from hero entity class
+names, then the bundled `heroes.json`. `resolve_pick_team` is a
 module-level helper used at assembly time to pin a pick to the correct team via
 the player roster.
 
