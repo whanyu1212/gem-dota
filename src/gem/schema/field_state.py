@@ -6,7 +6,7 @@ the new length, and reading the array's own path returns its length.
 
 References:
     dotabuff/manta field_state.go (pinned revision in CLAUDE.md)
-    skadistats/clarity VectorField.java, NestedArrayEntityState.java (pinned
+    skadistats/clarity VectorField.java, S2NestedArrayEntityState.java (pinned
     revision in CLAUDE.md)
 """
 

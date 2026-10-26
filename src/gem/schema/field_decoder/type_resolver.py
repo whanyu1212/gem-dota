@@ -1,9 +1,7 @@
 """Field type and encoder dispatch for entity field-value decoders.
 
 Reference: dotabuff/manta field_decoder.go ``findDecoder`` and
-skadistats/clarity S2DecoderFactory.java (pinned revisions in CLAUDE.md). The
-``fixed8`` encoder postdates those pins: manta d29a0824 (``fixed8Decoder``) and
-clarity 17b33df6 (its ``ENCODERS`` map).
+skadistats/clarity S2DecoderFactory.java (pinned revisions in CLAUDE.md).
 """
 
 from __future__ import annotations
