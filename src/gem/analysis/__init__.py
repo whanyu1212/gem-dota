@@ -1,6 +1,5 @@
 """Post-parse analysis helpers for gem replay data."""
 
-from gem._deprecation import deprecated_module_attrs
 from gem.analysis.abilities import ability_level_at_tick
 from gem.analysis.bundle import MatchAnalysis, analyze
 from gem.analysis.combat import (
@@ -76,7 +75,6 @@ from gem.analysis.vision import (
     PointVisionGap,
     PointVisionSource,
     PointVisionStatus,
-    VisionSource as _VisionSource,
     _is_daytime,
     assess_point_vision,
     entity_visibility_at,
@@ -155,16 +153,3 @@ __all__ = [
     "find_fights",
     "ward_vision_impact",
 ]
-
-#: Names deprecated in 0.13 and removed in 0.14, served with a warning:
-#: name -> (object, alternative, warn on access).
-DEPRECATED_ANALYSIS_NAMES = {
-    # The return type of estimate_vision, which 0.13 removed.
-    "VisionSource": (
-        _VisionSource,
-        "PointVisionSource, from gem.assess_point_vision(...).sources",
-        True,
-    ),
-}
-
-__getattr__ = deprecated_module_attrs(__name__, DEPRECATED_ANALYSIS_NAMES)

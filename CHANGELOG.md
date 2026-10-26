@@ -101,6 +101,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the docs site; the Match Reports page lists where each one went. Purchases and
   neutral items, buybacks and the draft have no recipe yet. To keep the report, pin
   `gem-dota<0.14`.
+- **`VisionSource`**, deprecated in 0.13: the record type of the removed
+  `estimate_vision`. `gem.assess_point_vision(...).sources` returns
+  `PointVisionSource`. Nothing in gem warns of a coming removal now, so the
+  deprecation helpers' default removal release moves to 0.15.
 - **Plotly, Pillow and ipykernel are no longer installed with gem.** Only the report
   used Plotly; Pillow (the map and banner scripts) and ipykernel (the notebook) move
   to the `dev` group.

@@ -708,7 +708,7 @@ def is_daytime(game_start_tick: int | None, tick: int) -> bool
 
 Return True if it is daytime at the given absolute tick.
 
-Source: [src/gem/analysis/vision.py:216](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L216)
+Source: [src/gem/analysis/vision.py:178](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L178)
 
 ### `hero_visibility_at`
 
@@ -718,7 +718,7 @@ def hero_visibility_at(match: ParsedMatch, *, player_id: int, observing_team: in
 
 Return authoritative hero-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:243](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L243)
+Source: [src/gem/analysis/vision.py:205](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L205)
 
 ### `entity_visibility_at`
 
@@ -728,7 +728,7 @@ def entity_visibility_at(match: ParsedMatch, *, entity_index: int, entity_serial
 
 Return authoritative NPC-entity visibility at or before ``tick``.
 
-Source: [src/gem/analysis/vision.py:285](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L285)
+Source: [src/gem/analysis/vision.py:247](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L247)
 
 ### `assess_point_vision`
 
@@ -738,7 +738,7 @@ def assess_point_vision(match: ParsedMatch, team: int, tick: int, x: float, y: f
 
 Assess bounded modeled evidence for team vision of one map point.
 
-Source: [src/gem/analysis/vision.py:331](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L331)
+Source: [src/gem/analysis/vision.py:293](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L293)
 
 ### `ward_vision_impact`
 
@@ -748,34 +748,9 @@ def ward_vision_impact(ward: object, match: ParsedMatch) -> int
 
 Count distinct enemy heroes spotted by an observer ward during its lifetime.
 
-Source: [src/gem/analysis/vision.py:611](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L611)
+Source: [src/gem/analysis/vision.py:573](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L573)
 
 ### Top-level classes
-
-### `VisionSource`
-
-```python
-class VisionSource
-```
-
-One modeled geometry source covering a map point at a given tick.
-
-Source: [src/gem/analysis/vision.py:49](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L49)
-
-#### Dataclass fields
-
-| Name | Type | Default |
-|---|---|---|
-| `kind` | `Literal['hero', 'ward', 'modifier']` | `-` |
-| `name` | `str` | `-` |
-| `distance` | `float` | `-` |
-| `vision_radius` | `int` | `-` |
-| `x` | `float \| None` | `None` |
-| `y` | `float \| None` | `None` |
-| `position_tick` | `int \| None` | `None` |
-| `position_age_ticks` | `int \| None` | `None` |
-| `player_id` | `int \| None` | `None` |
-| `position_provenance` | `Literal['sampled_player_position', 'ward_placement'] \| None` | `None` |
 
 ### `PointVisionStatus`
 
@@ -785,7 +760,7 @@ class PointVisionStatus(str, Enum)
 
 Modeled support state for an arbitrary map point.
 
-Source: [src/gem/analysis/vision.py:86](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L86)
+Source: [src/gem/analysis/vision.py:48](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L48)
 
 ### `PointVisionSource`
 
@@ -795,7 +770,7 @@ class PointVisionSource
 
 One bounded geometry source supporting point coverage.
 
-Source: [src/gem/analysis/vision.py:97](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L97)
+Source: [src/gem/analysis/vision.py:59](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L59)
 
 #### Dataclass fields
 
@@ -820,7 +795,7 @@ Signature: `def PointVisionSource.identity(self) -> str`
 
 Return the source name as its stable identity.
 
-Source: [src/gem/analysis/vision.py:125](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L125)
+Source: [src/gem/analysis/vision.py:87](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L87)
 
 ##### `radius`
 
@@ -828,7 +803,7 @@ Signature: `def PointVisionSource.radius(self) -> int`
 
 Return the modeled circular vision radius.
 
-Source: [src/gem/analysis/vision.py:130](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L130)
+Source: [src/gem/analysis/vision.py:92](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L92)
 
 ### `PointVisionGap`
 
@@ -838,7 +813,7 @@ class PointVisionGap
 
 One material omission or ambiguity in a point-vision assessment.
 
-Source: [src/gem/analysis/vision.py:136](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L136)
+Source: [src/gem/analysis/vision.py:98](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L98)
 
 #### Dataclass fields
 
@@ -855,7 +830,7 @@ class DirectTargetRevealEvidence
 
 Bounded direct-reveal evidence for the requested canonical hero.
 
-Source: [src/gem/analysis/vision.py:149](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L149)
+Source: [src/gem/analysis/vision.py:111](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L111)
 
 #### Dataclass fields
 
@@ -877,7 +852,7 @@ Signature: `def DirectTargetRevealEvidence.tick(self) -> int`
 
 Return the interval start using modifier-event terminology.
 
-Source: [src/gem/analysis/vision.py:174](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L174)
+Source: [src/gem/analysis/vision.py:136](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L136)
 
 ### `PointVisionAssessment`
 
@@ -887,7 +862,7 @@ class PointVisionAssessment
 
 Evidence-aware modeled coverage assessment for one arbitrary point.
 
-Source: [src/gem/analysis/vision.py:180](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L180)
+Source: [src/gem/analysis/vision.py:142](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/vision.py#L142)
 
 #### Dataclass fields
 

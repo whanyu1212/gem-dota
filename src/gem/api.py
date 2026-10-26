@@ -79,10 +79,8 @@ from typing import TYPE_CHECKING
 
 import gem.catalog as catalog  # re-export so `gem.catalog.hero_display()` works
 import gem.constants as constants  # re-export so `gem.constants.hero_display()` works
-from gem._deprecation import deprecated_module_attrs
 from gem.analysis import (
     DEFAULT_FARMING_ROUTE_CONFIG,
-    DEPRECATED_ANALYSIS_NAMES as _DEPRECATED_ANALYSIS_NAMES,
     MAP_REGIONS,
     AbilityCast,
     AegisFateSource,
@@ -581,8 +579,3 @@ __all__ = [
     "apply_api_rates",
     "enrich_with_api_rates",
 ]
-
-#: Names deprecated in 0.13 and removed in 0.14, served with a warning.
-DEPRECATED_NAMES = dict(_DEPRECATED_ANALYSIS_NAMES)
-
-__getattr__ = deprecated_module_attrs(__name__, DEPRECATED_NAMES)

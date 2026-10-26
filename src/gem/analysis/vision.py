@@ -45,44 +45,6 @@ _DAY_NIGHT_CYCLE_TICKS: int = 10 * 60 * 30  # 18000 ticks (10:00)
 _NIGHT_START_TICKS: int = 5 * 60 * 30  # 9000 ticks (night starts at 5:00)
 
 
-@dataclass
-class VisionSource:
-    """One modeled geometry source covering a map point at a given tick.
-
-    Deprecated in 0.13 and removed in 0.14: it was the return type of the
-    removed ``estimate_vision``. Use :class:`PointVisionSource`, from
-    ``assess_point_vision(...).sources``.
-
-    Attributes:
-        kind: ``"hero"`` if the source is an allied hero or ``"ward"`` if an
-            observer ward. The historical ``"modifier"`` literal remains in
-            the type for constructor compatibility, but hardened point queries
-            report direct-target reveals separately.
-        name: NPC hero name (e.g. ``"npc_dota_hero_axe"``) for heroes,
-            or ``"observer_ward"`` for wards.
-        distance: World-unit distance from the source to the queried point.
-        vision_radius: Vision radius used for this source at the queried tick
-            (day/night-adjusted for heroes; constant for wards).
-        x: Source world x coordinate when available.
-        y: Source world y coordinate when available.
-        position_tick: Hero sample tick or ward placement tick.
-        position_age_ticks: Hero sample age; ``None`` for static ward positions.
-        player_id: Canonical hero slot or ward placer slot when known.
-        position_provenance: Sampled-hero or entity-derived ward provenance.
-    """
-
-    kind: Literal["hero", "ward", "modifier"]
-    name: str
-    distance: float
-    vision_radius: int
-    x: float | None = None
-    y: float | None = None
-    position_tick: int | None = None
-    position_age_ticks: int | None = None
-    player_id: int | None = None
-    position_provenance: Literal["sampled_player_position", "ward_placement"] | None = None
-
-
 class PointVisionStatus(str, Enum):
     """Modeled support state for an arbitrary map point."""
 

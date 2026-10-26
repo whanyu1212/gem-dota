@@ -428,7 +428,7 @@ class TestPointSourcesModifier:
         )
         match = _match([revealed], [], vision_modifiers=[mod])
         result = point_sources(match, 2, _DAY_TICK, 0.0, 0.0)
-        # Radiant should not see a VisionSource from Dire's tracker
+        # Radiant should not see a source from Dire's tracker
         assert not any(s.kind == "modifier" for s in result)
 
     def test_modifier_is_inactive_at_end_tick(self) -> None:
