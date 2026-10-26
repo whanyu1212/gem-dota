@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-10-26
+
+Draft hero IDs are right, and entity fields decode as manta and Clarity decode
+them: `HeroID_t` and `PlayerID_t` are signed (draft IDs read double), and
+`int64`, `BloodType`, `HSequence`, `Quaternion` and the other types they map
+read as they read them. gem follows OpenDota's August 2026 rules for Aegis
+reincarnations and for kills by an illusion of the victim, and a replay that
+declares an encoding gem doesn't decode stops with a named error instead of
+decoding wrong values. New facts: every neutral camp creep and every camp stack
+(`ParsedMatch.neutral_creeps`, `ParsedMatch.camp_stacks`), with a stacks recipe
+on the docs site.
+
+Upgrading from 0.13: the HTML report (`gem.reports`, `python -m gem reports`)
+and `VisionSource` are removed, as 0.13 announced; the report's views are
+recipes on the docs site, or pin `gem-dota<0.14`. Plotly, Pillow and ipykernel
+are no longer installed with gem. Draft `hero_id` values halve (they now equal
+OpenDota's), and raw `HeroID_t`, `PlayerID_t` and `HSequence` reads through the
+entity API change. JSON output stays `schema_version` 4; files written by 0.13
+load, keeping their doubled draft IDs. Python 3.10+ support is preserved.
+
 ### Added
 
 - **Camp stacks and camp creeps as facts** (HY-150): `ParsedMatch.camp_stacks`
@@ -101,6 +121,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the docs site; the Match Reports page lists where each one went. Purchases and
   neutral items, buybacks and the draft have no recipe yet. To keep the report, pin
   `gem-dota<0.14`.
+- **`VisionSource`**, deprecated in 0.13: the record type of the removed
+  `estimate_vision`. `gem.assess_point_vision(...).sources` returns
+  `PointVisionSource`. The deprecation helpers now name 0.15 as the default
+  removal release.
 - **Plotly, Pillow and ipykernel are no longer installed with gem.** Only the report
   used Plotly; Pillow (the map and banner scripts) and ipykernel (the notebook) move
   to the `dev` group.
@@ -2308,7 +2332,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/whanyu1212/gem-dota/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/whanyu1212/gem-dota/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/whanyu1212/gem-dota/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/whanyu1212/gem-dota/compare/v0.10.0...v0.11.0

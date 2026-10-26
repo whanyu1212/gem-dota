@@ -18,7 +18,7 @@ from typing import Any, TypeVar
 _F = TypeVar("_F", bound=Callable[..., Any])
 
 #: The release that removes the names currently deprecated.
-REMOVAL_VERSION = "0.14"
+REMOVAL_VERSION = "0.15"
 
 
 def warn_deprecated(

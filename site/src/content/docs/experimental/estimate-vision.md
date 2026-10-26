@@ -157,12 +157,12 @@ coverage.
 Authoritative `visible`, `hidden`, and `unknown` values are never blended with
 the modelled point status. `unknown` does not mean hidden.
 
-## Removed in 0.13
+## Removed in 0.13 and 0.14
 
 `estimate_vision(...)`, the old list-only view, was removed in gem 0.13. The
 same coordinate query is `assess_point_vision(...).sources`, which also says why
-evidence is missing. Its `VisionSource` records are deprecated too (they warn and
-go in 0.14); `assess_point_vision` returns `PointVisionSource`.
+evidence is missing. Its `VisionSource` records were removed in gem 0.14;
+`assess_point_vision` returns `PointVisionSource`.
 
 Direct-target modifiers are no longer returned as arbitrary point sources. Use
 `target_player_id` on `assess_point_vision(...)` to request that separate

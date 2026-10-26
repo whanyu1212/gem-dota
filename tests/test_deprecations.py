@@ -236,17 +236,3 @@ def test_analyze_and_its_outputs_are_silent() -> None:
         )
         == []
     )
-
-
-@pytest.mark.parametrize("module", [gem, gem.analysis])
-def test_vision_source_is_deprecated_for_0_14(module: object) -> None:
-    from gem.analysis.vision import VisionSource
-
-    assert "VisionSource" not in module.__all__
-    messages = _warnings(lambda: module.VisionSource)
-    assert len(messages) == 1
-    assert "VisionSource is deprecated and will be removed in gem 0.14" in messages[0]
-    assert "PointVisionSource" in messages[0]
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        assert module.VisionSource is VisionSource

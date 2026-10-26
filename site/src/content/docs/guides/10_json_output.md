@@ -90,7 +90,7 @@ The top-level object mirrors `ParsedMatch`, plus the version keys and the option
 ```json
 {
   "schema_version": 4,
-  "gem_version": "0.13.0",
+  "gem_version": "0.14.0",
   "match_id": 8461735141,
   "game_mode": 2,
   "leagueid": 18324,
