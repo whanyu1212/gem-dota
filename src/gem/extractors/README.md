@@ -168,6 +168,20 @@ names, then the bundled `heroes.json`. `resolve_pick_team` is a
 module-level helper used at assembly time to pin a pick to the correct team via
 the player roster.
 
+### NeutralCampExtractor (neutral_camps.py)
+
+Records every creep a neutral camp spawned and every camp stack
+(`ParsedMatch.neutral_creeps`, `ParsedMatch.camp_stacks`). Each
+`CDOTA_NeutralSpawner` maps to a `camp_zones.json` camp by position; each
+`CDOTA_BaseNPC_Creep_Neutral` names its spawner in `m_hNeutralSpawner`, spawns
+when `m_bIsWaitingToSpawn` clears and dies when `m_lifeState` leaves 0. A stack
+is a spawn while an earlier wave of the camp is alive that the game counts in
+`m_iCampsStacked` (a lone straggler outside the camp lets it respawn uncounted).
+Assembly keeps the credited stacks with their players (`credit_stacks`: the
+counter's credit, and sampled positions when several camps were credited that
+tick) and adds each creep's killer (`resolve_killers`: the neutral `DEATH`
+entries on its death tick).
+
 ## Internal extractors and helpers
 
 ### VisibilityExtractor (visibility.py) — INTERNAL

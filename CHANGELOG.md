@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Camp stacks and camp creeps as facts** (HY-150): `ParsedMatch.camp_stacks`
+  (`gem.CampStack`) and `ParsedMatch.neutral_creeps` (`gem.NeutralCreep`).
+  - Every creep a neutral camp spawned, with its camp (`camp_zones.json` id), spawn
+    and death ticks, and its killer. A lane creep as the killer is a pull.
+  - Every stack: a camp that spawned a wave while an earlier wave was alive and that
+    the game counted in `m_iCampsStacked` (OpenDota's `camps_stacked`), with the
+    camp's tier, the creeps and waves alive, and the credited player.
+    `player_exact` says whether the credit left no choice or the camp was matched
+    by sampled position. A lone straggler outside its camp lets the camp respawn
+    uncounted; that is not a stack (15 and 11 such spawns on 8855188139 and
+    8974053011, none on the other fixtures).
+  - The combat log's `NEUTRAL_CAMP_STACK` type never appears in these replays; the
+    facts come from the camp spawners and the creeps' `m_hNeutralSpawner`. On all
+    10 local fixtures every player's stacks equal `camps_stacked`. Killers resolve
+    for 95–98% of the creeps of non-flooded camps; the rest died on a tick another
+    neutral died to someone else.
+
 ### Removed
 
 - **The HTML report** (HY-137), deprecated in 0.13: `gem.reports`

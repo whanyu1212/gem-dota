@@ -17,6 +17,7 @@ from gem.combat.log import opendota_translate
 from gem.extractors._cells import WORLD_UNITS_PER_CELL, od_cell_index
 from gem.extractors.intervals import LEDGER_FIELDS
 from gem.extractors.lane import assign_lane
+from gem.extractors.neutral_camps import credit_stacks, resolve_killers
 from gem.extractors.players import LANE_WINDOW_S
 from gem.results.derived import (
     building_status,
@@ -36,6 +37,7 @@ if TYPE_CHECKING:
     from gem.extractors.draft import DraftExtractor
     from gem.extractors.gold_ledger import BuybackSpend
     from gem.extractors.intervals import IntervalExtractor, IntervalSnapshot, IntervalTimeSeries
+    from gem.extractors.neutral_camps import NeutralCampExtractor
     from gem.extractors.objectives import ObjectivesExtractor
     from gem.extractors.players import PlayerExtractor
     from gem.extractors.runes import Rune
@@ -1015,6 +1017,29 @@ def _buyback_spends_by_player(
     return by_player
 
 
+def _add_camp_facts(
+    match: ParsedMatch,
+    neutral_camp_ext: NeutralCampExtractor,
+    combat_agg: _CombatAggregator,
+    interval_ext: IntervalExtractor | None,
+) -> None:
+    """Set the camp creeps and stacks, with their killers and stackers."""
+    creeps, candidates = neutral_camp_ext.finalize()
+    resolve_killers(creeps, match.combat_log, combat_agg.resolve_kill_pid)
+    credits = []
+    for credit in neutral_camp_ext.credits:
+        player_id = (
+            interval_ext.player_for_team_slot(credit.team, credit.team_slot)
+            if interval_ext
+            else None
+        )
+        if player_id is not None:
+            credits.append((credit.tick, player_id, credit.camps))
+    positions = {p.player_id: p.position_log for p in match.players}
+    match.neutral_creeps = creeps
+    match.camp_stacks = credit_stacks(candidates, credits, positions)
+
+
 def _populate_player_series(
     match: ParsedMatch,
     *,
@@ -1352,6 +1377,7 @@ def build_parsed_match(
     buyback_spends: list[BuybackSpend] | None = None,
     chat_event_times: list[_ChatEventTime] | None = None,
     runes: list[Rune] | None = None,
+    neutral_camp_ext: NeutralCampExtractor | None = None,
 ) -> ParsedMatch:
     """Assemble a :class:`ParsedMatch` from extractor state after a completed parse.
 
@@ -1382,6 +1408,8 @@ def build_parsed_match(
         chat_event_times: The replay's chat events with OpenDota's tick-start
             clock, which time rune pickups and chat-message objectives.
         runes: Every rune entity and how it ended (``RuneExtractor.finalize()``).
+        neutral_camp_ext: Attached :class:`NeutralCampExtractor`, for the camp
+            creeps and stacks.
 
     Returns:
         Fully populated :class:`ParsedMatch`.
@@ -1474,6 +1502,8 @@ def build_parsed_match(
         radiant_win=radiant_win,
         buyback_spends=_buyback_spends_by_player(buyback_spends, interval_ext),
     )
+    if neutral_camp_ext is not None:
+        _add_camp_facts(match, neutral_camp_ext, combat_agg, interval_ext)
 
     # Complete replays carry an embedded CMsgDOTAMatch postgame summary. Its
     # terminal combat scalars, GPM/XPM, and permanent buffs are the same Game
