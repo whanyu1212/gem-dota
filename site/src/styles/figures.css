@@ -1720,7 +1720,7 @@
   }
 }
 
-/* The stacks recipe's figure: who stacked for whom, the stacked camps, when, and each player. */
+/* The stacks recipe's figure: each player's stacks on the game clock, the stacked camps, and each player. */
 .stacks-fig,
 .prose .stacks-fig {
   margin: 24px 0;
@@ -1741,10 +1741,6 @@
 .stacks-fig .legend-item {
   text-transform: none;
 }
-.stacks-legend-enemy i {
-  border-radius: 2px;
-  background: var(--warning);
-}
 .prose .stacks-fig .stacks-sub {
   margin: 18px 0 8px;
   padding-top: 12px;
@@ -1757,92 +1753,169 @@
   padding-top: 0;
   border-top: 0;
 }
-.stacks-flows {
-  display: grid;
-  gap: 22px;
+.prose .stacks-fig .stacks-none {
+  color: var(--muted);
+  font-size: 13px;
 }
-.prose .stacks-fig .stacks-flow-head {
+.stacks-controls {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-bottom: 12px;
+}
+.stacks-controls:empty {
+  display: none;
+}
+.stacks-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+/* The rows: a label column, then a track where each bar sits at its time (a
+   fraction of --end) and stands --creep tall for each of its creeps. */
+.stacks-rows {
+  --creep: 5px;
+}
+.prose .stacks-fig .stacks-rows-side {
+  margin: 12px 0 2px;
   color: var(--muted);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.stacks-flow-body {
+.prose .stacks-fig .stacks-rows-side:first-child {
+  margin-top: 0;
+}
+.stacks-row {
   display: grid;
-  grid-template-columns: auto minmax(32px, 1fr) auto;
+  grid-template-columns: minmax(9rem, 15rem) minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+  padding-block: 4px;
 }
-.prose .stacks-fig .stacks-nodes {
-  position: relative;
-  list-style: none;
+.prose .stacks-fig .stacks-row-label {
   font-size: 12.5px;
-  line-height: 1.2;
+  line-height: 1.35;
 }
-.stacks-node {
+.prose .stacks-fig .stacks-row-label .stacks-muted {
+  display: block;
+  font-size: 11.5px;
+}
+.stacks-track {
+  position: relative;
+  height: calc(var(--most) * var(--creep) + 4px);
+  margin-right: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.stacks-bar {
   position: absolute;
-  inset-inline: 0;
+  bottom: 0;
+  left: calc(var(--t) / var(--end) * 100% + var(--dodge) * 10px);
   display: flex;
-  align-items: center;
+  flex-direction: column-reverse;
+  gap: 1px;
+  width: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.stacks-bar:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.stacks-seg {
+  display: block;
+  height: calc(var(--n) * var(--creep) - 1px);
+  border-radius: 1.5px;
+  background: var(--seg);
+}
+.legend-item i.stacks-seg {
+  border-radius: 2px;
+  background: var(--seg);
+}
+.stacks-seg--self {
+  --seg: var(--stack-self);
+}
+.stacks-seg--team {
+  --seg: var(--stack-team);
+}
+.stacks-seg--enemy {
+  --seg: var(--stack-enemy);
+}
+.stacks-seg--player {
+  --seg: var(--body);
+}
+.stacks-seg--pulled {
+  --seg: repeating-linear-gradient(45deg, var(--muted) 0 1.5px, transparent 1.5px 3.5px);
+  box-shadow: inset 0 0 0 1px var(--muted);
+}
+.stacks-seg--none {
+  --seg: transparent;
+  box-shadow: inset 0 0 0 1px var(--muted);
+}
+.stacks-axis .stacks-track {
+  height: 16px;
+  border-bottom: 0;
+}
+.stacks-tick {
+  position: absolute;
+  left: calc(var(--t) / var(--end) * 100% + 4px);
+  transform: translateX(-50%);
+  color: var(--muted);
+  font-size: 11px;
   white-space: nowrap;
-  color: var(--ink);
 }
-.stacks-node b {
-  color: var(--muted);
-  font-weight: 500;
+.stacks-rows:not(.is-early) .stacks-tick--5,
+.stacks-rows [hidden] {
+  display: none;
 }
-.stacks-nodes--left .stacks-node {
-  justify-content: flex-end;
-  padding-right: 8px;
-  border-right: 6px solid var(--node);
+@media (max-width: 560px) {
+  .stacks-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .stacks-axis > span {
+    display: none;
+  }
+  .stacks-rows.is-early .stacks-tick--5,
+  .stacks-rows:not(.is-early) .stacks-tick--10 {
+    display: none;
+  }
 }
-.stacks-nodes--right .stacks-node {
-  padding-left: 8px;
-  border-left: 6px solid var(--node);
+.stacks-pick {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
-.stacks-node--radiant {
-  --node: var(--map-radiant-mark);
+.stacks-pick:hover .stacks-hero {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
-.stacks-node--dire {
-  --node: var(--map-dire-mark);
+.stacks-pick:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
-.stacks-node.stacks-node--sizer {
-  position: static;
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-  border-color: transparent;
+/* A pick dims every stack, camp and player it doesn't name. */
+.stacks-fig :is(.stacks-bar, .stacks-row-label, .stacks-camp, tr) {
+  transition: opacity 0.15s;
 }
-.fig svg.stacks-ribbons {
-  width: 100%;
-  height: 100%;
-  aspect-ratio: auto;
-  border-radius: 0;
+.stacks-fig .is-off {
+  opacity: 0.18;
 }
-.stacks-ribbon {
-  fill: none;
-  stroke-opacity: 0.38;
-  vector-effect: non-scaling-stroke;
+@media (prefers-reduced-motion: reduce) {
+  .stacks-fig :is(.stacks-bar, .stacks-row-label, .stacks-camp, tr) {
+    transition: none;
+  }
 }
-.stacks-ribbon--radiant {
-  stroke: var(--map-radiant-mark);
-}
-.stacks-ribbon--dire {
-  stroke: var(--map-dire-mark);
-}
-.stacks-ribbon--enemy {
-  stroke: var(--warning);
-  stroke-opacity: 0.85;
-}
-.prose .stacks-fig .stacks-enemy-note {
-  margin-top: 8px;
-  color: var(--warning);
-  font-size: 13px;
-}
-.prose .stacks-fig .stacks-none {
-  color: var(--muted);
-  font-size: 13px;
+.stacks-camp-panel .stacks-clear {
+  margin-top: 10px;
 }
 .stacks-fig-body {
   display: grid;
@@ -1952,52 +2025,6 @@
 .stacks-enemy {
   color: var(--warning);
   font-weight: 600;
-}
-.stacks-timeline {
-  padding-inline: 12px;
-}
-.stacks-timeline-track {
-  position: relative;
-  height: 112px;
-}
-.stacks-timeline-track::before {
-  position: absolute;
-  inset-inline: 0;
-  top: 56px;
-  height: 2px;
-  background: var(--line);
-  content: "";
-}
-.stacks-tick {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  margin-left: -4px;
-  border-radius: 50%;
-}
-.stacks-tick--radiant {
-  top: calc(56px - var(--row) * 10px - 3px);
-  background: var(--map-radiant-mark);
-}
-.stacks-tick--dire {
-  top: calc(56px + var(--row) * 10px - 3px);
-  background: var(--map-dire-mark);
-}
-.stacks-timeline-labels {
-  position: relative;
-  height: 16px;
-  color: var(--muted);
-  font-size: 11.5px;
-}
-.stacks-timeline-labels span {
-  position: absolute;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-@media (max-width: 560px) {
-  .stacks-timeline-labels .stacks-minor {
-    display: none;
-  }
 }
 .prose .stacks-fig .stacks-table table {
   margin: 0;

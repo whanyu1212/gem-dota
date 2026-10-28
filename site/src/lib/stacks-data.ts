@@ -1,9 +1,9 @@
 /**
- * The stacks recipe's figure: who stacked for whom (each side's stackers and the
- * players who killed their stacked creeps), the stacked camps on the map with one
- * camp's stacks listed, when each stack was made, and each player's numbers. No
- * DOM here: the Markdown build renders the figure with it (src/figures/stacks.ts)
- * and the browser redraws the camp list for the camp picked (stacks-figure.ts).
+ * The stacks recipe's figure: one row per player on the game clock (each stack a
+ * bar at its time, split by who killed its creeps), the stacked camps on the map,
+ * a card for what the reader picked, and each player's numbers. No DOM here: the
+ * Markdown build renders the figure with it (src/figures/stacks.ts) and the
+ * browser redraws the rows and the card as the reader picks (stacks-figure.ts).
  *
  * The data is src/data/stacks.json, from scripts/export_site_home_data.py (which
  * takes it from examples/cookbook/stacks.py).
@@ -26,26 +26,44 @@ export type Clearer = [string, Side, number];
 /** [time_s, camp (null: off the camp catalog, so not on the map), hero, side, role, exact, waves, creeps, pulled, gold, cleared]. */
 export type Stack = [number, number | null, string | null, Side | "", Role | "", boolean, number, number, number, number, Clearer[]];
 
-/** [stacker, side, role, killer, side, role, creeps, gold]. */
-export type Flow = [string, Side, Role, string, Side, Role, number, number];
-
 /** [hero, side, role, stacks, exact, killed, gold, neutral_gold]. */
 export type Player = [string, Side | "", Role | "", number, number, number, number, number];
 
 export interface StacksData {
-  /** The game second the replay ends, for the timeline. */
+  /** The game second the replay ends, for the time axis. */
   end_s: number;
   camps: Camp[];
   stacks: Stack[];
-  flows: Flow[];
   players: Player[];
 }
+
+/**
+ * Who killed some of a stack's creeps: the stacker, a teammate, the enemy, a
+ * player when the game credited nobody with the stack, a lane creep (a pull), or
+ * no player.
+ */
+export type Outcome = "self" | "team" | "enemy" | "player" | "pulled" | "none";
+
+/** Some of a stack's creeps, and who killed them. */
+export interface Segment {
+  outcome: Outcome;
+  creeps: number;
+}
+
+/** Each row lists one side's players: those who stacked, or those who killed stacked creeps. */
+export type RowsBy = "stacker" | "killer";
+
+/** What the reader picked: one stack (its index in `stacks`), a camp, or a player. */
+export type Pick = { kind: "stack"; index: number } | { kind: "camp"; id: number } | { kind: "hero"; hero: string };
 
 const TEAM: Record<Side, string> = { r: "radiant", d: "dire" };
 const SIDE_NAME: Record<Side, string> = { r: "Radiant", d: "Dire" };
 const ROLE: Record<Role, string> = { s: "support", c: "core" };
+const KILLED_FIRST: Outcome[] = ["self", "team", "enemy", "player"];
 
 const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const team = (side: Side | "") => (side ? TEAM[side] : "none");
 
 /** In-game time: "7:13". */
 export function clock(seconds: number): string {
@@ -72,105 +90,160 @@ export function firstCamp(data: StacksData): number | null {
   return best;
 }
 
-/** The flows out of one side's stacks, and their stacked creeps in all. */
-export function sideFlows(data: StacksData, side: Side): { flows: Flow[]; creeps: number } {
-  const flows = data.flows.filter((f) => f[1] === side);
-  return { flows, creeps: flows.reduce((sum, f) => sum + f[6], 0) };
+/** Who a player who killed some of a stack's creeps was to its stacker. */
+function outcomeOf(stack: Stack, [killer, side]: Clearer): Outcome {
+  if (!stack[3]) return "player";
+  if (killer === stack[2]) return "self";
+  return side === stack[3] ? "team" : "enemy";
 }
 
-/** A side's stacked creeps the other side killed: [creeps, gold]. */
-export function takenByEnemy(data: StacksData, side: Side): [number, number] {
-  return sideFlows(data, side)
-    .flows.filter((f) => f[4] !== side)
-    .reduce(([n, g], f) => [n + f[6], g + f[7]], [0, 0]);
+/** A stack's creeps by who killed them: the stacker, teammates, the enemy, then the pulled and the rest. */
+export function segments(stack: Stack): Segment[] {
+  const [, , , , , , , creeps, pulled, , cleared] = stack;
+  const killed = cleared
+    .map((c) => ({ outcome: outcomeOf(stack, c), creeps: c[2] }))
+    .sort((a, b) => KILLED_FIRST.indexOf(a.outcome) - KILLED_FIRST.indexOf(b.outcome));
+  const rest = creeps - pulled - cleared.reduce((n, c) => n + c[2], 0);
+  const runs: Segment[] = [...killed];
+  if (pulled) runs.push({ outcome: "pulled", creeps: pulled });
+  if (rest > 0) runs.push({ outcome: "none", creeps: rest });
+  return runs;
 }
 
-/** Ribbon pixels per stacked creep, so both sides draw to one scale. */
-const PER_CREEP = 2.6;
-/** Each node takes at least this many pixels, so its label never meets the next. */
-const MIN_SLOT = 18;
-const GAP = 6;
-
-interface Node {
-  y: number;
-  h: number;
-  used: number;
-  role: Role;
-  side: Side;
-  total: number;
-}
-
-/**
- * One side's stackers (left) joined to the players who killed their stacked
- * creeps (right). The labels are HTML at the page's own size; the ribbons are an
- * SVG between them that stretches only sideways, so a node's pixel height is its
- * creeps at any width.
- */
-export function flowMarkup(data: StacksData, side: Side): string {
-  const { flows, creeps } = sideFlows(data, side);
-  if (!flows.length) return `<p class="stacks-none">${SIDE_NAME[side]} made no stacks a player cleared.</p>`;
-  const place = (end: (f: Flow) => [string, Side, Role]): Map<string, Node> => {
-    const nodes = new Map<string, Node>();
-    for (const f of flows) {
-      const [hero, s, role] = end(f);
-      const node = nodes.get(hero) ?? { y: 0, h: 0, used: 0, role, side: s, total: 0 };
-      node.total += f[6];
-      nodes.set(hero, node);
+/** Whether a stack is one the pick names: that stack, a stack of that camp, or one the player stacked or cleared. */
+export function isPicked(stack: Stack, index: number, pick: Pick): boolean {
+  switch (pick.kind) {
+    case "stack":
+      return index === pick.index;
+    case "camp":
+      return stack[1] === pick.id;
+    case "hero":
+      return stack[2] === pick.hero || stack[10].some(([hero]) => hero === pick.hero);
+    default: {
+      const never: never = pick;
+      return never;
     }
-    let y = 0;
-    for (const node of nodes.values()) {
-      node.y = y;
-      node.h = node.total * PER_CREEP;
-      y += Math.max(node.h, MIN_SLOT) + GAP;
-    }
-    return nodes;
-  };
-  const stackers = place((f) => [f[0], f[1], f[2]]);
-  const killers = place((f) => [f[3], f[4], f[5]]);
-  const height = Math.max(...[...stackers.values(), ...killers.values()].map((n) => n.y + Math.max(n.h, MIN_SLOT)));
-  const ribbons = flows.map((f) => {
-    const [a, b] = [stackers.get(f[0]), killers.get(f[3])];
-    if (!a || !b) return "";
-    const w = f[6] * PER_CREEP;
-    const [ya, yb] = [a.y + a.used + w / 2, b.y + b.used + w / 2];
-    a.used += w;
-    b.used += w;
-    const enemy = f[4] !== side;
-    const title = `${f[0]} → ${f[3]}: ${f[6]} stacked creeps, ${f[7]} gold${enemy ? " (the enemy)" : ""}`;
-    return (
-      `<path class="stacks-ribbon stacks-ribbon--${enemy ? "enemy" : TEAM[side]}" d="M0,${ya.toFixed(1)} C50,${ya.toFixed(1)} 50,${yb.toFixed(1)} 100,${yb.toFixed(1)}" stroke-width="${Math.max(w, 1.5).toFixed(1)}">` +
-      `<title>${escape(title)}</title></path>`
-    );
-  });
-  // Each column also lists its labels unpositioned and unseen, so it is as wide as its longest.
-  const labels = (map: Map<string, Node>) => {
-    const text = (hero: string, n: Node) => `${escape(hero)} <b>${n.role === "s" ? "S" : "C"}</b> · ${n.total}`;
-    const placed = [...map.entries()].map(
-      ([hero, n]) =>
-        `<li class="stacks-node stacks-node--${TEAM[n.side]}" style="top: ${n.y.toFixed(1)}px; height: ${Math.max(n.h, 2).toFixed(1)}px"><span>${text(hero, n)}</span></li>`,
-    );
-    const sizer = [...map.entries()].map(([hero, n]) => `<li class="stacks-node stacks-node--sizer"><span>${text(hero, n)}</span></li>`);
-    return placed.join("") + sizer.join("");
-  };
+  }
+}
+
+/** The players in a set of stacks: who stacked them and who killed their creeps. */
+export function playersIn(stacks: Stack[]): Set<string> {
+  return new Set(stacks.flatMap((s) => [...(s[2] ? [s[2]] : []), ...s[10].map(([hero]) => hero)]));
+}
+
+/** One stack in a sentence: when, which camp, who stacked it, and where its creeps went. */
+function stackSentence(data: StacksData, stack: Stack): string {
+  const [t, campId, hero, , , , waves, creeps, pulled, gold, cleared] = stack;
+  const camp = data.camps.find((c) => c.id === campId);
+  const where = camp ? `camp ${camp.id} (${campType(camp.type)})` : "a camp off the catalog";
+  const by = cleared.length
+    ? cleared.map((c) => `${c[0]} ${c[2]}${outcomeOf(stack, c) === "enemy" ? " (the enemy)" : ""}`).join(", ")
+    : "nobody";
   return (
-    `<div class="stacks-flow" role="img" aria-label="${SIDE_NAME[side]}'s ${creeps} stacked creeps, by stacker and by who killed them">` +
-    `<p class="stacks-flow-head"><span>${SIDE_NAME[side]} stacked</span><span>Killed by</span></p>` +
-    `<div class="stacks-flow-body" style="height: ${height.toFixed(0)}px">` +
-    `<ol class="stacks-nodes stacks-nodes--left">${labels(stackers)}</ol>` +
-    `<svg class="stacks-ribbons" viewBox="0 0 100 ${height.toFixed(0)}" preserveAspectRatio="none" aria-hidden="true">${ribbons.join("")}</svg>` +
-    `<ol class="stacks-nodes stacks-nodes--right">${labels(killers)}</ol>` +
-    `</div></div>`
+    `${clock(t)}: ${hero ?? "no player credited"} stacked ${where}, ${creeps} creeps in ${waves} waves; ` +
+    `killed by ${by}${pulled ? `, ${pulled} pulled` : ""}. ${gold} gold to the killers.`
   );
 }
 
-/** Both sides' flows, with each side's stacked creeps the enemy killed. */
-export function flowsMarkup(data: StacksData): string {
-  const side = (s: Side) => {
-    const [n, gold] = takenByEnemy(data, s);
-    const note = n ? `<p class="stacks-enemy-note">${n} of ${SIDE_NAME[s]}'s stacked creeps (${gold} gold) went to the enemy.</p>` : "";
-    return `<div class="stacks-flow-side">${flowMarkup(data, s)}${note}</div>`;
+interface Bar {
+  stack: number;
+  segments: Segment[];
+}
+
+interface Row {
+  hero: string | null;
+  side: Side | "";
+  bars: Bar[];
+  /** The players at the other end, with their creeps, most first. */
+  others: [string, number][];
+}
+
+/**
+ * One row per player, Radiant's then Dire's, each in the order of its first
+ * bar. By stacker, a bar is a stack the player made, split by who killed its
+ * creeps; by killer, it is the creeps the player killed from one stack.
+ */
+export function playerRows(data: StacksData, by: RowsBy): Row[] {
+  const rows = new Map<string, { row: Row; others: Map<string, number> }>();
+  const add = (hero: string | null, side: Side | "", bar: Bar, others: [string, number][]) => {
+    const key = hero ?? "";
+    const entry = rows.get(key) ?? { row: { hero, side, bars: [], others: [] }, others: new Map<string, number>() };
+    entry.row.bars.push(bar);
+    for (const [other, n] of others) entry.others.set(other, (entry.others.get(other) ?? 0) + n);
+    rows.set(key, entry);
   };
-  return `<div class="stacks-flows">${side("r")}${side("d")}</div>`;
+  data.stacks.forEach((stack, index) => {
+    const [, , hero, side, , , , , , , cleared] = stack;
+    if (by === "stacker") {
+      add(hero, side, { stack: index, segments: segments(stack) }, cleared.map(([h, , n]) => [h, n]));
+      return;
+    }
+    for (const clearer of cleared) {
+      const segment = { outcome: outcomeOf(stack, clearer), creeps: clearer[2] };
+      add(clearer[0], clearer[1], { stack: index, segments: [segment] }, [[hero ?? "no player credited", clearer[2]]]);
+    }
+  });
+  const rank = (side: Side | "") => (side === "r" ? 0 : side === "d" ? 1 : 2);
+  return [...rows.values()]
+    .map(({ row, others }) => ({ ...row, others: [...others.entries()].sort((a, b) => b[1] - a[1]) }))
+    .sort((a, b) => rank(a.side) - rank(b.side));
+}
+
+/** The game second the time axis ends at: the replay's end, or a later stack. */
+export function axisEnd(data: StacksData): number {
+  return Math.max(data.end_s, ...data.stacks.map((s) => s[0]), 60);
+}
+
+/** A row's summary: "6 stacks → Timbersaw 12, Sniper 7", or "48 creeps ← Timbersaw 35, Lion 12". */
+function rowSummary(row: Row, by: RowsBy): string {
+  const others = row.others.map(([hero, n]) => `${hero} ${n}`).join(", ");
+  if (by === "stacker") return `${plural(row.bars.length, "stack")} → ${others || "no player"}`;
+  const creeps = row.bars.reduce((n, bar) => n + bar.segments[0].creeps, 0);
+  return `${plural(creeps, "creep")} ← ${others}`;
+}
+
+/** A player's name as a button that picks them, or plain text for a stack nobody was credited with. */
+function heroButton(hero: string | null, side: Side | ""): string {
+  if (!hero) return `<span class="stacks-hero stacks-hero--none">No player credited</span>`;
+  return `<button type="button" class="stacks-pick" data-hero="${escape(hero)}"><span class="stacks-hero stacks-hero--${team(side)}">${escape(hero)}</span></button>`;
+}
+
+/**
+ * The rows, with a time axis under them. Positions are fractions of `--end`
+ * (game seconds), so the browser can show a shorter stretch by setting it; a
+ * bar's height is its creeps times `--creep`.
+ */
+export function rowsMarkup(data: StacksData, by: RowsBy): string {
+  const rows = playerRows(data, by);
+  if (!rows.length) return `<p class="stacks-none">No stacks.</p>`;
+  const end = axisEnd(data);
+  const most = Math.max(...rows.flatMap((row) => row.bars.map((bar) => bar.segments.reduce((n, s) => n + s.creeps, 0))));
+  const head = (side: Side | "") =>
+    side ? `${SIDE_NAME[side]} ${by === "stacker" ? "stacked" : "killed stacked creeps"}` : "Nobody credited";
+  const html: string[] = [];
+  rows.forEach((row, i) => {
+    if (i === 0 || row.side !== rows[i - 1].side) html.push(`<p class="stacks-rows-side">${head(row.side)}</p>`);
+    const dodge: Record<number, number> = {};
+    const bars = row.bars.map(({ stack, segments: segs }) => {
+      const t = data.stacks[stack][0];
+      dodge[t] = (dodge[t] ?? -1) + 1;
+      const text = escape(stackSentence(data, data.stacks[stack]));
+      const runs = segs.map((s) => `<i class="stacks-seg stacks-seg--${s.outcome}" style="--n: ${s.creeps}"></i>`).join("");
+      return `<button type="button" class="stacks-bar" data-stack="${stack}" data-t="${t}" style="--t: ${t}; --dodge: ${dodge[t]}" title="${text}" aria-label="${text}">${runs}</button>`;
+    });
+    html.push(
+      `<div class="stacks-row">` +
+        `<p class="stacks-row-label" data-row="${escape(row.hero ?? "")}">${heroButton(row.hero, row.side)} <span class="stacks-muted">${escape(rowSummary(row, by))}</span></p>` +
+        `<div class="stacks-track">${bars.join("")}</div></div>`,
+    );
+  });
+  const ticks: string[] = [];
+  for (let m = 0; m * 60 <= end; m += 5) {
+    const every = m % 20 === 0 ? 20 : m % 10 === 0 ? 10 : 5;
+    ticks.push(`<span class="stacks-tick stacks-tick--${every}" data-t="${m * 60}" style="--t: ${m * 60}">${m}:00</span>`);
+  }
+  html.push(`<div class="stacks-row stacks-axis" aria-hidden="true"><span></span><div class="stacks-track">${ticks.join("")}</div></div>`);
+  return `<div class="stacks-rows" style="--end: ${end}; --most: ${most}">${html.join("")}</div>`;
 }
 
 /** The stacked camps on the map: sized by how often each was stacked, ringed by the side that stacked it. */
@@ -200,52 +273,65 @@ export function campsMarkup(data: StacksData, selected: number | null): string {
   return groups.join("");
 }
 
+/** A stack in the card's list: when, who stacked it, and who killed its creeps; with its camp when the list mixes camps. */
+function stackItem(stack: Stack, withCamp: boolean): string {
+  const [t, campId, hero, side, role, exact, waves, creeps, pulled, gold, cleared] = stack;
+  const who = hero
+    ? `<span class="stacks-hero stacks-hero--${team(side)}">${escape(hero)}</span> <span class="stacks-muted">${role ? ROLE[role] : ""}${exact ? "" : ", matched by position"}</span>`
+    : `<span class="stacks-muted">Not placed</span>`;
+  const by = cleared.length
+    ? cleared.map(([h, s, n]) => `<span class="${side && s !== side ? "stacks-enemy" : ""}">${escape(h)} ${n}</span>`).join(", ")
+    : "nobody";
+  const camp = withCamp ? (campId === null ? "Off the catalog: " : `Camp ${campId}: `) : "";
+  return (
+    `<li><time>${clock(t)}</time><div>${who}` +
+    `<p>${camp}${creeps} creeps in ${waves} waves; killed by ${by}${pulled ? `, ${pulled} pulled` : ""}</p>` +
+    `<p class="stacks-muted">${gold} gold to the killers</p></div></li>`
+  );
+}
+
+const campChip = (camp: Camp) =>
+  `<span class="stacks-chip" style="--camp: var(--camp-${camp.type.replace("_", "-")})">${campType(camp.type)}</span>`;
+
 /** One camp's stacks: when, who stacked it, and who killed its creeps. */
 export function campMarkup(data: StacksData, campId: number | null): string {
   const camp = data.camps.find((c) => c.id === campId);
   if (!camp) return `<p class="stacks-none">No camp was stacked.</p>`;
   const stacks = stacksAt(data, camp.id);
-  const rows = stacks.map(([t, , hero, side, role, exact, waves, creeps, pulled, gold, cleared]) => {
-    const who = hero ? `<span class="stacks-hero stacks-hero--${side ? TEAM[side] : "none"}">${escape(hero)}</span> <span class="stacks-muted">${role ? ROLE[role] : ""}${exact ? "" : ", matched by position"}</span>` : `<span class="stacks-muted">Not placed</span>`;
-    const by = cleared.length
-      ? cleared.map(([h, s, n]) => `<span class="${side && s !== side ? "stacks-enemy" : ""}">${escape(h)} ${n}</span>`).join(", ")
-      : "nobody";
-    const extra = pulled ? `, ${pulled} pulled` : "";
-    return (
-      `<li><time>${clock(t)}</time><div>${who}` +
-      `<p>${creeps} creeps in ${waves} waves; killed by ${by}${extra}</p>` +
-      `<p class="stacks-muted">${gold} gold to the killers</p></div></li>`
-    );
-  });
   return (
-    `<p class="stacks-camp-head"><span class="stacks-chip" style="--camp: var(--camp-${camp.type.replace("_", "-")})">${campType(camp.type)}</span>` +
-    `Camp ${camp.id}, stacked ${stacks.length} time${stacks.length === 1 ? "" : "s"}</p>` +
-    `<ol class="stacks-list">${rows.join("")}</ol>`
+    `<p class="stacks-camp-head">${campChip(camp)}Camp ${camp.id}, stacked ${plural(stacks.length, "time")}</p>` +
+    `<ol class="stacks-list">${stacks.map((s) => stackItem(s, false)).join("")}</ol>`
   );
 }
 
-/** When each stack was made: Radiant's above the line, Dire's below, one dot a stack, by minute. */
-export function timelineMarkup(data: StacksData): string {
-  const end = Math.max(data.end_s, ...data.stacks.map((s) => s[0]), 60);
-  const left = (t: number) => `${((t / end) * 100).toFixed(2)}%`;
-  const count: Record<string, number> = {};
-  const dots = data.stacks.map(([t, , hero, side]) => {
-    const minute = Math.floor(t / 60);
-    const key = `${minute}${side}`;
-    count[key] = (count[key] ?? 0) + 1;
-    const team = side ? TEAM[side] : "none";
-    return `<i class="stacks-tick stacks-tick--${team}" style="left: ${left(minute * 60)}; --row: ${count[key]}" title="${clock(t)} ${escape(hero ?? "")}"></i>`;
-  });
-  const labels: string[] = [];
-  for (let m = 0; m * 60 <= end; m += 10) {
-    const minor = m % 20 ? ' class="stacks-minor"' : "";
-    labels.push(`<span${minor} style="left: ${left(m * 60)}">${m}:00</span>`);
+/** The card for a pick: the stack, the camp's stacks, or the stacks a player made or cleared. */
+export function pickMarkup(data: StacksData, pick: Pick): string {
+  switch (pick.kind) {
+    case "camp":
+      return campMarkup(data, pick.id);
+    case "stack": {
+      const stack = data.stacks[pick.index];
+      const camp = data.camps.find((c) => c.id === stack[1]);
+      const head = camp ? `${campChip(camp)}Camp ${camp.id} at ${clock(stack[0])}` : `Off the camp catalog at ${clock(stack[0])}`;
+      return `<p class="stacks-camp-head">${head}</p><ol class="stacks-list">${stackItem(stack, false)}</ol>`;
+    }
+    case "hero": {
+      const stacks = data.stacks.filter((s, i) => isPicked(s, i, pick));
+      const made = stacks.filter((s) => s[2] === pick.hero).length;
+      const killed = stacks.reduce((n, s) => n + s[10].filter(([h]) => h === pick.hero).reduce((m, c) => m + c[2], 0), 0);
+      const side = data.players.find((p) => p[0] === pick.hero)?.[1] ?? "";
+      const counts = [made ? `${plural(made, "stack")} made` : "", killed ? `${plural(killed, "stacked creep")} killed` : ""];
+      return (
+        `<p class="stacks-camp-head"><span class="stacks-hero stacks-hero--${team(side)}">${escape(pick.hero)}</span>` +
+        `${counts.filter(Boolean).join(", ")}</p>` +
+        `<ol class="stacks-list">${stacks.map((s) => stackItem(s, true)).join("")}</ol>`
+      );
+    }
+    default: {
+      const never: never = pick;
+      return never;
+    }
   }
-  return (
-    `<div class="stacks-timeline" role="img" aria-label="When each stack was made: ${data.stacks.length} stacks">` +
-    `<div class="stacks-timeline-track">${dots.join("")}</div>` +
-    `<div class="stacks-timeline-labels" aria-hidden="true">${labels.join("")}</div></div>`
-  );
 }
 
 /** Each player's stacks, and the stacked creeps they killed and their gold. */
@@ -254,7 +340,7 @@ export function playersMarkup(data: StacksData): string {
   const rows = data.players.map(([hero, side, role, stacks, exact, killed, gold, neutral]) => {
     const share = neutral ? `${Math.round((gold / neutral) * 100)}%` : "–";
     return (
-      `<tr><td><span class="stacks-hero stacks-hero--${side ? TEAM[side] : "none"}">${escape(hero)}</span></td><td>${role ? ROLE[role] : ""}</td>` +
+      `<tr data-row="${escape(hero)}"><td>${heroButton(hero, side)}</td><td>${role ? ROLE[role] : ""}</td>` +
       `<td>${stacks}${stacks ? ` <span class="stacks-muted">(${exact})</span>` : ""}</td><td>${killed}</td>` +
       `<td><span class="stacks-gold">${gold.toLocaleString("en-US")}<i style="width: ${((gold / top) * 40).toFixed(1)}px"></i></span></td>` +
       `<td>${share}</td></tr>`

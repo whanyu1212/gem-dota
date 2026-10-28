@@ -1065,7 +1065,6 @@ def test_stacks_recipe_writes_each_stack_who_cleared_it_and_each_player() -> Non
         [["Timbersaw", "r", 2], ["Lion", "r", 1], ["Shadow Fiend", "d", 1]],
     ]  # fmt: skip
     assert data["stacks"][1] == [300, 3, "Lion", "r", "s", True, 3, 1, 1, 0, []]
-    assert data["flows"][0] == ["Lion", "r", "s", "Timbersaw", "r", "c", 2, 100]
     assert data["players"][0] == ["Lion", "r", "s", 2, 2, 1, 40, 75]
 
 
