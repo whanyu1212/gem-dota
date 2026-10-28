@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The stacks recipe's figure follows one stack or one player** (HY-389). Each
+  player's stacks are a row on the game clock, each stack a bar as tall as its
+  creeps and split by who killed them (the stacker, a teammate, the enemy, a lane
+  creep, or no player), in place of the flows and the dot timeline. Rows go by
+  stacker or by killer, over the first 30:00 or the whole match. Picking a stack,
+  a camp or a player shows its stacks in the rows, on the map and in the table,
+  and lists them beside the map. The site export's `stacks.json` no longer
+  carries `flows`; the rows come from each stack's `cleared`.
+
 ## [0.14.0] - 2026-10-26
 
 Draft hero IDs are right, and entity fields decode as manta and Clarity decode

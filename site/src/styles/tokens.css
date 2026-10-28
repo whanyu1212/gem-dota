@@ -35,6 +35,10 @@
   --dmg-physical-bg: #ebe4d3;
   --dmg-magical-bg: #d9e7fb;
   --dmg-pure-bg: #fbe8b0;
+  /* The stacks figure: who killed a stack's creeps, on paper. */
+  --stack-self: #c2477f;
+  --stack-team: #2a64b0;
+  --stack-enemy: #b56d00;
 
   --sun-display: none;
   --moon-display: block;
@@ -115,6 +119,9 @@
   --dmg-physical-bg: #3a352c;
   --dmg-magical-bg: #22344d;
   --dmg-pure-bg: #4a3d14;
+  --stack-self: #d26a98;
+  --stack-team: #5590dd;
+  --stack-enemy: #c08816;
 
   --sun-display: block;
   --moon-display: none;
@@ -150,6 +157,9 @@
     --dmg-physical-bg: #3a352c;
     --dmg-magical-bg: #22344d;
     --dmg-pure-bg: #4a3d14;
+    --stack-self: #d26a98;
+    --stack-team: #5590dd;
+    --stack-enemy: #c08816;
 
     --sun-display: block;
     --moon-display: none;

@@ -895,8 +895,7 @@ def stacks_recipe(match: ParsedMatch) -> dict:
     is ``{id, type, xy}`` (its ``camp_zones.json`` type, placed on the map
     square). Each stack is ``[time_s, camp, hero, side, role, exact, waves,
     creeps, pulled, gold, cleared]``, ``cleared`` being ``[hero, side, creeps]``
-    per player who killed its creeps, most first. Each flow is ``[stacker, side,
-    role, killer, side, role, creeps, gold]``, and each player ``[hero, side,
+    per player who killed its creeps, most first. Each player is ``[hero, side,
     role, stacks, exact, killed, gold, neutral_gold]``. Sides are ``r``/``d``,
     roles ``s``/``c``. A stack whose camp is off the catalog has camp ``None``
     and no creeps, and its camp is not on the map.
@@ -940,19 +939,6 @@ def stacks_recipe(match: ParsedMatch) -> dict:
             for c in stacked
         ],
         "stacks": out_stacks,
-        "flows": [
-            [
-                hero_display(f.stacker),
-                side[f.stacker_side],
-                short[role[f.stacker]],
-                hero_display(f.killer),
-                side[f.killer_side],
-                short[role[f.killer]],
-                int(f.creeps),
-                int(f.gold),
-            ]
-            for f in recipe.flows(creeps).itertuples(index=False)
-        ],
         "players": [
             [
                 hero_display(p.hero),

@@ -5,13 +5,13 @@ creeps: a teammate, the stacker, or the enemy? And how much gold did stacked
 camps give each player?
 
 ::: figure stacks
-**Figure 1.** The 30 stacks of match 8856501050. First, each side's stacked
-creeps, from the player the game credited with the stack (left) to the player
-who killed them (right): a ribbon is as wide as its creeps, and an amber one went
-to the enemy. Then the stacked camps, sized by how often each was stacked and
-ringed by the side that stacked it (pick one to list its stacks), when each stack
-was made, and each player's numbers: stacked creeps killed, their gold, and its
-share of the player's neutral gold.
+**Figure 1.** The 30 stacks of match 8856501050. First, each stack at its time,
+on the row of the player the game credited with it: a bar is as tall as its
+stacked creeps and split by who killed them. Rows by killer show who farmed the
+stacks. Then the stacked camps, sized by how often each was stacked and ringed by
+the side that stacked it, and each player's numbers: stacked creeps killed, their
+gold, and its share of the player's neutral gold. Pick a stack, a camp or a
+player to see its stacks in every part.
 :::
 
 ## The facts
