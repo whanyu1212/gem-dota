@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and lists them beside the map. The site export's `stacks.json` no longer
   carries `flows`; the rows come from each stack's `cleared`.
 
+### Fixed
+
+- **The docs site's home page has room above and below its hero on phones**
+  (HY-416). At 760px and narrower, the hero's heading started right under the
+  top bar and its facts ran into the first chapter, because the narrow-screen
+  side padding also reset the top and bottom.
+
 ## [0.14.0] - 2026-10-26
 
 Draft hero IDs are right, and entity fields decode as manta and Clarity decode
