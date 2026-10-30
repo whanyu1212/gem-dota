@@ -3,7 +3,8 @@
 .home .wrap {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 0 48px;
+  /* Inline only: the hero and chapter grids set their own vertical padding. */
+  padding-inline: 48px;
 }
 
 .home code {
@@ -414,7 +415,7 @@
 
 @media (max-width: 760px) {
   .home .wrap {
-    padding: 0 16px;
+    padding-inline: 16px;
   }
   .home h1 {
     font-size: 50px;
