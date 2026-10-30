@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "On this page" outline marks the section on screen as you scroll, the sidebar
   marks the current page with an accent bar, and each h2–h4 shows a `#` link on
   hover or keyboard focus.
+- **Code blocks on the docs site say what they are** (HY-418). Each block shows
+  its language in the corner (plain text blocks show none), and a block
+  imported from a file shows the file's path in a bar above it. A block whose
+  lines run past the right edge fades out there until it is scrolled to the
+  end. In the dark theme, blocks are a step lighter than the page so they stand
+  out. The home page's example matches and gains the copy button.
 
 ### Changed
 
