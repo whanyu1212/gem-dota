@@ -176,6 +176,7 @@
   position: absolute;
   top: 8px;
   right: 8px;
+  z-index: 2;
   padding: 3px 9px;
   border: 1px solid var(--code-muted);
   border-radius: 5px;
@@ -193,6 +194,68 @@
 .copy-button:hover {
   color: var(--code-fg);
   border-color: var(--code-fg);
+}
+
+/* The block's language, in the corner the copy button takes on hover
+   (src/markdown/rehype-code-blocks.ts). */
+.code-label {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  padding: 3px 9px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: var(--code-bg);
+  color: var(--code-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.code-block:has(.copy-button):hover .code-label,
+.code-block:has(.copy-button:focus-visible) .code-label {
+  opacity: 0;
+}
+
+/* A `<<< @/…` import: its path in a bar above the code, which the copy button
+   and the fade leave alone. */
+.code-label--file {
+  position: static;
+  display: block;
+  padding: 8px 20px;
+  border: 1px solid var(--code-border);
+  border-bottom-color: color-mix(in srgb, var(--code-fg) 12%, var(--code-bg));
+  border-radius: 6px 6px 0 0;
+  pointer-events: auto;
+}
+.code-block--file > pre {
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.code-block:has(.copy-button):hover .code-label--file,
+.code-block:has(.copy-button:focus-visible) .code-label--file {
+  opacity: 1;
+}
+
+/* Set by src/lib/code-blocks.ts while the code runs past the right edge. */
+.code-block[data-more]::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  bottom: 1px;
+  width: 56px;
+  border-radius: 0 5px 5px 0;
+  background: linear-gradient(to right, transparent, var(--code-bg) 85%);
+  pointer-events: none;
+}
+/* Below the file bar: 1px border + 8px padding + 18px line + 8px padding + 1px border. */
+.code-block--file[data-more]::after {
+  top: 36px;
+  border-top-right-radius: 0;
 }
 
 /* Tables */

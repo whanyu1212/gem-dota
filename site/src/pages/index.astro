@@ -70,7 +70,11 @@ frames = gem.parse_to_dataframe("${match.match_id}.dem")`;
             <code>ParsedMatch</code>: players, fights, wards, objectives and the full combat log.
           </p>
           <div class="pair">
-            <Code code={example} lang="python" theme={gemCodeTheme} class="home-code" />
+            {/* Built like a docs page's code block (rehype-code-blocks.ts). */}
+            <div class="code-block">
+              <span class="code-label" data-pagefind-ignore>python</span>
+              <Code code={example} lang="python" theme={gemCodeTheme} class="home-code" />
+            </div>
             <figure class="table-figure">
               <table>
                 <thead><tr><th>Hero</th><th class="num">K / D / A</th><th class="num">Net worth</th><th class="num">GPM</th></tr></thead>
@@ -153,4 +157,8 @@ frames = gem.parse_to_dataframe("${match.match_id}.dem")`;
       </div>
     </section>
   </main>
+  <script>
+    import { enhanceCodeBlocks } from "../lib/code-blocks";
+    enhanceCodeBlocks(document.querySelector(".home") ?? document);
+  </script>
 </BaseLayout>

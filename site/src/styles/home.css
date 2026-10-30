@@ -169,6 +169,13 @@
 
 /* Chapter 1: the example and Table 1 */
 
+.pair > .code-block {
+  margin: 0;
+}
+.pair > .code-block > .home-code {
+  height: 100%;
+}
+
 .home-code {
   margin: 0;
   padding: 22px;

@@ -9,7 +9,8 @@
  * - `::: code-group` around code blocks labelled ```` ```bash [pip] ```` becomes
  *   radio-button tabs that work without JavaScript.
  * - `<<< @/path/to/file.py{python}` is replaced by the file's contents in a code
- *   block. `@` is the repository root, e.g. `<<< @/examples/cookbook/x.py{python}`.
+ *   block, inside `<div class="code-block" data-file="path/to/file.py">`. `@` is
+ *   the repository root, e.g. `<<< @/examples/cookbook/x.py{python}`.
  * - `::: figure name` … `:::` renders a recipe figure (src/figures/) around the
  *   block's Markdown, which becomes the figure's caption.
  *
@@ -217,5 +218,8 @@ function importFile(path: string, braces: string | undefined, options: Preproces
     "";
   const longestRun = Math.max(2, ...[...code.matchAll(/`+/g)].map((m) => m[0].length));
   const marks = "`".repeat(longestRun + 1);
-  return [`${marks}${lang}`, code, marks];
+  // The wrapper carries the file's path, which rehype-code-blocks.ts shows as
+  // the block's label (the fence's own info string doesn't survive highlighting).
+  const wrapper = `<div class="code-block" data-file="${escapeHtml(path.slice(2))}">`;
+  return ["", wrapper, "", `${marks}${lang}`, code, marks, "", "</div>", ""];
 }
