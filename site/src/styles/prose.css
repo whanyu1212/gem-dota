@@ -185,7 +185,7 @@
   font-size: 12px;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s;
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
 }
 .code-block:hover .copy-button,
 .copy-button:focus-visible {
@@ -289,13 +289,17 @@
   padding-right: 0;
 }
 
-/* Callouts: a coloured rule and a small label, no box. */
+/* Callouts: a coloured rule, a small label and a faint tint of the colour, so
+   they don't read as quotes. The tint's contrast is in tests/contrast.test.ts. */
 
 .callout {
   --callout: var(--note);
   margin: 0 0 18px;
-  padding: 2px 0 2px 18px;
+  padding: 12px 16px 12px 18px;
   border-left: 3px solid var(--callout);
+  border-radius: 0 6px 6px 0;
+  /* 6% would put accent links in a danger callout under AA (4.48:1). */
+  background: color-mix(in srgb, var(--callout) 5%, transparent);
 }
 .callout--tip {
   --callout: var(--tip);

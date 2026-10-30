@@ -22,6 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The docs site's details are tidier** (HY-419). Links and buttons ease into
+  their hover colours, the home page's start cards lift and its recipe columns
+  mark their top on hover, the previous/next links carry arrows, and callouts
+  are tinted with their colour. The search button matches the other top-bar
+  buttons, the version is a badge, the sidebar and outline have thin
+  scrollbars, and the outline now follows the text column at the sidebar's gap
+  instead of sitting at the page's right edge. Nothing moves with reduced motion.
 - **The stacks recipe's figure follows one stack or one player** (HY-389). Each
   player's stacks are a row on the game clock, each stack a bar as tall as its
   creeps and split by who killed them (the stacker, a teammate, the enemy, a lane

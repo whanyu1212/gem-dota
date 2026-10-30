@@ -35,6 +35,20 @@ const TEXT_ON_SURFACE = [
   // The buyback pill on the strip: paper text on the accent.
   ["paper", "accent"],
 ];
+// Callouts are tinted with 5% of their colour over the page
+// (`color-mix(in srgb, var(--callout) 5%, transparent)` in prose.css).
+const CALLOUT_TINT = 0.05;
+const mix = (top: string, under: string, amount: number) =>
+  "#" +
+  [1, 3, 5]
+    .map((i) => {
+      const [a, b] = [top, under].map((hex) => parseInt(hex.slice(i, i + 2), 16));
+      return Math.round(a * amount + b * (1 - amount)).toString(16).padStart(2, "0");
+    })
+    .join("");
+const CALLOUTS = ["note", "tip", "warning", "danger", "important"];
+const TEXT_IN_CALLOUT = ["ink", "body", "accent"];
+
 const CODE_COLOURS = [
   ...new Set((gemCodeTheme.tokenColors ?? []).flatMap((t) => (t.settings.foreground ? [t.settings.foreground] : []))),
 ];
@@ -45,6 +59,13 @@ describe.each([
 ])("%s theme", (_, theme) => {
   it.each(TEXT_ON_SURFACE)("%s on %s meets AA", (fg, bg) => {
     expect(ratio(theme[fg], theme[bg])).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it.each(CALLOUTS)("text, links and the title meet AA on the %s callout's tint", (kind) => {
+    const tint = mix(theme[kind], theme.bg, CALLOUT_TINT);
+    for (const fg of [...TEXT_IN_CALLOUT, kind]) {
+      expect(ratio(theme[fg], tint), `${fg} on ${kind}`).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   it.each(CODE_COLOURS)("code colour %s meets AA on the code background", (fg) => {

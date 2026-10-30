@@ -159,11 +159,17 @@ button {
 }
 
 .version {
-  font-size: 13px;
+  padding: 2px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
   color: var(--muted);
   text-decoration: none;
 }
 .version:hover {
+  border-color: var(--rule);
   color: var(--ink);
 }
 
@@ -177,22 +183,24 @@ button {
 
 /* Shell */
 
+/* The text column stops at its reading width and the outline follows it at the
+   same gap as the sidebar; the outline's column takes any width left over. */
 .shell {
   flex: 1;
   width: 100%;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) 200px;
+  grid-template-columns: 240px minmax(0, 720px) minmax(200px, 1fr);
   gap: 56px;
   max-width: 1440px;
   margin: 0 auto;
   padding: 0 32px;
 }
 .shell--no-sidebar {
-  grid-template-columns: minmax(0, 1fr) 200px;
+  grid-template-columns: minmax(0, 720px) minmax(200px, 1fr);
   max-width: 1100px;
 }
 .shell--wide {
-  grid-template-columns: 240px minmax(0, 1fr) 200px;
+  grid-template-columns: 240px minmax(0, 1000px) minmax(200px, 1fr);
 }
 
 .sidebar {
@@ -227,6 +235,31 @@ button {
   margin: 0;
   padding: 0;
 }
+/* Thin scrollbars in the theme's line colour, darker while pointed at. The
+   ::-webkit rules are for Safari, which doesn't support scrollbar-color yet. */
+.sidebar,
+.outline {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.sidebar:hover,
+.outline:hover {
+  scrollbar-color: var(--muted) transparent;
+}
+.sidebar::-webkit-scrollbar,
+.outline::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb,
+.outline::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: var(--line);
+}
+.sidebar:hover::-webkit-scrollbar-thumb,
+.outline:hover::-webkit-scrollbar-thumb {
+  background: var(--muted);
+}
+
 /* The sidebar and outline lists hang off a thin rail; the current page (or
    section, in the outline) takes a 2px accent bar over it. */
 .sidebar ul,
@@ -370,6 +403,46 @@ button {
 }
 .pager a:hover .title {
   color: var(--accent);
+}
+/* An arrow beside each title that moves its way on hover. The `/ ""` gives it
+   empty alt text, so screen readers don't read the arrow. */
+.pager .title::before,
+.pager .title::after {
+  display: inline-block;
+  transition: transform 0.15s;
+}
+.pager .prev .title::before {
+  content: "←";
+  content: "←" / "";
+  margin-right: 0.35em;
+}
+.pager .next .title::after {
+  content: "→";
+  content: "→" / "";
+  margin-left: 0.35em;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pager .prev:hover .title::before {
+    transform: translateX(-3px);
+  }
+  .pager .next:hover .title::after {
+    transform: translateX(3px);
+  }
+}
+
+/* Colour changes on the shell's links and buttons ease in over 150ms. Only
+   colours change here, so reduced motion keeps them. The outline's links,
+   the copy button and the section links set their own. */
+.tabs a,
+.sidebar a,
+.breadcrumb a,
+.page-meta a,
+.pager .title,
+.icon-button,
+.version,
+.search-button,
+.prose a {
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
 }
 
 .site-footer {
