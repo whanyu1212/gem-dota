@@ -14,6 +14,7 @@ import { runesFigure } from "../figures/runes";
 import { stacksFigure } from "../figures/stacks";
 import { wardsFigure } from "../figures/wards";
 import { preprocess, type PreprocessOptions } from "./preprocess";
+import rehypeHeadingAnchors from "./rehype-heading-anchors";
 import rehypeHeadingIds from "./rehype-heading-ids";
 import rehypeLinks, { type LinkOptions } from "./rehype-links";
 
@@ -56,6 +57,7 @@ export function docsMarkdown(options: DocsMarkdownOptions) {
       rehypeRaw,
       rehypeHeadingIds,
       [rehypeLinks, options],
+      rehypeHeadingAnchors,
     ],
   });
 }

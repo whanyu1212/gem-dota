@@ -35,6 +35,9 @@ in `src/markdown/`, so the Markdown (first written for VitePress) renders the sa
   `<<< @/path{lang}` file imports before parsing (`@` is the repository root);
 - `rehype-heading-ids.ts` gives headings VitePress's IDs, so `#anchor` links keep
   working;
+- `rehype-heading-anchors.ts` adds a `#` link to each top-level h2–h4, shown on
+  hover and focus. The link is empty (CSS draws the `#`), so the outline and
+  search read the heading's text unchanged;
 - `rehype-links.ts` turns `.md` links into page URLs, adds the `/gem-dota` base
   to absolute paths, and points links to unpublished repository files at GitHub.
 
