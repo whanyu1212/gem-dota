@@ -35,6 +35,10 @@ in `src/markdown/`, so the Markdown (first written for VitePress) renders the sa
   `<<< @/path{lang}` file imports before parsing (`@` is the repository root);
 - `rehype-heading-ids.ts` gives headings VitePress's IDs, so `#anchor` links keep
   working;
+- `rehype-code-blocks.ts` wraps each code block in `.code-block` with a label:
+  the language, or the file's path for a `<<<` import (plain text gets none).
+  `src/lib/code-blocks.ts` adds the copy button and the fade shown while a
+  block's code runs past its right edge;
 - `rehype-heading-anchors.ts` adds a `#` link to each top-level h2–h4, shown on
   hover and focus. The link is empty (CSS draws the `#`), so the outline and
   search read the heading's text unchanged;

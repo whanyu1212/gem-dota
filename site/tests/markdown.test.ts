@@ -28,8 +28,8 @@ describe("callouts", () => {
     expect(html).toMatchInlineSnapshot(`
       "<aside class="callout callout--info"><p class="callout-title">Parquet dependency</p>
       <p>Needs <code>pyarrow</code>:</p>
-      <pre><code class="language-bash">pip install pyarrow
-      </code></pre>
+      <div class="code-block"><span class="code-label" data-pagefind-ignore="">bash</span><pre><code class="language-bash">pip install pyarrow
+      </code></pre></div>
       </aside>"
     `);
   });
@@ -99,10 +99,10 @@ describe("code groups", () => {
       <input type="radio" name="code-group-0" id="code-group-0-0" checked><label for="code-group-0-0">pip</label>
       <input type="radio" name="code-group-0" id="code-group-0-1"><label for="code-group-0-1">uv</label>
       <div class="code-group-panels">
-      <pre><code class="language-bash">pip install gem-dota
-      </code></pre>
-      <pre><code class="language-bash">uv add gem-dota
-      </code></pre>
+      <div class="code-block"><pre><code class="language-bash">pip install gem-dota
+      </code></pre></div>
+      <div class="code-block"><pre><code class="language-bash">uv add gem-dota
+      </code></pre></div>
       </div>
       </div>"
     `);
@@ -110,14 +110,14 @@ describe("code groups", () => {
 });
 
 describe("file imports", () => {
-  it("inlines the file with the language from the braces", () => {
+  it("inlines the file with the language from the braces, in a wrapper naming the file", () => {
     expect(preprocess("<<< @/examples/demo.py{python}", pre)).toBe(
-      '````python\ndef main() -> str:\n    return "```"\n````',
+      '\n<div class="code-block" data-file="examples/demo.py">\n\n````python\ndef main() -> str:\n    return "```"\n````\n\n</div>\n',
     );
   });
 
   it("takes the language from the extension when the braces have none", () => {
-    expect(preprocess("<<< @/examples/demo.py{1,2}", pre)).toMatch(/^````python\n/);
+    expect(preprocess("<<< @/examples/demo.py{1,2}", pre)).toMatch(/\n````python\n/);
   });
 
   it("fails the build when the file is missing", () => {
@@ -146,6 +146,38 @@ describe("heading ids", () => {
       [2, "notes-1"],
       [3, "code-em"],
     ]);
+  });
+});
+
+describe("code blocks", () => {
+  it("wraps a block and labels it with its language, before the code", async () => {
+    const { html } = await render("```python\nx = 1\n```\n");
+    expect(html).toBe(
+      '<div class="code-block"><span class="code-label" data-pagefind-ignore="">python</span><pre><code class="language-python">x = 1\n</code></pre></div>',
+    );
+  });
+
+  it("shows aliases under one name and leaves plain text unlabelled", async () => {
+    const { html } = await render("```py\nx\n```\n\n```sh\nls\n```\n\n```text\nout\n```\n\n```\nplain\n```\n");
+    expect([...html.matchAll(/class="code-label"[^>]*>([^<]*)</g)].map((m) => m[1])).toEqual(["python", "bash"]);
+    expect(html.match(/class="code-block"/g)).toHaveLength(4);
+  });
+
+  it("labels an imported file with its path", async () => {
+    const { html } = await render("<<< @/examples/demo.py{python}\n");
+    expect(html).toContain('<div class="code-block code-block--file" data-file="examples/demo.py">');
+    expect(html).toContain(
+      '<span class="code-label code-label--file" data-pagefind-ignore="">examples/demo.py</span><pre><code class="language-python">',
+    );
+    expect(html.match(/class="code-block/g)).toHaveLength(1);
+  });
+
+  it("wraps code in callouts, but leaves code groups to their tabs", async () => {
+    const callout = await render("::: tip\n```bash\nls\n```\n:::\n");
+    expect(callout.html).toContain('<div class="code-block"><span class="code-label" data-pagefind-ignore="">bash</span><pre>');
+    const group = await render("::: code-group\n\n```bash [pip]\npip install gem-dota\n```\n\n:::\n");
+    expect(group.html).toContain('<div class="code-block"><pre>');
+    expect(group.html).not.toContain("code-label");
   });
 });
 

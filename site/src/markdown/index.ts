@@ -14,6 +14,7 @@ import { runesFigure } from "../figures/runes";
 import { stacksFigure } from "../figures/stacks";
 import { wardsFigure } from "../figures/wards";
 import { preprocess, type PreprocessOptions } from "./preprocess";
+import rehypeCodeBlocks from "./rehype-code-blocks";
 import rehypeHeadingAnchors from "./rehype-heading-anchors";
 import rehypeHeadingIds from "./rehype-heading-ids";
 import rehypeLinks, { type LinkOptions } from "./rehype-links";
@@ -55,6 +56,7 @@ export function docsMarkdown(options: DocsMarkdownOptions) {
       // Astro parses raw HTML last; do it first so links and headings written as
       // HTML are rewritten too.
       rehypeRaw,
+      rehypeCodeBlocks,
       rehypeHeadingIds,
       [rehypeLinks, options],
       rehypeHeadingAnchors,
