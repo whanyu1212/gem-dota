@@ -76,6 +76,7 @@
   font-size: 15px;
   font-weight: 600;
   text-decoration: none;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
 }
 .button--primary {
   border-color: var(--ink);
@@ -306,11 +307,18 @@
   margin-top: 32px;
   border-top: 1px solid var(--rule);
 }
+/* The recipes are columns under one rule, not boxes, so instead of lifting, a
+   column marks the rule above it with the accent on hover. */
 .recipe {
   display: block;
   padding: 24px 24px 8px 0;
   color: inherit;
   text-decoration: none;
+  transition: box-shadow 0.15s;
+}
+.recipe:hover,
+.recipe:focus-visible {
+  box-shadow: inset 0 2px 0 var(--accent);
 }
 .recipe + .recipe {
   padding-left: 24px;
@@ -322,6 +330,7 @@
   font-family: var(--font-serif);
   font-size: 22px;
   line-height: 1.3;
+  transition: color 0.15s;
 }
 .recipe:hover .question {
   color: var(--accent);
@@ -355,9 +364,18 @@
   font-size: 14px;
   line-height: 1.5;
   text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
-.starts a:hover {
+.starts a:hover,
+.starts a:focus-visible {
   border-color: var(--accent);
+  box-shadow: var(--shadow);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .starts a:hover,
+  .starts a:focus-visible {
+    transform: translateY(-2px);
+  }
 }
 .starts span {
   display: block;

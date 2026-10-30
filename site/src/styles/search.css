@@ -9,7 +9,7 @@
   padding: 0 10px 0 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: var(--paper);
+  background: transparent;
   color: var(--muted);
   font-size: 13px;
   cursor: pointer;
