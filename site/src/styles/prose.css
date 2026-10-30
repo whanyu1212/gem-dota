@@ -86,6 +86,28 @@
   text-decoration: none;
 }
 
+/* Section links (src/markdown/rehype-heading-anchors.ts): an empty link after
+   the heading's text; the "#" is drawn here so the outline and search don't read it. */
+.prose .heading-anchor {
+  margin-left: 0.3em;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.75em;
+  font-weight: 400;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+}
+.prose .heading-anchor::before {
+  content: "#";
+}
+.prose :is(h2, h3, h4):hover .heading-anchor,
+.prose .heading-anchor:focus-visible {
+  opacity: 1;
+}
+.prose .heading-anchor:hover {
+  color: var(--accent);
+}
+
 .prose blockquote {
   padding: 2px 0 2px 18px;
   border-left: 2px solid var(--rule);
@@ -304,13 +326,14 @@
   font-size: 18px;
 }
 /* Generated entries are headed by their name in code alone, e.g. ### `build_dataframes`
-   (scripts/generate_api_reference.py). Keep that shape if the generator changes. */
-.prose--reference h3:has(> code:only-child) {
+   (scripts/generate_api_reference.py). Keep that shape if the generator changes.
+   The code is then followed only by the section link. */
+.prose--reference h3:has(> code:first-child + .heading-anchor:last-child) {
   margin-top: 40px;
   padding-top: 20px;
   border-top: 1px solid var(--line);
 }
-.prose--reference h3 > code:only-child {
+.prose--reference h3 > code:first-child:has(+ .heading-anchor:last-child) {
   padding: 0;
   background: none;
   font-size: 17px;

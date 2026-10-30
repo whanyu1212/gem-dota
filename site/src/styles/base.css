@@ -227,9 +227,20 @@ button {
   margin: 0;
   padding: 0;
 }
+/* The sidebar and outline lists hang off a thin rail; the current page (or
+   section, in the outline) takes a 2px accent bar over it. */
+.sidebar ul,
+.outline ul {
+  border-left: 1px solid var(--line);
+}
+.sidebar li a,
+.outline a {
+  margin-left: -1px;
+  border-left: 2px solid transparent;
+}
 .sidebar li a {
   display: block;
-  padding: 4px 0;
+  padding: 4px 0 4px 12px;
   color: var(--muted);
   text-decoration: none;
   line-height: 1.45;
@@ -239,6 +250,7 @@ button {
 }
 .sidebar li a[aria-current="page"],
 .sidebar li a[aria-current="true"] {
+  border-left-color: var(--accent);
   color: var(--ink);
   font-weight: 600;
 }
@@ -290,16 +302,22 @@ button {
 }
 .outline a {
   display: block;
-  padding: 4px 0;
+  padding: 4px 0 4px 12px;
   color: var(--muted);
   text-decoration: none;
   line-height: 1.4;
+  transition: color 0.15s, border-color 0.15s;
 }
 .outline a:hover {
   color: var(--ink);
 }
+/* Set by the script in Outline.astro while that section is on screen. */
+.outline a[aria-current="true"] {
+  border-left-color: var(--accent);
+  color: var(--ink);
+}
 .outline .depth-3 a {
-  padding-left: 12px;
+  padding-left: 24px;
 }
 
 /* Page footer */

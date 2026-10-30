@@ -22,3 +22,74 @@ const headings = all.length > 40 ? all.filter((h) => h.depth === 2) : all;
     </ul>
   </aside>
 )}
+
+<script>
+  // Marks the outline link of the section being read: the last heading whose top
+  // has passed the line a jump to a heading stops at (scroll-padding-top). At the
+  // bottom of the page, the last section. Without JavaScript nothing is marked.
+  const outline = document.querySelector<HTMLElement>(".outline");
+  if (outline) {
+    const entries = [...outline.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')]
+      .map((link) => ({ link, heading: document.getElementById(decodeURIComponent(link.hash.slice(1))) }))
+      .filter((entry): entry is { link: HTMLAnchorElement; heading: HTMLElement } => entry.heading !== null);
+
+    let current: HTMLAnchorElement | undefined;
+    // A clicked link stays marked until the reader scrolls away from where it
+    // landed, even when the page can't scroll its heading to the top.
+    let clicked: { link: HTMLAnchorElement; y?: number } | undefined;
+    let queued = false;
+
+    const mark = (link: HTMLAnchorElement | undefined) => {
+      if (link === current) return;
+      current?.removeAttribute("aria-current");
+      link?.setAttribute("aria-current", "true");
+      current = link;
+      if (!link) return;
+      // Keep it in view when the outline is taller than the screen.
+      const box = outline.getBoundingClientRect();
+      const row = link.getBoundingClientRect();
+      if (row.top < box.top || row.bottom > box.bottom) {
+        outline.scrollTop += row.top - box.top - box.height / 2;
+      }
+    };
+
+    const update = () => {
+      queued = false;
+      if (outline.getClientRects().length === 0) return; // hidden on narrow screens
+      if (clicked) {
+        clicked.y ??= scrollY;
+        if (clicked.y === scrollY) return mark(clicked.link);
+        clicked = undefined;
+      }
+      const root = document.documentElement;
+      if (scrollY > 0 && innerHeight + scrollY >= root.scrollHeight - 2) {
+        return mark(entries.at(-1)?.link);
+      }
+      const line = parseFloat(getComputedStyle(root).scrollPaddingTop) + 8;
+      let found: HTMLAnchorElement | undefined;
+      for (const { link, heading } of entries) {
+        if (heading.getBoundingClientRect().top > line) break;
+        found = link;
+      }
+      mark(found);
+    };
+
+    const queue = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(update);
+    };
+
+    outline.addEventListener("click", (event) => {
+      const link = (event.target as Element).closest<HTMLAnchorElement>('a[href^="#"]');
+      if (link) {
+        clicked = { link };
+        queue();
+      }
+    });
+    addEventListener("scroll", queue, { passive: true });
+    addEventListener("resize", queue);
+    addEventListener("load", queue);
+    queue();
+  }
+</script>

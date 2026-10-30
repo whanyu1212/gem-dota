@@ -149,6 +149,24 @@ describe("heading ids", () => {
   });
 });
 
+describe("heading links", () => {
+  it("links each h2–h4 to itself, without changing the outline's text", async () => {
+    const { html, headings } = await render("## Parse a match\n\n### `gem.parse()` *fast*\n\n#### Small\n\n##### Smaller\n");
+    expect(html).toContain(
+      '<h2 id="parse-a-match">Parse a match<a class="heading-anchor" href="#parse-a-match" aria-label="Link to section “Parse a match”" data-pagefind-ignore=""></a></h2>',
+    );
+    expect(html).toContain('href="#gem-parse-fast" aria-label="Link to section “gem.parse() fast”"');
+    expect(html).toContain('href="#small"');
+    expect(html).not.toContain('href="#smaller"');
+    expect(headings.map((h) => h.text)).toEqual(["Parse a match", "gem.parse() fast", "Small", "Smaller"]);
+  });
+
+  it("leaves headings that hold a link, and headings inside callouts, alone", async () => {
+    const { html } = await render("## See [the guide](https://example.com)\n\n::: tip\n## Inside\n:::\n");
+    expect(html).not.toContain("heading-anchor");
+  });
+});
+
 describe("links", () => {
   const rewrite = (url: string) => rewriteUrl(url, page, options);
 

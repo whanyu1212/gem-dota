@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Docs pages show where you are and can link to any section** (HY-417). The
+  "On this page" outline marks the section on screen as you scroll, the sidebar
+  marks the current page with an accent bar, and each h2–h4 shows a `#` link on
+  hover or keyboard focus.
+
 ### Changed
 
 - **The stacks recipe's figure follows one stack or one player** (HY-389). Each
