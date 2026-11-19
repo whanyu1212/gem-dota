@@ -4,7 +4,7 @@
 
 - Module: `gameevents_pb2`
 - Imports: **2**
-- Messages: **18** (top-level: 15)
+- Messages: **19** (top-level: 16)
 - Enums: **1** (top-level: 1)
 
 ## Imports
@@ -64,6 +64,20 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `flagstoclear` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgMoveWorldDecalsEvent</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `mins` | `.CMsgVector` | `optional` |  |  |
+| 2 | `maxs` | `.CMsgVector` | `optional` |  |  |
+| 3 | `offset` | `.CMsgVector` | `optional` |  |  |
 
 </details>
 
@@ -286,7 +300,7 @@ Expand any message to inspect all fields.
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>EBaseGameEvents</code> — values: 15</summary>
+<summary><code>EBaseGameEvents</code> — values: 16</summary>
 
 - Parent: *(top-level)*
 
@@ -307,5 +321,6 @@ Expand any enum to inspect all values.
 | `GE_SosStopSoundEventHash` | 212 |
 | `GE_ClothStiffenAnimEvent` | 213 |
 | `GE_ClothEffectAnimEvent` | 214 |
+| `GE_MoveWorldDecalsEvent` | 215 |
 
 </details>

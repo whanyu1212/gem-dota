@@ -503,7 +503,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>SpawnGroupFlags_t</code> — values: 8</summary>
+<summary><code>SpawnGroupFlags_t</code> — values: 9</summary>
 
 - Parent: *(top-level)*
 
@@ -517,5 +517,6 @@ Expand any enum to inspect all values.
 | `SPAWN_GROUP_BLOCK_UNTIL_LOADED` | 64 |
 | `SPAWN_GROUP_LOAD_STREAMING_DATA` | 128 |
 | `SPAWN_GROUP_CREATE_NEW_SCENE_WORLD` | 256 |
+| `SPAWN_GROUP_DONT_SAVE_RESTORE` | 512 |
 
 </details>

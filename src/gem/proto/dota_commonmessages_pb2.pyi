@@ -70,6 +70,7 @@ class dotaunitorder_t(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DOTA_UNIT_ORDER_CAST_TOGGLE_ALT: _ClassVar[dotaunitorder_t]
     DOTA_UNIT_ORDER_CONSUME_ITEM: _ClassVar[dotaunitorder_t]
     DOTA_UNIT_ORDER_SET_ITEM_MARK_FOR_SELL: _ClassVar[dotaunitorder_t]
+    DOTA_UNIT_ORDER_INTERACT_WITH_TARGET: _ClassVar[dotaunitorder_t]
 
 class EDOTAVersusScenePlayerBehavior(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -129,6 +130,7 @@ DOTA_UNIT_ORDER_MOVE_RELATIVE: dotaunitorder_t
 DOTA_UNIT_ORDER_CAST_TOGGLE_ALT: dotaunitorder_t
 DOTA_UNIT_ORDER_CONSUME_ITEM: dotaunitorder_t
 DOTA_UNIT_ORDER_SET_ITEM_MARK_FOR_SELL: dotaunitorder_t
+DOTA_UNIT_ORDER_INTERACT_WITH_TARGET: dotaunitorder_t
 VS_PLAYER_BEHAVIOR_PLAY_ACTIVITY: EDOTAVersusScenePlayerBehavior
 VS_PLAYER_BEHAVIOR_CHAT_WHEEL: EDOTAVersusScenePlayerBehavior
 VS_PLAYER_BEHAVIOR_PLAYBACK_RATE: EDOTAVersusScenePlayerBehavior

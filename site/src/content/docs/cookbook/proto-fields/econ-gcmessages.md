@@ -4,7 +4,7 @@
 
 - Module: `econ_gcmessages_pb2`
 - Imports: **5**
-- Messages: **143** (top-level: 121)
+- Messages: **145** (top-level: 123)
 - Enums: **16** (top-level: 2)
 
 ## Imports
@@ -526,6 +526,33 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `item_ids` | `uint64` | `repeated` |  | boxed_type = "itemid_t" |
+
+</details>
+
+<details>
+<summary><code>CMsgGCUseItemResponse</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `response` | `.EGCMsgUseItemResponse` | `optional` |  | default = k_EGCMsgUseItemResponse_ItemUsed |
+| 2 | `defindex` | `uint32` | `optional` |  | boxed_type = "item_definition_index_t" |
+
+</details>
+
+<details>
+<summary><code>CMsgGCGiftedItems</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `gifter_account_id` | `uint32` | `optional` |  |  |
+| 2 | `was_random_person` | `bool` | `optional` |  |  |
+| 3 | `recipient_account_ids` | `uint32` | `repeated` |  |  |
 
 </details>
 
@@ -1979,7 +2006,7 @@ Expand any message to inspect all fields.
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>EGCItemMsg</code> — values: 135</summary>
+<summary><code>EGCItemMsg</code> — values: 136</summary>
 
 - Parent: *(top-level)*
 
@@ -2001,6 +2028,7 @@ Expand any enum to inspect all values.
 | `k_EMsgGCGiftedItems` | 1027 |
 | `k_EMsgGCUnwrapGiftRequest` | 1037 |
 | `k_EMsgGCUnwrapGiftResponse` | 1038 |
+| `k_EMsgGCDeleteItem` | 1040 |
 | `k_EMsgGCSortItems` | 1041 |
 | `k_EMsgGCBackpackSortFinished` | 1058 |
 | `k_EMsgGCAdjustItemEquippedState` | 1059 |

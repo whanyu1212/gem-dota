@@ -30,6 +30,7 @@ class EGCItemMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgGCGiftedItems: _ClassVar[EGCItemMsg]
     k_EMsgGCUnwrapGiftRequest: _ClassVar[EGCItemMsg]
     k_EMsgGCUnwrapGiftResponse: _ClassVar[EGCItemMsg]
+    k_EMsgGCDeleteItem: _ClassVar[EGCItemMsg]
     k_EMsgGCSortItems: _ClassVar[EGCItemMsg]
     k_EMsgGCBackpackSortFinished: _ClassVar[EGCItemMsg]
     k_EMsgGCAdjustItemEquippedState: _ClassVar[EGCItemMsg]
@@ -193,6 +194,7 @@ k_EMsgGCUseItemResponse: EGCItemMsg
 k_EMsgGCGiftedItems: EGCItemMsg
 k_EMsgGCUnwrapGiftRequest: EGCItemMsg
 k_EMsgGCUnwrapGiftResponse: EGCItemMsg
+k_EMsgGCDeleteItem: EGCItemMsg
 k_EMsgGCSortItems: EGCItemMsg
 k_EMsgGCBackpackSortFinished: EGCItemMsg
 k_EMsgGCAdjustItemEquippedState: EGCItemMsg
@@ -693,6 +695,24 @@ class CMsgUseMultipleItems(_message.Message):
     ITEM_IDS_FIELD_NUMBER: _ClassVar[int]
     item_ids: _containers.RepeatedScalarFieldContainer[int]
     def __init__(self, item_ids: _Optional[_Iterable[int]] = ...) -> None: ...
+
+class CMsgGCUseItemResponse(_message.Message):
+    __slots__ = ("response", "defindex")
+    RESPONSE_FIELD_NUMBER: _ClassVar[int]
+    DEFINDEX_FIELD_NUMBER: _ClassVar[int]
+    response: _econ_shared_enums_pb2.EGCMsgUseItemResponse
+    defindex: int
+    def __init__(self, response: _Optional[_Union[_econ_shared_enums_pb2.EGCMsgUseItemResponse, str]] = ..., defindex: _Optional[int] = ...) -> None: ...
+
+class CMsgGCGiftedItems(_message.Message):
+    __slots__ = ("gifter_account_id", "was_random_person", "recipient_account_ids")
+    GIFTER_ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]
+    WAS_RANDOM_PERSON_FIELD_NUMBER: _ClassVar[int]
+    RECIPIENT_ACCOUNT_IDS_FIELD_NUMBER: _ClassVar[int]
+    gifter_account_id: int
+    was_random_person: bool
+    recipient_account_ids: _containers.RepeatedScalarFieldContainer[int]
+    def __init__(self, gifter_account_id: _Optional[int] = ..., was_random_person: bool = ..., recipient_account_ids: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CGCStoreRechargeRedirect_LineItem(_message.Message):
     __slots__ = ("item_def_id", "quantity")

@@ -3019,7 +3019,6 @@ class CMsgDOTAClaimEventActionResponse(_message.Message):
         Timeout: _ClassVar[CMsgDOTAClaimEventActionResponse.ResultCode]
         RequiresPlusSubscription: _ClassVar[CMsgDOTAClaimEventActionResponse.ResultCode]
         InvalidItem: _ClassVar[CMsgDOTAClaimEventActionResponse.ResultCode]
-        AsyncRewards: _ClassVar[CMsgDOTAClaimEventActionResponse.ResultCode]
     Success: CMsgDOTAClaimEventActionResponse.ResultCode
     InvalidEvent: CMsgDOTAClaimEventActionResponse.ResultCode
     EventNotActive: CMsgDOTAClaimEventActionResponse.ResultCode
@@ -3034,7 +3033,6 @@ class CMsgDOTAClaimEventActionResponse(_message.Message):
     Timeout: CMsgDOTAClaimEventActionResponse.ResultCode
     RequiresPlusSubscription: CMsgDOTAClaimEventActionResponse.ResultCode
     InvalidItem: CMsgDOTAClaimEventActionResponse.ResultCode
-    AsyncRewards: CMsgDOTAClaimEventActionResponse.ResultCode
     class MysteryItemRewardData(_message.Message):
         __slots__ = ("item_def", "item_category")
         ITEM_DEF_FIELD_NUMBER: _ClassVar[int]

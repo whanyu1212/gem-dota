@@ -24,8 +24,8 @@ class EGCEventClientMessages(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientToGCDevResetEventStateResponse: _ClassVar[EGCEventClientMessages]
     k_EMsgClientToGCDevGrantEventAction: _ClassVar[EGCEventClientMessages]
     k_EMsgClientToGCDevGrantEventActionResponse: _ClassVar[EGCEventClientMessages]
-    k_EMsgClientToGCDevDeleteEventActions: _ClassVar[EGCEventClientMessages]
-    k_EMsgClientToGCDevDeleteEventActionsResponse: _ClassVar[EGCEventClientMessages]
+    k_EMsgClientToGCDevResetEventActions: _ClassVar[EGCEventClientMessages]
+    k_EMsgClientToGCDevResetEventActionsResponse: _ClassVar[EGCEventClientMessages]
     k_EMsgClientToGCClaimEventAction: _ClassVar[EGCEventClientMessages]
     k_EMsgClientToGCClaimEventActionResponse: _ClassVar[EGCEventClientMessages]
     k_EMsgClientToGCGetPeriodicResource: _ClassVar[EGCEventClientMessages]
@@ -42,8 +42,8 @@ k_EMsgClientToGCDevResetEventState: EGCEventClientMessages
 k_EMsgClientToGCDevResetEventStateResponse: EGCEventClientMessages
 k_EMsgClientToGCDevGrantEventAction: EGCEventClientMessages
 k_EMsgClientToGCDevGrantEventActionResponse: EGCEventClientMessages
-k_EMsgClientToGCDevDeleteEventActions: EGCEventClientMessages
-k_EMsgClientToGCDevDeleteEventActionsResponse: EGCEventClientMessages
+k_EMsgClientToGCDevResetEventActions: EGCEventClientMessages
+k_EMsgClientToGCDevResetEventActionsResponse: EGCEventClientMessages
 k_EMsgClientToGCClaimEventAction: EGCEventClientMessages
 k_EMsgClientToGCClaimEventActionResponse: EGCEventClientMessages
 k_EMsgClientToGCGetPeriodicResource: EGCEventClientMessages
@@ -236,17 +236,25 @@ class CMsgClientToGCDevGrantEventActionResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCDevGrantEventActionResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCDevGrantEventActionResponse.EResponse]
         k_eNotAllowed: _ClassVar[CMsgClientToGCDevGrantEventActionResponse.EResponse]
+        k_eInvalidEvent: _ClassVar[CMsgClientToGCDevGrantEventActionResponse.EResponse]
+        k_eInvalidAccount: _ClassVar[CMsgClientToGCDevGrantEventActionResponse.EResponse]
+        k_eGrantFailed: _ClassVar[CMsgClientToGCDevGrantEventActionResponse.EResponse]
+        k_eNotGranted: _ClassVar[CMsgClientToGCDevGrantEventActionResponse.EResponse]
     k_eInternalError: CMsgClientToGCDevGrantEventActionResponse.EResponse
     k_eSuccess: CMsgClientToGCDevGrantEventActionResponse.EResponse
     k_eTooBusy: CMsgClientToGCDevGrantEventActionResponse.EResponse
     k_eDisabled: CMsgClientToGCDevGrantEventActionResponse.EResponse
     k_eTimeout: CMsgClientToGCDevGrantEventActionResponse.EResponse
     k_eNotAllowed: CMsgClientToGCDevGrantEventActionResponse.EResponse
+    k_eInvalidEvent: CMsgClientToGCDevGrantEventActionResponse.EResponse
+    k_eInvalidAccount: CMsgClientToGCDevGrantEventActionResponse.EResponse
+    k_eGrantFailed: CMsgClientToGCDevGrantEventActionResponse.EResponse
+    k_eNotGranted: CMsgClientToGCDevGrantEventActionResponse.EResponse
     RESULT_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCDevGrantEventActionResponse.EResponse
     def __init__(self, result: _Optional[_Union[CMsgClientToGCDevGrantEventActionResponse.EResponse, str]] = ...) -> None: ...
 
-class CMsgClientToGCDevDeleteEventActions(_message.Message):
+class CMsgClientToGCDevResetEventActions(_message.Message):
     __slots__ = ("event_id", "start_action_id", "end_action_id", "remove_audit")
     EVENT_ID_FIELD_NUMBER: _ClassVar[int]
     START_ACTION_ID_FIELD_NUMBER: _ClassVar[int]
@@ -258,25 +266,29 @@ class CMsgClientToGCDevDeleteEventActions(_message.Message):
     remove_audit: bool
     def __init__(self, event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., start_action_id: _Optional[int] = ..., end_action_id: _Optional[int] = ..., remove_audit: bool = ...) -> None: ...
 
-class CMsgClientToGCDevDeleteEventActionsResponse(_message.Message):
+class CMsgClientToGCDevResetEventActionsResponse(_message.Message):
     __slots__ = ("result",)
     class EResponse(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
-        k_eInternalError: _ClassVar[CMsgClientToGCDevDeleteEventActionsResponse.EResponse]
-        k_eSuccess: _ClassVar[CMsgClientToGCDevDeleteEventActionsResponse.EResponse]
-        k_eTooBusy: _ClassVar[CMsgClientToGCDevDeleteEventActionsResponse.EResponse]
-        k_eDisabled: _ClassVar[CMsgClientToGCDevDeleteEventActionsResponse.EResponse]
-        k_eTimeout: _ClassVar[CMsgClientToGCDevDeleteEventActionsResponse.EResponse]
-        k_eNotAllowed: _ClassVar[CMsgClientToGCDevDeleteEventActionsResponse.EResponse]
-    k_eInternalError: CMsgClientToGCDevDeleteEventActionsResponse.EResponse
-    k_eSuccess: CMsgClientToGCDevDeleteEventActionsResponse.EResponse
-    k_eTooBusy: CMsgClientToGCDevDeleteEventActionsResponse.EResponse
-    k_eDisabled: CMsgClientToGCDevDeleteEventActionsResponse.EResponse
-    k_eTimeout: CMsgClientToGCDevDeleteEventActionsResponse.EResponse
-    k_eNotAllowed: CMsgClientToGCDevDeleteEventActionsResponse.EResponse
+        k_eInternalError: _ClassVar[CMsgClientToGCDevResetEventActionsResponse.EResponse]
+        k_eSuccess: _ClassVar[CMsgClientToGCDevResetEventActionsResponse.EResponse]
+        k_eTooBusy: _ClassVar[CMsgClientToGCDevResetEventActionsResponse.EResponse]
+        k_eDisabled: _ClassVar[CMsgClientToGCDevResetEventActionsResponse.EResponse]
+        k_eTimeout: _ClassVar[CMsgClientToGCDevResetEventActionsResponse.EResponse]
+        k_eNotAllowed: _ClassVar[CMsgClientToGCDevResetEventActionsResponse.EResponse]
+        k_eInvalidEvent: _ClassVar[CMsgClientToGCDevResetEventActionsResponse.EResponse]
+        k_eInvalidAccount: _ClassVar[CMsgClientToGCDevResetEventActionsResponse.EResponse]
+    k_eInternalError: CMsgClientToGCDevResetEventActionsResponse.EResponse
+    k_eSuccess: CMsgClientToGCDevResetEventActionsResponse.EResponse
+    k_eTooBusy: CMsgClientToGCDevResetEventActionsResponse.EResponse
+    k_eDisabled: CMsgClientToGCDevResetEventActionsResponse.EResponse
+    k_eTimeout: CMsgClientToGCDevResetEventActionsResponse.EResponse
+    k_eNotAllowed: CMsgClientToGCDevResetEventActionsResponse.EResponse
+    k_eInvalidEvent: CMsgClientToGCDevResetEventActionsResponse.EResponse
+    k_eInvalidAccount: CMsgClientToGCDevResetEventActionsResponse.EResponse
     RESULT_FIELD_NUMBER: _ClassVar[int]
-    result: CMsgClientToGCDevDeleteEventActionsResponse.EResponse
-    def __init__(self, result: _Optional[_Union[CMsgClientToGCDevDeleteEventActionsResponse.EResponse, str]] = ...) -> None: ...
+    result: CMsgClientToGCDevResetEventActionsResponse.EResponse
+    def __init__(self, result: _Optional[_Union[CMsgClientToGCDevResetEventActionsResponse.EResponse, str]] = ...) -> None: ...
 
 class CMsgClientToGCClaimEventAction(_message.Message):
     __slots__ = ("event_id", "action_id", "quantity", "score_mode", "suppress_rewards", "claim_data", "consume_item_id")
@@ -295,6 +307,12 @@ class CMsgClientToGCClaimEventAction(_message.Message):
     claim_data: bytes
     consume_item_id: int
     def __init__(self, event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., action_id: _Optional[int] = ..., quantity: _Optional[int] = ..., score_mode: _Optional[_Union[_event_gcmessages_common_pb2.EEventActionScoreMode, str]] = ..., suppress_rewards: bool = ..., claim_data: _Optional[bytes] = ..., consume_item_id: _Optional[int] = ...) -> None: ...
+
+class CMsgEventActionGrantLootListRewardData(_message.Message):
+    __slots__ = ("item_def",)
+    ITEM_DEF_FIELD_NUMBER: _ClassVar[int]
+    item_def: _containers.RepeatedScalarFieldContainer[int]
+    def __init__(self, item_def: _Optional[_Iterable[int]] = ...) -> None: ...
 
 class CMsgEventActionGrantResult(_message.Message):
     __slots__ = ("action_id", "grant_index", "score_index", "reward_index", "grant_data")
@@ -320,12 +338,32 @@ class CMsgClientToGCClaimEventActionResponse(_message.Message):
         k_eDisabled: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
         k_eTimeout: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
         k_eNotAllowed: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
+        k_eInvalidAction: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
+        k_eInvalidEvent: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
+        k_eEventNotActive: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
+        k_eEventNotOwned: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
+        k_eInsufficientLevel: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
+        k_eInsufficientPoints: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
+        k_eAlreadyClaimed: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
+        k_eInvalidScoreMode: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
+        k_eRequiresSubscription: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
+        k_eInvalidItem: _ClassVar[CMsgClientToGCClaimEventActionResponse.EResponse]
     k_eInternalError: CMsgClientToGCClaimEventActionResponse.EResponse
     k_eSuccess: CMsgClientToGCClaimEventActionResponse.EResponse
     k_eTooBusy: CMsgClientToGCClaimEventActionResponse.EResponse
     k_eDisabled: CMsgClientToGCClaimEventActionResponse.EResponse
     k_eTimeout: CMsgClientToGCClaimEventActionResponse.EResponse
     k_eNotAllowed: CMsgClientToGCClaimEventActionResponse.EResponse
+    k_eInvalidAction: CMsgClientToGCClaimEventActionResponse.EResponse
+    k_eInvalidEvent: CMsgClientToGCClaimEventActionResponse.EResponse
+    k_eEventNotActive: CMsgClientToGCClaimEventActionResponse.EResponse
+    k_eEventNotOwned: CMsgClientToGCClaimEventActionResponse.EResponse
+    k_eInsufficientLevel: CMsgClientToGCClaimEventActionResponse.EResponse
+    k_eInsufficientPoints: CMsgClientToGCClaimEventActionResponse.EResponse
+    k_eAlreadyClaimed: CMsgClientToGCClaimEventActionResponse.EResponse
+    k_eInvalidScoreMode: CMsgClientToGCClaimEventActionResponse.EResponse
+    k_eRequiresSubscription: CMsgClientToGCClaimEventActionResponse.EResponse
+    k_eInvalidItem: CMsgClientToGCClaimEventActionResponse.EResponse
     RESULT_FIELD_NUMBER: _ClassVar[int]
     GRANT_RESULTS_FIELD_NUMBER: _ClassVar[int]
     result: CMsgClientToGCClaimEventActionResponse.EResponse

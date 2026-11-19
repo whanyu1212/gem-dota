@@ -4,7 +4,7 @@
 
 - Module: `base_gcmessages_pb2`
 - Imports: **4**
-- Messages: **62** (top-level: 58)
+- Messages: **63** (top-level: 59)
 - Enums: **6** (top-level: 2)
 
 ## Imports
@@ -335,6 +335,18 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `sort_type` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CMsgDeleteItem</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `item_id` | `uint64` | `optional` |  | boxed_type = "itemid_t" |
 
 </details>
 
