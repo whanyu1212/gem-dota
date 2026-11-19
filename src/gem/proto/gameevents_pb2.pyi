@@ -26,6 +26,7 @@ class EBaseGameEvents(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     GE_SosStopSoundEventHash: _ClassVar[EBaseGameEvents]
     GE_ClothStiffenAnimEvent: _ClassVar[EBaseGameEvents]
     GE_ClothEffectAnimEvent: _ClassVar[EBaseGameEvents]
+    GE_MoveWorldDecalsEvent: _ClassVar[EBaseGameEvents]
 GE_VDebugGameSessionIDEvent: EBaseGameEvents
 GE_PlaceDecalEvent: EBaseGameEvents
 GE_ClearWorldDecalsEvent: EBaseGameEvents
@@ -41,6 +42,7 @@ GE_SosSetLibraryStackFields: EBaseGameEvents
 GE_SosStopSoundEventHash: EBaseGameEvents
 GE_ClothStiffenAnimEvent: EBaseGameEvents
 GE_ClothEffectAnimEvent: EBaseGameEvents
+GE_MoveWorldDecalsEvent: EBaseGameEvents
 
 class CMsgVDebugGameSessionIDEvent(_message.Message):
     __slots__ = ("clientid", "gamesessionid")
@@ -89,6 +91,16 @@ class CMsgClearWorldDecalsEvent(_message.Message):
     FLAGSTOCLEAR_FIELD_NUMBER: _ClassVar[int]
     flagstoclear: int
     def __init__(self, flagstoclear: _Optional[int] = ...) -> None: ...
+
+class CMsgMoveWorldDecalsEvent(_message.Message):
+    __slots__ = ("mins", "maxs", "offset")
+    MINS_FIELD_NUMBER: _ClassVar[int]
+    MAXS_FIELD_NUMBER: _ClassVar[int]
+    OFFSET_FIELD_NUMBER: _ClassVar[int]
+    mins: _networkbasetypes_pb2.CMsgVector
+    maxs: _networkbasetypes_pb2.CMsgVector
+    offset: _networkbasetypes_pb2.CMsgVector
+    def __init__(self, mins: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., maxs: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ..., offset: _Optional[_Union[_networkbasetypes_pb2.CMsgVector, _Mapping]] = ...) -> None: ...
 
 class CMsgClearEntityDecalsEvent(_message.Message):
     __slots__ = ("flagstoclear",)

@@ -4,7 +4,7 @@
 
 - Module: `dota_gcmessages_common_match_management_pb2`
 - Imports: **4**
-- Messages: **15** (top-level: 11)
+- Messages: **16** (top-level: 11)
 - Enums: **9** (top-level: 7)
 
 ## Imports
@@ -19,7 +19,7 @@
 Expand any message to inspect all fields.
 
 <details>
-<summary><code>CSODOTAPartyMember</code> — fields: 15; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CSODOTAPartyMember</code> — fields: 16; oneofs: 0; nested messages: 1; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -41,11 +41,25 @@ Expand any message to inspect all fields.
 | 15 | `has_hp_resource` | `bool` | `optional` |  |  |
 | 16 | `is_steam_china` | `bool` | `optional` |  |  |
 | 17 | `banned_hero_ids` | `int32` | `repeated` |  | boxed_type = "HeroID_t" |
+| 18 | `event_game_levels` | `.CSODOTAPartyMember.EventGameLevel` | `repeated` |  |  |
 
 </details>
 
 <details>
-<summary><code>CSODOTAParty</code> — fields: 56; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+<summary><code>CSODOTAPartyMember.EventGameLevel</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CSODOTAPartyMember`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
+| 2 | `level` | `uint32` | `optional` |  |  |
+
+</details>
+
+<details>
+<summary><code>CSODOTAParty</code> — fields: 57; oneofs: 0; nested messages: 0; nested enums: 1</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -108,6 +122,7 @@ Expand any message to inspect all fields.
 | 76 | `rank_spread_likert_scale` | `uint32` | `optional` |  |  |
 | 77 | `behavior_score_likert_scale` | `uint32` | `optional` |  |  |
 | 78 | `contains_required_playtester` | `bool` | `optional` |  |  |
+| 79 | `custom_game_difficulty_level` | `uint32` | `optional` |  |  |
 
 </details>
 

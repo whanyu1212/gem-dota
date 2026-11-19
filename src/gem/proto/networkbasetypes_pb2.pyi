@@ -47,6 +47,7 @@ class SpawnGroupFlags_t(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     SPAWN_GROUP_BLOCK_UNTIL_LOADED: _ClassVar[SpawnGroupFlags_t]
     SPAWN_GROUP_LOAD_STREAMING_DATA: _ClassVar[SpawnGroupFlags_t]
     SPAWN_GROUP_CREATE_NEW_SCENE_WORLD: _ClassVar[SpawnGroupFlags_t]
+    SPAWN_GROUP_DONT_SAVE_RESTORE: _ClassVar[SpawnGroupFlags_t]
 SIGNONSTATE_NONE: SignonState_t
 SIGNONSTATE_CHALLENGE: SignonState_t
 SIGNONSTATE_CONNECTED: SignonState_t
@@ -76,6 +77,7 @@ SPAWN_GROUP_CREATE_CLIENT_ONLY_ENTITIES: SpawnGroupFlags_t
 SPAWN_GROUP_BLOCK_UNTIL_LOADED: SpawnGroupFlags_t
 SPAWN_GROUP_LOAD_STREAMING_DATA: SpawnGroupFlags_t
 SPAWN_GROUP_CREATE_NEW_SCENE_WORLD: SpawnGroupFlags_t
+SPAWN_GROUP_DONT_SAVE_RESTORE: SpawnGroupFlags_t
 MAXIMUM_SIZE_BYTES_FIELD_NUMBER: _ClassVar[int]
 maximum_size_bytes: _descriptor.FieldDescriptor
 

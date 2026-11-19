@@ -100,7 +100,7 @@ k_EStartFindingMatchResult_RankPreventsParties: EStartFindingMatchResult
 k_EStartFindingMatchResult_RegisteredNameRequired: EStartFindingMatchResult
 
 class CMsgStartFindingMatch(_message.Message):
-    __slots__ = ("key", "matchgroups", "client_version", "game_modes", "match_type", "matchlanguages", "team_id", "game_language_enum", "game_language_name", "ping_data", "region_select_flags", "solo_queue", "steam_clan_account_id", "is_challenge_match", "lane_selection_flags", "high_priority_disabled", "disable_experimental_gameplay", "custom_game_difficulty_mask", "bot_difficulty_mask", "bot_script_index_mask")
+    __slots__ = ("key", "matchgroups", "client_version", "game_modes", "match_type", "matchlanguages", "team_id", "game_language_enum", "game_language_name", "ping_data", "region_select_flags", "solo_queue", "steam_clan_account_id", "is_challenge_match", "lane_selection_flags", "high_priority_disabled", "disable_experimental_gameplay", "custom_game_difficulty_mask", "bot_difficulty_mask", "bot_script_index_mask", "custom_game_difficulty_level")
     KEY_FIELD_NUMBER: _ClassVar[int]
     MATCHGROUPS_FIELD_NUMBER: _ClassVar[int]
     CLIENT_VERSION_FIELD_NUMBER: _ClassVar[int]
@@ -121,6 +121,7 @@ class CMsgStartFindingMatch(_message.Message):
     CUSTOM_GAME_DIFFICULTY_MASK_FIELD_NUMBER: _ClassVar[int]
     BOT_DIFFICULTY_MASK_FIELD_NUMBER: _ClassVar[int]
     BOT_SCRIPT_INDEX_MASK_FIELD_NUMBER: _ClassVar[int]
+    CUSTOM_GAME_DIFFICULTY_LEVEL_FIELD_NUMBER: _ClassVar[int]
     key: str
     matchgroups: int
     client_version: int
@@ -141,7 +142,8 @@ class CMsgStartFindingMatch(_message.Message):
     custom_game_difficulty_mask: int
     bot_difficulty_mask: int
     bot_script_index_mask: int
-    def __init__(self, key: _Optional[str] = ..., matchgroups: _Optional[int] = ..., client_version: _Optional[int] = ..., game_modes: _Optional[int] = ..., match_type: _Optional[_Union[_dota_shared_enums_pb2.MatchType, str]] = ..., matchlanguages: _Optional[int] = ..., team_id: _Optional[int] = ..., game_language_enum: _Optional[_Union[_dota_shared_enums_pb2.MatchLanguages, str]] = ..., game_language_name: _Optional[str] = ..., ping_data: _Optional[_Union[_base_gcmessages_pb2.CMsgClientPingData, _Mapping]] = ..., region_select_flags: _Optional[int] = ..., solo_queue: bool = ..., steam_clan_account_id: _Optional[int] = ..., is_challenge_match: bool = ..., lane_selection_flags: _Optional[int] = ..., high_priority_disabled: bool = ..., disable_experimental_gameplay: bool = ..., custom_game_difficulty_mask: _Optional[int] = ..., bot_difficulty_mask: _Optional[int] = ..., bot_script_index_mask: _Optional[int] = ...) -> None: ...
+    custom_game_difficulty_level: int
+    def __init__(self, key: _Optional[str] = ..., matchgroups: _Optional[int] = ..., client_version: _Optional[int] = ..., game_modes: _Optional[int] = ..., match_type: _Optional[_Union[_dota_shared_enums_pb2.MatchType, str]] = ..., matchlanguages: _Optional[int] = ..., team_id: _Optional[int] = ..., game_language_enum: _Optional[_Union[_dota_shared_enums_pb2.MatchLanguages, str]] = ..., game_language_name: _Optional[str] = ..., ping_data: _Optional[_Union[_base_gcmessages_pb2.CMsgClientPingData, _Mapping]] = ..., region_select_flags: _Optional[int] = ..., solo_queue: bool = ..., steam_clan_account_id: _Optional[int] = ..., is_challenge_match: bool = ..., lane_selection_flags: _Optional[int] = ..., high_priority_disabled: bool = ..., disable_experimental_gameplay: bool = ..., custom_game_difficulty_mask: _Optional[int] = ..., bot_difficulty_mask: _Optional[int] = ..., bot_script_index_mask: _Optional[int] = ..., custom_game_difficulty_level: _Optional[int] = ...) -> None: ...
 
 class CMsgStartFindingMatchResult(_message.Message):
     __slots__ = ("legacy_generic_eresult", "result", "error_token", "debug_message", "responsible_party_members", "result_metadata")

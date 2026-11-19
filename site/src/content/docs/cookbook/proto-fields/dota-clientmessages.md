@@ -4,7 +4,7 @@
 
 - Module: `dota_clientmessages_pb2`
 - Imports: **4**
-- Messages: **120** (top-level: 118)
+- Messages: **121** (top-level: 119)
 - Enums: **4** (top-level: 1)
 
 ## Imports
@@ -1586,6 +1586,19 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
+<summary><code>CDOTAClientMsg_BrewmasterAssignScepterItem</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `brewling` | `int32` | `optional` |  |  |
+| 2 | `item_entindex` | `int32` | `optional` |  | default = -1 |
+
+</details>
+
+<details>
 <summary><code>CDOTAClientMsg_NetworkStats</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
@@ -1603,7 +1616,7 @@ Expand any message to inspect all fields.
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>EDotaClientMessages</code> — values: 128</summary>
+<summary><code>EDotaClientMessages</code> — values: 129</summary>
 
 - Parent: *(top-level)*
 
@@ -1737,6 +1750,7 @@ Expand any enum to inspect all values.
 | `DOTA_CM_ChooseAghanimUpgrade` | 832 |
 | `DOTA_CM_ChooseAbilityImbue` | 833 |
 | `DOTA_CM_NetworkStats` | 834 |
+| `DOTA_CM_BrewmasterAssignScepterItem` | 835 |
 
 </details>
 

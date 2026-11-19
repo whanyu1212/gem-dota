@@ -241,7 +241,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>dotaunitorder_t</code> — values: 43</summary>
+<summary><code>dotaunitorder_t</code> — values: 44</summary>
 
 - Parent: *(top-level)*
 
@@ -290,6 +290,7 @@ Expand any enum to inspect all values.
 | `DOTA_UNIT_ORDER_CAST_TOGGLE_ALT` | 40 |
 | `DOTA_UNIT_ORDER_CONSUME_ITEM` | 41 |
 | `DOTA_UNIT_ORDER_SET_ITEM_MARK_FOR_SELL` | 42 |
+| `DOTA_UNIT_ORDER_INTERACT_WITH_TARGET` | 43 |
 
 </details>
 

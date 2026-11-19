@@ -21,7 +21,7 @@
 Expand any message to inspect all fields.
 
 <details>
-<summary><code>CMsgStartFindingMatch</code> — fields: 20; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgStartFindingMatch</code> — fields: 21; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -48,6 +48,7 @@ Expand any message to inspect all fields.
 | 21 | `custom_game_difficulty_mask` | `uint32` | `optional` |  |  |
 | 22 | `bot_difficulty_mask` | `uint32` | `optional` |  |  |
 | 23 | `bot_script_index_mask` | `uint32` | `optional` |  |  |
+| 24 | `custom_game_difficulty_level` | `uint32` | `optional` |  |  |
 
 </details>
 

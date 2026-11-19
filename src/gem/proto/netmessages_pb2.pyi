@@ -668,7 +668,7 @@ class CSVCMsg_TempEntities(_message.Message):
     def __init__(self, reliable: bool = ..., num_entries: _Optional[int] = ..., entity_data: _Optional[bytes] = ...) -> None: ...
 
 class CSVCMsg_CreateStringTable(_message.Message):
-    __slots__ = ("name", "num_entries", "user_data_fixed_size", "user_data_size", "user_data_size_bits", "flags", "string_data", "uncompressed_size", "data_compressed", "using_varint_bitcounts")
+    __slots__ = ("name", "num_entries", "user_data_fixed_size", "user_data_size", "user_data_size_bits", "flags", "string_data", "data_compressed", "using_varint_bitcounts")
     NAME_FIELD_NUMBER: _ClassVar[int]
     NUM_ENTRIES_FIELD_NUMBER: _ClassVar[int]
     USER_DATA_FIXED_SIZE_FIELD_NUMBER: _ClassVar[int]
@@ -676,7 +676,6 @@ class CSVCMsg_CreateStringTable(_message.Message):
     USER_DATA_SIZE_BITS_FIELD_NUMBER: _ClassVar[int]
     FLAGS_FIELD_NUMBER: _ClassVar[int]
     STRING_DATA_FIELD_NUMBER: _ClassVar[int]
-    UNCOMPRESSED_SIZE_FIELD_NUMBER: _ClassVar[int]
     DATA_COMPRESSED_FIELD_NUMBER: _ClassVar[int]
     USING_VARINT_BITCOUNTS_FIELD_NUMBER: _ClassVar[int]
     name: str
@@ -686,10 +685,9 @@ class CSVCMsg_CreateStringTable(_message.Message):
     user_data_size_bits: int
     flags: int
     string_data: bytes
-    uncompressed_size: int
     data_compressed: bool
     using_varint_bitcounts: bool
-    def __init__(self, name: _Optional[str] = ..., num_entries: _Optional[int] = ..., user_data_fixed_size: bool = ..., user_data_size: _Optional[int] = ..., user_data_size_bits: _Optional[int] = ..., flags: _Optional[int] = ..., string_data: _Optional[bytes] = ..., uncompressed_size: _Optional[int] = ..., data_compressed: bool = ..., using_varint_bitcounts: bool = ...) -> None: ...
+    def __init__(self, name: _Optional[str] = ..., num_entries: _Optional[int] = ..., user_data_fixed_size: bool = ..., user_data_size: _Optional[int] = ..., user_data_size_bits: _Optional[int] = ..., flags: _Optional[int] = ..., string_data: _Optional[bytes] = ..., data_compressed: bool = ..., using_varint_bitcounts: bool = ...) -> None: ...
 
 class CSVCMsg_UpdateStringTable(_message.Message):
     __slots__ = ("table_id", "num_changed_entries", "string_data")

@@ -17,7 +17,7 @@
 Expand any message to inspect all fields.
 
 <details>
-<summary><code>CDOTAModifierBuffTableEntry</code> — fields: 44; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDOTAModifierBuffTableEntry</code> — fields: 45; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -68,6 +68,7 @@ Expand any message to inspect all fields.
 | 42 | `has_shard` | `bool` | `optional` |  |  |
 | 43 | `custom_int_values` | `int32` | `repeated` |  |  |
 | 44 | `custom_float_values` | `float` | `repeated` |  |  |
+| 45 | `effectiveness` | `float` | `optional` |  |  |
 
 </details>
 

@@ -4,8 +4,8 @@
 
 - Module: `dota_gcmessages_client_pb2`
 - Imports: **12**
-- Messages: **470** (top-level: 374)
-- Enums: **86** (top-level: 11)
+- Messages: **465** (top-level: 369)
+- Enums: **85** (top-level: 10)
 
 ## Imports
 
@@ -991,19 +991,6 @@ Expand any message to inspect all fields.
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
 | 1 | `action_results` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgGCToClientClaimEventActionUsingItemCompleted</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `item_id` | `uint64` | `optional` |  | boxed_type = "itemid_t" |
-| 2 | `action_results` | `.CMsgDOTAClaimEventActionResponse` | `optional` |  |  |
 
 </details>
 
@@ -4639,59 +4626,6 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDevGrantEventAction</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
-| 2 | `action_id` | `uint32` | `optional` |  |  |
-| 3 | `action_score` | `uint32` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgDevGrantEventActionResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `result` | `.EDevEventRequestResult` | `optional` |  | default = k_EDevEventRequestResult_Success |
-
-</details>
-
-<details>
-<summary><code>CMsgDevDeleteEventActions</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `event_id` | `.EEvent` | `optional` |  | default = EVENT_ID_NONE |
-| 2 | `start_action_id` | `uint32` | `optional` |  |  |
-| 3 | `end_action_id` | `uint32` | `optional` |  |  |
-| 4 | `remove_audit` | `bool` | `optional` |  |  |
-
-</details>
-
-<details>
-<summary><code>CMsgDevDeleteEventActionsResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
-
-- Parent: *(top-level)*
-- Oneofs: *(none)*
-
-| Tag | Field | Type | Label | Oneof | Notes |
-|---:|---|---|---|---|---|
-| 1 | `result` | `.EDevEventRequestResult` | `optional` |  | default = k_EDevEventRequestResult_Success |
-
-</details>
-
-<details>
 <summary><code>CMsgConsumeEventSupportGrantItem</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
@@ -6566,23 +6500,6 @@ Expand any enum to inspect all values.
 | `k_EPurchaseHeroRelicResult_InvalidRelic` | 5 |
 | `k_EPurchaseHeroRelicResult_AlreadyOwned` | 6 |
 | `k_EPurchaseHeroRelicResult_InvalidRarity` | 7 |
-
-</details>
-
-<details>
-<summary><code>EDevEventRequestResult</code> — values: 7</summary>
-
-- Parent: *(top-level)*
-
-| Name | Number |
-|---|---:|
-| `k_EDevEventRequestResult_Success` | 0 |
-| `k_EDevEventRequestResult_NotAllowed` | 1 |
-| `k_EDevEventRequestResult_InvalidEvent` | 2 |
-| `k_EDevEventRequestResult_SqlFailure` | 3 |
-| `k_EDevEventRequestResult_Timeout` | 4 |
-| `k_EDevEventRequestResult_LockFailure` | 5 |
-| `k_EDevEventRequestResult_SDOLoadFailure` | 6 |
 
 </details>
 

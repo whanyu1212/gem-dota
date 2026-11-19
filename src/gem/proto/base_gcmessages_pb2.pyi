@@ -327,6 +327,12 @@ class CMsgSortItems(_message.Message):
     sort_type: int
     def __init__(self, sort_type: _Optional[int] = ...) -> None: ...
 
+class CMsgDeleteItem(_message.Message):
+    __slots__ = ("item_id",)
+    ITEM_ID_FIELD_NUMBER: _ClassVar[int]
+    item_id: int
+    def __init__(self, item_id: _Optional[int] = ...) -> None: ...
+
 class CMsgItemAcknowledged(_message.Message):
     __slots__ = ("account_id", "inventory", "def_index", "quality", "rarity", "origin")
     ACCOUNT_ID_FIELD_NUMBER: _ClassVar[int]

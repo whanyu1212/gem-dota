@@ -3559,7 +3559,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>CMsgDOTAClaimEventActionResponse.ResultCode</code> — values: 15</summary>
+<summary><code>CMsgDOTAClaimEventActionResponse.ResultCode</code> — values: 14</summary>
 
 - Parent: `CMsgDOTAClaimEventActionResponse`
 
@@ -3579,7 +3579,6 @@ Expand any enum to inspect all values.
 | `Timeout` | 11 |
 | `RequiresPlusSubscription` | 12 |
 | `InvalidItem` | 13 |
-| `AsyncRewards` | 14 |
 
 </details>
 
