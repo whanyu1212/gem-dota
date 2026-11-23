@@ -16,13 +16,13 @@ gitignored and are synchronized from `tests/fixtures/opendota/manifest.json`.
 ```bash
 uv run python scripts/sync_opendota_fixtures.py --all-active
 uv run python scripts/audit_farming_routes.py \
-  tests/fixtures/opendota/8822520406.dem \
-  tests/fixtures/opendota/8855188139.dem \
-  tests/fixtures/opendota/8855242704.dem \
-  tests/fixtures/opendota/8856501050.dem \
-  tests/fixtures/opendota/8860187335.dem \
-  tests/fixtures/opendota/8868259993.dem \
   tests/fixtures/opendota/8974053011.dem \
+  tests/fixtures/opendota/9097868416.dem \
+  tests/fixtures/opendota/9097870389.dem \
+  tests/fixtures/opendota/9098298585.dem \
+  tests/fixtures/opendota/9101190574.dem \
+  tests/fixtures/opendota/9101299342.dem \
+  tests/fixtures/opendota/9101479361.dem \
   --check tests/fixtures/opendota/farming_routes_corpus.json
 ```
 
@@ -32,31 +32,30 @@ resource evidence.
 
 ## Real-match coverage
 
-The September 2026 audit parsed seven active fixtures: one short performance
-baseline, three feature-regression matches, and short, medium, and long TI2026
-matches. With the version 4 camp catalog (zones centred on the camp spawners, and
-every camp's type and owner checked against the replays) it covers 70 player
-routes, 5,814 camp-local segments, and 206,950 sampled
+The November 2026 audit parsed seven fixtures: six patch 7.42 BLAST SLAM IX matches (the shortest, the longest, three near the
+median, and the Dark Seer game) and one 7.41 replay. With the version 5 camp
+catalog, which uses only the camps a replay's spawners produced, it covers
+70 player routes, 5,145 camp-local segments, and 179,220 sampled
 route points.
 
 | Match | Segments | Phases | Calibration role |
 | --- | ---: | --- | --- |
-| `8822520406` | 352 | early, mid | Short performance baseline |
-| `8855188139` | 658 | early, mid, late | Roshan, purchases, and inventory regression |
-| `8855242704` | 1,266 | early, mid, late | Long final-interval and XP regression |
-| `8856501050` | 1,654 | early, mid, late | 93-minute stress fixture |
-| `8860187335` | 910 | early, mid, late | Medium extended fixture with multiple Aegis windows |
-| `8868259993` | 312 | early, mid | Canonical short integration fixture |
-| `8974053011` | 662 | early, mid, late | Aegis-denial lifecycle regression |
+| `8974053011` | 662 | early, mid, late | Patch 7.41 replay; Aegis-denial lifecycle regression |
+| `9097868416` | 739 | early, mid, late | Feature parity: Roshan, purchases, and objectives |
+| `9097870389` | 334 | early, mid | Canonical short integration fixture |
+| `9098298585` | 648 | early, mid, late | Performance baseline with in-game pauses |
+| `9101190574` | 775 | early, mid, late | Medium extended fixture |
+| `9101299342` | 1,272 | early, mid, late | 73-minute stress fixture |
+| `9101479361` | 715 | early, mid, late | Dark Seer illusions; first 7.42 fixture |
 
 Every player route is included rather than selecting only high-farm heroes.
 That captures the different movement patterns of professional carries, mids,
 offlaners, and supports without pretending the replay's coarse `lane_role`
 number is an authoritative strategic-role label.
 
-All four topology areas were exercised: 3,013 jungle, 1,207 triangle, 767
-river, and 827 flooded-area segments. The phase split was 912 early, 2,413
-mid, and 2,489 late segments. Lane-to-jungle movement and brief crossings are
+All four topology areas were exercised: 2,691 jungle, 1,100 triangle, 664
+river, and 690 flooded-area segments. The phase split was 806 early, 2,785
+mid, and 1,554 late segments. Lane-to-jungle movement and brief crossings are
 therefore present in the factual segment totals rather than hand-picked as
 subjective examples.
 
@@ -64,9 +63,9 @@ subjective examples.
 
 | Evidence strength | Observed segments |
 | --- | ---: |
-| `strong_farm_evidence` | 2,007 |
-| `weak_farm_evidence` | 1,319 |
-| `transit_like` | 2,488 |
+| `strong_farm_evidence` | 1,705 |
+| `weak_farm_evidence` | 1,128 |
+| `transit_like` | 2,312 |
 
 These counts demonstrate that the reconstruction does not promote every camp
 touch to farming. They are sensitivity observations, not precision or recall:

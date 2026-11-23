@@ -193,7 +193,7 @@ def test_killers(deaths, dying, killer) -> None:
 @pytest.mark.slow
 @pytest.mark.integration
 @pytest.mark.parametrize(
-    "match_fixture", ["canonical_parsed_match", "fixed8_encoder_match", "feature_parity_match"]
+    "match_fixture", ["canonical_parsed_match", "medium_parsed_match", "feature_parity_match"]
 )
 def test_stacks_equal_the_games_credits(match_fixture, request) -> None:
     match = request.getfixturevalue(match_fixture)

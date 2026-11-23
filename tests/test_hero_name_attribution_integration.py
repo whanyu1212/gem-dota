@@ -1,7 +1,8 @@
 """Integration test: enemy-hero illusions do not steal combat-log attribution.
 
-Replay 8974053011 has a Dark Seer whose Wall of Replica spawns
-``CDOTA_Unit_Hero_<Target>`` illusions carrying Dark Seer's player ID. Combat-log
+Replays 8974053011 (patch 7.41) and 9101479361 (patch 7.42) each have a Dark Seer
+whose Wall of Replica spawns ``CDOTA_Unit_Hero_<Target>`` illusions carrying Dark
+Seer's player ID. Combat-log
 hero names must still resolve to the real hero's player, as OpenDota's
 ``name_to_slot`` does (pinned odota/parser ``Parse.java``), so the per-player
 combat dicts match OpenDota for every player.
@@ -17,8 +18,8 @@ from pathlib import Path
 
 import pytest
 
-REPLAY = Path(__file__).parent / "fixtures" / "opendota" / "8974053011.dem"
-REFERENCE = REPLAY.with_suffix(".opendota.json")
+FIXTURES_DIR = Path(__file__).parent / "fixtures" / "opendota"
+_DARK_SEER_MATCH_IDS = (8974053011, 9101479361)
 
 # Every per-player combat dict keyed off a combat-log hero name.
 _NAME_KEYED_FIELDS = (
@@ -44,17 +45,19 @@ def _od_player_slot(player_id: int) -> int:
 @pytest.mark.slow
 @pytest.mark.corpus
 class TestEnemyIllusionAttribution:
-    @pytest.fixture(scope="class")
-    def pairs(self):
-        if not REPLAY.exists() or not REFERENCE.exists():
+    @pytest.fixture(scope="class", params=_DARK_SEER_MATCH_IDS)
+    def pairs(self, request):
+        replay = FIXTURES_DIR / f"{request.param}.dem"
+        reference_path = replay.with_suffix(".opendota.json")
+        if not replay.exists() or not reference_path.exists():
             pytest.skip(
-                "Dark Seer illusion fixture is not available; sync match 8974053011 "
+                f"Dark Seer illusion fixture is not available; sync match {request.param} "
                 "with scripts/sync_opendota_fixtures.py"
             )
         import gem
 
-        match = gem.parse(REPLAY)
-        reference = json.loads(REFERENCE.read_text(encoding="utf-8"))
+        match = gem.parse(replay)
+        reference = json.loads(reference_path.read_text(encoding="utf-8"))
         by_slot = {p["player_slot"]: p for p in reference["players"]}
         return [(player, by_slot[_od_player_slot(player.player_id)]) for player in match.players]
 

@@ -61,7 +61,7 @@ def _spawners(replay_path: Path) -> list[tuple[float, float, int]]:
 @pytest.mark.slow
 @pytest.mark.parametrize(
     ("replay_fixture", "patch"),
-    [("ti2026_short_replay_path", "7.41"), ("patch_742_replay_path", "7.42")],
+    [("patch_741_replay_path", "7.41"), ("patch_742_replay_path", "7.42")],
 )
 def test_every_camp_zone_is_centred_on_its_spawner(
     request: pytest.FixtureRequest, replay_fixture: str, patch: str
@@ -145,7 +145,7 @@ def _game_camp_teams(replay_path: Path, centres: dict[int, tuple[float, float]])
 @pytest.mark.slow
 @pytest.mark.parametrize(
     ("replay_fixture", "patch"),
-    [("ti2026_short_replay_path", "7.41"), ("patch_742_replay_path", "7.42")],
+    [("patch_741_replay_path", "7.41"), ("patch_742_replay_path", "7.42")],
 )
 def test_camp_owners_match_the_games_camp_team(
     request: pytest.FixtureRequest, replay_fixture: str, patch: str

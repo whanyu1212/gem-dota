@@ -5,7 +5,7 @@ area, lane roles) per replay, so a change to route reconstruction shows up as a
 corpus difference.
 
 Examples:
-    uv run python scripts/audit_farming_routes.py tests/fixtures/opendota/8868259993.dem
+    uv run python scripts/audit_farming_routes.py tests/fixtures/opendota/9097870389.dem
     uv run python scripts/audit_farming_routes.py tests/fixtures/opendota/*.dem --pretty
     uv run python scripts/audit_farming_routes.py tests/fixtures/opendota/*.dem \
         --check tests/fixtures/opendota/farming_routes_corpus.json

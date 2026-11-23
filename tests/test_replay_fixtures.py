@@ -8,23 +8,25 @@ import pytest
 import gem
 from tests import conftest as replay_fixtures
 
+FEATURE_ID = replay_fixtures.FEATURE_PARITY_MATCH_ID
 
-@pytest.mark.parametrize("match_id", [8868259993, 8855188139])
+
+@pytest.mark.parametrize("match_id", [replay_fixtures.SHORT_MATCH_ID, FEATURE_ID])
 def test_missing_replay_skips_before_parsing(tmp_path, monkeypatch, match_id):
     monkeypatch.setattr(replay_fixtures, "OPENDOTA_FIXTURES_DIR", tmp_path)
     parse = Mock()
     monkeypatch.setattr(gem, "parse", parse)
     with pytest.raises(pytest.skip.Exception, match=str(match_id)):
-        if match_id == 8855188139:
+        if match_id == FEATURE_ID:
             replay_fixtures.feature_parity_match.__wrapped__()
         else:
-            replay_fixtures.ti2026_short_replay_path.__wrapped__()
+            replay_fixtures.short_replay_path.__wrapped__()
     parse.assert_not_called()
 
 
 def test_feature_match_does_not_require_reference_json(tmp_path, monkeypatch):
     monkeypatch.setattr(replay_fixtures, "OPENDOTA_FIXTURES_DIR", tmp_path)
-    replay = tmp_path / "8855188139.dem"
+    replay = tmp_path / f"{FEATURE_ID}.dem"
     replay.touch()
     parse = Mock(return_value=object())
     monkeypatch.setattr(gem, "parse", parse)
@@ -34,10 +36,10 @@ def test_feature_match_does_not_require_reference_json(tmp_path, monkeypatch):
 
 def test_missing_reference_skips_without_parsing(tmp_path, monkeypatch):
     monkeypatch.setattr(replay_fixtures, "OPENDOTA_FIXTURES_DIR", tmp_path)
-    (tmp_path / "8855188139.dem").touch()
+    (tmp_path / f"{FEATURE_ID}.dem").touch()
     parse = Mock()
     monkeypatch.setattr(gem, "parse", parse)
-    with pytest.raises(pytest.skip.Exception, match="8855188139.opendota.json"):
+    with pytest.raises(pytest.skip.Exception, match=f"{FEATURE_ID}.opendota.json"):
         replay_fixtures.feature_parity_reference.__wrapped__()
     parse.assert_not_called()
 
@@ -45,5 +47,5 @@ def test_missing_reference_skips_without_parsing(tmp_path, monkeypatch):
 def test_reference_does_not_require_replay(tmp_path, monkeypatch):
     monkeypatch.setattr(replay_fixtures, "OPENDOTA_FIXTURES_DIR", tmp_path)
     reference = {"players": [{"hero_id": 1}]}
-    (tmp_path / "8855188139.opendota.json").write_text(json.dumps(reference))
+    (tmp_path / f"{FEATURE_ID}.opendota.json").write_text(json.dumps(reference))
     assert replay_fixtures.feature_parity_reference.__wrapped__() == reference

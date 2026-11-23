@@ -20,7 +20,7 @@ _ARRAYS = ("m_vecKnownClearCamps", "m_vecTrackedTeleports", "m_vecItemSlots")
 @pytest.mark.integration
 @pytest.mark.slow
 def test_team_data_arrays_never_keep_elements_past_their_length(
-    ti2026_short_replay_path: Path,
+    short_replay_path: Path,
 ) -> None:
     shrinks = 0
     checked = 0
@@ -52,7 +52,7 @@ def test_team_data_arrays_never_keep_elements_past_their_length(
                 shrinks += 1
             last_length[key] = length
 
-    parser = ReplayParser(str(ti2026_short_replay_path))
+    parser = ReplayParser(str(short_replay_path))
     parser.on_entity(check)
     parser.parse()
 

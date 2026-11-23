@@ -29,6 +29,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The test fixtures are patch 7.42 replays** (HY-574). Seven BLAST SLAM IX games
+  replace the 7.41 set: the tournament's shortest (25 min, canonical) and longest
+  (73 min, stress), three near its 41-minute median, the Dark Seer game, and one
+  with a stolen Aegis. One 7.41 replay (8974053011) stays for the 7.41 camps, its
+  denied Aegis and its Dark Seer illusions. Fixture roles are named by role
+  (`SHORT_MATCH_ID`, `long_parsed_match`, …) rather than by tournament, and the
+  tests that needed a particular event moved to a fixture that has it. The
+  farming-route and Roshan conversion corpora are regenerated; 8974053011's
+  entries, the one replay in both sets, are unchanged. The 12 retired replays
+  stay in the manifest as `deprecated`, each pointing at the fixture that took
+  over its role; their OpenDota JSON is removed.
 - **The docs site's details are tidier** (HY-419). Links and buttons ease into
   their hover colours, the home page's start cards lift and its recipe columns
   mark their top on hover, the previous/next links carry arrows, and callouts

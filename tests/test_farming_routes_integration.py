@@ -17,20 +17,20 @@ def test_canonical_replay_farming_routes_are_stable_and_evidence_mixed(
     segments = [segment for route in routes for segment in route.segments]
 
     assert len(routes) == 10
-    assert sum(len(route.points) for route in routes) == 11_430
-    assert len(segments) == 312
+    assert sum(len(route.points) for route in routes) == 15_170
+    assert len(segments) == 334
     assert all(route.status == "complete" for route in routes)
     assert all(route.camp_catalog_version == 5 for route in routes)
-    assert all(route.camp_map_patch == "7.41" for route in routes)
-    assert all(route.camp_topology_patch == "7.41" for route in routes)
-    assert all(segment.camp_topology_patch == "7.41" for segment in segments)
+    assert all(route.camp_map_patch == "7.42" for route in routes)
+    assert all(route.camp_topology_patch == "7.42" for route in routes)
+    assert all(segment.camp_topology_patch == "7.42" for segment in segments)
     assert {
         strength: sum(segment.evidence_strength is strength for segment in segments)
         for strength in FarmingEvidenceStrength
     } == {
-        FarmingEvidenceStrength.TRANSIT_LIKE: 141,
-        FarmingEvidenceStrength.WEAK: 112,
-        FarmingEvidenceStrength.STRONG: 59,
+        FarmingEvidenceStrength.TRANSIT_LIKE: 156,
+        FarmingEvidenceStrength.WEAK: 90,
+        FarmingEvidenceStrength.STRONG: 88,
     }
     assert any(segment.neutral_kills > 0 for segment in segments)
     assert any(segment.micro_exit_merged for segment in segments)

@@ -22,18 +22,23 @@ OpenDota JSON snapshot for gem's protocol and entity evidence.
 
 ## Real-match coverage
 
-The September 2026 audit parsed eight existing local fixtures plus the dedicated
-Aegis-denial fixture, spanning 31 Roshan conversions and one short match with no
-Roshan. The committed check selects representative facts from six matches:
+The November 2026 audit parsed the eight local fixtures (seven on patch 7.42 and
+one on 7.41), spanning 16 Roshan conversions. The committed check records facts
+from all eight:
 
 | Match | Factual role |
 | --- | --- |
-| `8868259993` | Short game with no Roshan |
-| `8860187335` | Three bounded windows and one in-game pause; natural expiry, inferred consumption, and a stolen pickup still held when the Ancient fell |
-| `8855188139` | Multiple inferred consumptions and a late window that closes the game |
-| `8856501050` | Seven Roshans across three pauses, including an expired window with no associated fight and a final window cut short by the game ending |
-| `8822593932` | A fight already underway at acquisition and a final window without economy series |
-| `8974053011` | Observed Aegis denial followed by a later normal pickup and inferred consumption |
+| `9097870389` | Short game with one Roshan; the Aegis is still held when the Ancient falls, so the window closes the game |
+| `9101190574` | Two bounded windows, both ending in inferred consumption |
+| `9101299342` | Four Roshans in a 73-minute game: inferred consumptions and a natural expiry |
+| `9098298585` | An inferred consumption, then an Aegis still held at the game's end |
+| `9097868416` | One Roshan with an inferred consumption |
+| `9101479361` | A natural expiry followed by an inferred consumption |
+| `9098373280` | A normal pickup, then a stolen one during a fight already underway at acquisition |
+| `8974053011` | Observed Aegis denial followed by a later normal pickup and inferred consumption (patch 7.41) |
+
+No local fixture has a short match without a Roshan, or a window without economy
+series; the corpus metadata lists both as not observed.
 
 The local replay set did not contain every rare failure mode. Missing pickup,
 unresolved killers, unknown structure/Tormentor attribution, allied structure

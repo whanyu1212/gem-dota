@@ -251,7 +251,7 @@ fixture so replay-only assertions do not require reference data.
   are grouped under `tests/binary/`
 - Use synthetic binary fixtures (construct minimal valid byte sequences) rather than real replay files for unit tests
 - Keep committed replay fixtures truncated. Full replay fixtures stay ignored/local
-  under `tests/fixtures/opendota/`; synchronize the canonical TI2026 replay with
+  under `tests/fixtures/opendota/`; synchronize the canonical replay with
   `uv run python scripts/sync_opendota_fixtures.py`. Use `--tier extended`,
   `--tier stress`, or `--match <id>` for broader and feature-specific coverage.
 - Treat `tests/fixtures/opendota/manifest.json` as the source of truth for replay

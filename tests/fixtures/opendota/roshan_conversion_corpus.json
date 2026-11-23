@@ -3,8 +3,7 @@
   "purpose": "Factual real-replay Roshan attribution, lifecycle, boundary, fight-association, and evidence-availability checks.",
   "coverage": {
     "real_replay": [
-      "no Roshan in a short match",
-      "first through seventh Roshan",
+      "first through fourth Roshan",
       "normal pickup",
       "stolen pickup",
       "denied Aegis",
@@ -14,7 +13,7 @@
       "consecutive bounded Roshan windows",
       "fight already underway at acquisition",
       "game-closing window",
-      "complete and partial economy evidence"
+      "complete economy evidence"
     ],
     "targeted_synthetic_tests": [
       "missing pickup event",
@@ -26,144 +25,290 @@
     ],
     "not_observed_in_local_real_replays": [
       "authoritative Aegis transfer or drop signal",
-      "real structure deny with protocol team retained"
+      "real structure deny with protocol team retained",
+      "no Roshan in a short match",
+      "partial economy evidence"
     ]
   },
   "matches": [
     {
-      "match_id": 8868259993,
-      "replay": "8868259993.dem",
+      "match_id": 9097870389,
+      "replay": "9097870389.dem",
       "expected": {
-        "match_id": 8868259993,
-        "roshan_count": 0,
-        "conversions": []
-      }
-    },
-    {
-      "match_id": 8860187335,
-      "replay": "8860187335.dem",
-      "expected": {
-        "match_id": 8860187335,
-        "game_end_tick": 138878,
-        "roshan_count": 3
+        "match_id": 9097870389,
+        "game_end_tick": 99990,
+        "roshan_count": 1
       },
       "conversion_expectations": [
         {
           "rosh_number": 1,
-          "rosh_tick": 66327,
-          "roshan_team": 2,
-          "roshan_team_source": "protocol",
-          "conversion_team": 2,
-          "conversion_team_source": "player_id",
+          "rosh_tick": 68166,
           "aegis_event_type": "pickup",
-          "aegis_fate": "expired",
-          "aegis_fate_source": "nominal_expiry",
-          "analysis_status": "complete",
-          "next_roshan_boundary_tick": 89584
-        },
-        {
-          "rosh_number": 2,
-          "rosh_tick": 89585,
-          "roshan_team": 3,
-          "conversion_team": 3,
-          "aegis_event_type": "pickup",
-          "aegis_fate": "consumed",
-          "aegis_fate_source": "holder_death_inference",
-          "aegis_fate_inferred": true,
-          "analysis_status": "complete",
-          "next_roshan_boundary_tick": 106968
-        },
-        {
-          "rosh_number": 3,
-          "rosh_tick": 106969,
-          "roshan_team": 2,
-          "conversion_team": 3,
-          "aegis_event_type": "stolen",
           "aegis_fate": "game_end",
           "aegis_fate_source": "game_end_boundary",
+          "aegis_fate_inferred": false,
+          "next_roshan_boundary_tick": 72242,
           "analysis_status": "complete",
-          "next_roshan_boundary_tick": 111131,
-          "analysis_status_reasons": []
-        }
-      ]
-    },
-    {
-      "match_id": 8855188139,
-      "replay": "8855188139.dem",
-      "expected": {
-        "match_id": 8855188139,
-        "game_end_tick": 134567,
-        "roshan_count": 3
-      },
-      "conversion_expectations": [
-        {
-          "rosh_number": 3,
-          "rosh_tick": 103651,
-          "aegis_fate": "consumed",
-          "aegis_fate_source": "holder_death_inference",
-          "analysis_status": "complete",
-          "analysis_status_reasons": []
-        }
-      ]
-    },
-    {
-      "match_id": 8856501050,
-      "replay": "8856501050.dem",
-      "expected": {
-        "match_id": 8856501050,
-        "game_end_tick": 224720,
-        "roshan_count": 7
-      },
-      "conversion_expectations": [
-        {
-          "rosh_number": 2,
-          "rosh_tick": 89290,
-          "aegis_fate": "expired",
-          "fight_indexes": [],
-          "analysis_status": "complete"
-        },
-        {
-          "rosh_number": 6,
-          "rosh_tick": 169468,
-          "aegis_fate": "consumed",
-          "aegis_fate_source": "holder_death_inference",
-          "analysis_status": "complete"
-        },
-        {
-          "rosh_number": 7,
-          "rosh_tick": 194557,
-          "aegis_fate": "game_end",
-          "analysis_status": "partial",
-          "analysis_status_reasons": [
-            "net_worth_series_unavailable",
-            "xp_series_unavailable"
+          "fight_relations": [
+            "in_window",
+            "in_window",
+            "in_window",
+            "in_window",
+            "in_window"
           ]
         }
       ]
     },
     {
-      "match_id": 8822593932,
-      "replay": "8822593932.dem",
+      "match_id": 9101190574,
+      "replay": "9101190574.dem",
       "expected": {
-        "match_id": 8822593932,
-        "game_end_tick": 137237,
-        "roshan_count": 3
+        "match_id": 9101190574,
+        "game_end_tick": 133860,
+        "roshan_count": 2
       },
       "conversion_expectations": [
         {
-          "rosh_number": 3,
-          "rosh_tick": 109480,
-          "aegis_fate": "game_end",
-          "fight_indexes": [
-            33
-          ],
+          "rosh_number": 1,
+          "rosh_tick": 80468,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "consumed",
+          "aegis_fate_source": "holder_death_inference",
+          "aegis_fate_inferred": true,
+          "next_roshan_boundary_tick": 98255,
+          "analysis_status": "complete",
           "fight_relations": [
-            "preexisting"
-          ],
-          "analysis_status": "partial",
-          "analysis_status_reasons": [
-            "net_worth_series_unavailable",
-            "xp_series_unavailable"
+            "in_window",
+            "in_window",
+            "in_window",
+            "in_window"
+          ]
+        },
+        {
+          "rosh_number": 2,
+          "rosh_tick": 98256,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "consumed",
+          "aegis_fate_source": "holder_death_inference",
+          "aegis_fate_inferred": true,
+          "next_roshan_boundary_tick": 106112,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window",
+            "in_window"
+          ]
+        }
+      ]
+    },
+    {
+      "match_id": 9101299342,
+      "replay": "9101299342.dem",
+      "expected": {
+        "match_id": 9101299342,
+        "game_end_tick": 186360,
+        "roshan_count": 4
+      },
+      "conversion_expectations": [
+        {
+          "rosh_number": 1,
+          "rosh_tick": 88432,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "consumed",
+          "aegis_fate_source": "holder_death_inference",
+          "aegis_fate_inferred": true,
+          "next_roshan_boundary_tick": 108759,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window"
+          ]
+        },
+        {
+          "rosh_number": 2,
+          "rosh_tick": 108760,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "consumed",
+          "aegis_fate_source": "holder_death_inference",
+          "aegis_fate_inferred": true,
+          "next_roshan_boundary_tick": 129001,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window",
+            "in_window",
+            "in_window"
+          ]
+        },
+        {
+          "rosh_number": 3,
+          "rosh_tick": 129002,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "expired",
+          "aegis_fate_source": "nominal_expiry",
+          "aegis_fate_inferred": false,
+          "next_roshan_boundary_tick": 147249,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window"
+          ]
+        },
+        {
+          "rosh_number": 4,
+          "rosh_tick": 147250,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "consumed",
+          "aegis_fate_source": "holder_death_inference",
+          "aegis_fate_inferred": true,
+          "next_roshan_boundary_tick": 158612,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window"
+          ]
+        }
+      ]
+    },
+    {
+      "match_id": 9098298585,
+      "replay": "9098298585.dem",
+      "expected": {
+        "match_id": 9098298585,
+        "game_end_tick": 129336,
+        "roshan_count": 2
+      },
+      "conversion_expectations": [
+        {
+          "rosh_number": 1,
+          "rosh_tick": 74226,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "consumed",
+          "aegis_fate_source": "holder_death_inference",
+          "aegis_fate_inferred": true,
+          "next_roshan_boundary_tick": 96437,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window",
+            "in_window",
+            "in_window",
+            "in_window"
+          ]
+        },
+        {
+          "rosh_number": 2,
+          "rosh_tick": 96438,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "game_end",
+          "aegis_fate_source": "game_end_boundary",
+          "aegis_fate_inferred": false,
+          "next_roshan_boundary_tick": 101588,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window",
+            "in_window"
+          ]
+        }
+      ]
+    },
+    {
+      "match_id": 9097868416,
+      "replay": "9097868416.dem",
+      "expected": {
+        "match_id": 9097868416,
+        "game_end_tick": 129638,
+        "roshan_count": 1
+      },
+      "conversion_expectations": [
+        {
+          "rosh_number": 1,
+          "rosh_tick": 73660,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "consumed",
+          "aegis_fate_source": "holder_death_inference",
+          "aegis_fate_inferred": true,
+          "next_roshan_boundary_tick": 101890,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window",
+            "in_window"
+          ]
+        }
+      ]
+    },
+    {
+      "match_id": 9101479361,
+      "replay": "9101479361.dem",
+      "expected": {
+        "match_id": 9101479361,
+        "game_end_tick": 127370,
+        "roshan_count": 2
+      },
+      "conversion_expectations": [
+        {
+          "rosh_number": 1,
+          "rosh_tick": 74354,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "expired",
+          "aegis_fate_source": "nominal_expiry",
+          "aegis_fate_inferred": false,
+          "next_roshan_boundary_tick": 96169,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window",
+            "in_window",
+            "in_window",
+            "in_window"
+          ]
+        },
+        {
+          "rosh_number": 2,
+          "rosh_tick": 96170,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "consumed",
+          "aegis_fate_source": "holder_death_inference",
+          "aegis_fate_inferred": true,
+          "next_roshan_boundary_tick": 99622,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window"
+          ]
+        }
+      ]
+    },
+    {
+      "match_id": 9098373280,
+      "replay": "9098373280.dem",
+      "expected": {
+        "match_id": 9098373280,
+        "game_end_tick": 119204,
+        "roshan_count": 2
+      },
+      "conversion_expectations": [
+        {
+          "rosh_number": 1,
+          "rosh_tick": 66172,
+          "aegis_event_type": "pickup",
+          "aegis_fate": "consumed",
+          "aegis_fate_source": "holder_death_inference",
+          "aegis_fate_inferred": true,
+          "next_roshan_boundary_tick": 87125,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "in_window",
+            "in_window",
+            "in_window"
+          ]
+        },
+        {
+          "rosh_number": 2,
+          "rosh_tick": 87126,
+          "aegis_event_type": "stolen",
+          "aegis_fate": "consumed",
+          "aegis_fate_source": "holder_death_inference",
+          "aegis_fate_inferred": true,
+          "next_roshan_boundary_tick": 91456,
+          "analysis_status": "complete",
+          "fight_relations": [
+            "preexisting",
+            "in_window",
+            "in_window",
+            "in_window"
           ]
         }
       ]

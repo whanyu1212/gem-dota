@@ -2,352 +2,121 @@
   "schema_version": 2,
   "matches": [
     {
-      "match_id": 8822520406,
-      "name": "dreamleague-s29-performance-baseline",
-      "dem": "8822520406.dem",
-      "opendota_json": "8822520406.opendota.json",
+      "match_id": 9097870389,
+      "name": "blast-slam-ix-shortest-canonical",
+      "dem": "9097870389.dem",
+      "opendota_json": "9097870389.opendota.json",
+      "status": "active",
+      "tier": "canonical",
+      "capabilities": [
+        "opendota-parity",
+        "short-match",
+        "canonical-integration"
+      ],
+      "replaced_by": null,
+      "fetched_at": "2026-11-23T08:28:17Z",
+      "duration": 1516,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 61,
+      "replay_url": "http://replay443.valve.net/570/9097870389_1645172158.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 96251075,
+      "dem_sha256": "3f545fdf30d9a5722ee014c30a045cf14693b71c1fcfae9b8e9238f7586826ce",
+      "note": "BLAST SLAM IX, the tournament's shortest game (PlayTime vs Team Yandex, 25 min); canonical patch 7.42 fixture"
+    },
+    {
+      "match_id": 9101190574,
+      "name": "blast-slam-ix-median-extended",
+      "dem": "9101190574.dem",
+      "opendota_json": "9101190574.opendota.json",
+      "status": "active",
+      "tier": "extended",
+      "capabilities": [
+        "opendota-parity",
+        "medium-match"
+      ],
+      "replaced_by": null,
+      "fetched_at": "2026-11-23T08:28:23Z",
+      "duration": 2496,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 61,
+      "replay_url": "http://replay274.valve.net/570/9101190574_246960245.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 153272241,
+      "dem_sha256": "40eafe22cea2ecf50f7076896cf750ca438863d287414a6cb1beec87e3957922",
+      "note": "BLAST SLAM IX, a median-length game (Team Liquid vs PARIVISION, 42 min)"
+    },
+    {
+      "match_id": 9101299342,
+      "name": "blast-slam-ix-longest-stress",
+      "dem": "9101299342.dem",
+      "opendota_json": "9101299342.opendota.json",
+      "status": "active",
+      "tier": "stress",
+      "capabilities": [
+        "opendota-parity",
+        "long-match"
+      ],
+      "replaced_by": null,
+      "fetched_at": "2026-11-23T08:28:20Z",
+      "duration": 4411,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 61,
+      "replay_url": "http://replay444.valve.net/570/9101299342_130598943.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 267419395,
+      "dem_sha256": "7baa1d999e9a82f02b2069c62457575e94a0aca73de9b215c5fd8ca309b8ed22",
+      "note": "BLAST SLAM IX, the tournament's longest game (DO KONCA vs LEGION, 74 min)"
+    },
+    {
+      "match_id": 9098298585,
+      "name": "blast-slam-ix-median-performance-baseline",
+      "dem": "9098298585.dem",
+      "opendota_json": "9098298585.opendota.json",
       "status": "active",
       "tier": "performance-baseline",
       "capabilities": [
         "opendota-parity",
-        "performance-baseline",
-        "short-match"
-      ],
-      "replaced_by": null,
-      "fetched_at": "2026-05-24T01:33:43Z",
-      "duration": 1397,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay273.valve.net/570/8822520406_214683618.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 98983300,
-      "dem_sha256": "5f976ab73b2efb0e4eca9f7f14d5980f3aae5f63e7952e16a8497eeded57d39d",
-      "note": "DreamLeague Season 29 patch 60 short playoff fixture; retained through issues #144-#148 for comparison with performance baseline #143",
-      "opendota_json_predates": [
-        "efe5794b",
-        "7d32aef0"
-      ]
-    },
-    {
-      "match_id": 8822593932,
-      "name": "dreamleague-s29-medium",
-      "dem": "8822593932.dem",
-      "opendota_json": "8822593932.opendota.json",
-      "status": "deprecated",
-      "tier": "archive",
-      "capabilities": [
         "medium-match",
-        "opendota-parity"
-      ],
-      "replaced_by": 8860187335,
-      "fetched_at": "2026-05-24T01:33:58Z",
-      "duration": 2612,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay274.valve.net/570/8822593932_1755614783.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 146656180,
-      "dem_sha256": "0860d4bd6c50d82dbaf863cae244c8aaf9af78a1b53d0a5915988593db3177fa",
-      "note": "DreamLeague Season 29 patch 60 recent playoff fixture; superseded as the default medium validation role by TI2026 match 8860187335",
-      "opendota_json_predates": [
-        "efe5794b",
-        "7d32aef0"
-      ]
-    },
-    {
-      "match_id": 8855188139,
-      "name": "regression-roshan-purchases-inventory",
-      "dem": "8855188139.dem",
-      "opendota_json": "8855188139.opendota.json",
-      "status": "active",
-      "tier": "regression",
-      "capabilities": [
-        "banner-plants",
-        "derived-kills",
-        "final-inventory",
-        "purchases",
-        "roshan-drops"
+        "performance-baseline"
       ],
       "replaced_by": null,
-      "fetched_at": "2026-06-17T13:13:24Z",
-      "duration": 2419,
+      "fetched_at": "2026-11-23T08:28:22Z",
+      "duration": 2494,
       "game_mode": 2,
       "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay225.valve.net/570/8855188139_1436544844.dem.bz2",
+      "patch": 61,
+      "replay_url": "http://replay272.valve.net/570/9098298585_1440872594.dem.bz2",
       "artifact_url": null,
-      "dem_size_bytes": 184151707,
-      "dem_sha256": "3fa4e1e9b2e4168f421c975f8f591ad34e9de2ff01c92977ed20c19ab7866044",
-      "note": "Feature-specific regression fixture for Roshan drops, banner plants, purchases, final inventory, and derived kills",
-      "opendota_json_predates": [
-        "efe5794b",
-        "7d32aef0"
-      ]
+      "dem_size_bytes": 159291401,
+      "dem_sha256": "340745bac90be48b27d2d6657180870270065ac9f52501799716065ba9661cd2",
+      "note": "BLAST SLAM IX, a median-length game (LEGION vs PARIVISION, 42 min); performance baseline"
     },
     {
-      "match_id": 8855242704,
-      "name": "regression-final-interval-xp",
-      "dem": "8855242704.dem",
-      "opendota_json": "8855242704.opendota.json",
-      "status": "active",
-      "tier": "regression",
-      "capabilities": [
-        "final-interval-boundary",
-        "long-match",
-        "xp-advantage"
-      ],
-      "replaced_by": null,
-      "fetched_at": "2026-06-17T13:03:31Z",
-      "duration": 4176,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay225.valve.net/570/8855242704_307043427.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 300386331,
-      "dem_sha256": "8775c564a7062672443921ddc91f9b16235e16ec85368e6b3943b72fa32398cd",
-      "note": "Feature-specific regression fixture for the final interval XP source and boundary behavior",
-      "opendota_json_predates": [
-        "efe5794b",
-        "7d32aef0"
-      ]
-    },
-    {
-      "match_id": 8856501050,
-      "name": "ti2026-long-stress",
-      "dem": "8856501050.dem",
-      "opendota_json": "8856501050.opendota.json",
-      "status": "active",
-      "tier": "stress",
-      "capabilities": [
-        "long-match",
-        "opendota-parity",
-        "ti2026"
-      ],
-      "replaced_by": null,
-      "fetched_at": "2026-09-02T01:19:25Z",
-      "duration": 5576,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay225.valve.net/570/8856501050_1230793646.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 385487555,
-      "dem_sha256": "0f7577525b995347ed9df0c793cc8661c2a9db4ee176bf35cb5dd940e5af17e2",
-      "note": "TI2026 China regional qualifier: long 93-minute fixture for stress, memory, and OpenDota parity validation",
-      "opendota_json_predates": [
-        "efe5794b",
-        "7d32aef0"
-      ]
-    },
-    {
-      "match_id": 8860187335,
-      "name": "ti2026-medium-extended",
-      "dem": "8860187335.dem",
-      "opendota_json": "8860187335.opendota.json",
-      "status": "active",
-      "tier": "extended",
-      "capabilities": [
-        "medium-match",
-        "opendota-parity",
-        "ti2026"
-      ],
-      "replaced_by": null,
-      "fetched_at": "2026-09-02T01:16:46Z",
-      "duration": 3005,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay152.valve.net/570/8860187335_670734759.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 212649245,
-      "dem_sha256": "b42f5d07d62d5c09a55c429dd7cb0f57c03c2f0c90e16e4397eb8c26d717cee4",
-      "note": "TI2026 Southeast Asia regional qualifier: medium 50-minute fixture for extended OpenDota parity validation",
-      "opendota_json_predates": [
-        "efe5794b",
-        "7d32aef0"
-      ]
-    },
-    {
-      "match_id": 8868259993,
-      "name": "ti2026-short-canonical",
-      "dem": "8868259993.dem",
-      "opendota_json": "8868259993.opendota.json",
-      "status": "active",
-      "tier": "canonical",
-      "capabilities": [
-        "canonical-integration",
-        "opendota-parity",
-        "short-match",
-        "ti2026"
-      ],
-      "replaced_by": null,
-      "fetched_at": "2026-09-02T01:16:29Z",
-      "duration": 1142,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay121.valve.net/570/8868259993_728230634.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 89720955,
-      "dem_sha256": "a0560e349ccd30d7f58a97747d33e3d2a6033c11d54a848fe3918a044650a622",
-      "note": "TI2026 North America regional qualifier: short 19-minute canonical integration and OpenDota parity fixture",
-      "opendota_json_predates": [
-        "efe5794b",
-        "7d32aef0"
-      ]
-    },
-    {
-      "match_id": 8974053011,
-      "name": "roshan-aegis-denial-calibration",
-      "dem": "8974053011.dem",
-      "opendota_json": "8974053011.opendota.json",
-      "status": "active",
-      "tier": "regression",
-      "capabilities": [
-        "aegis-denial",
-        "enemy-hero-illusions",
-        "roshan-conversion-calibration"
-      ],
-      "replaced_by": null,
-      "fetched_at": "2026-09-23T07:06:41Z",
-      "duration": 2279,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay272.valve.net/570/8974053011_1931905916.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 128411224,
-      "dem_sha256": "8e17a913425908be62aa85d0fd501a3527c54f8a76d896120f3943249886b1da",
-      "note": "Roshan conversion calibration fixture with a denied Aegis followed by a later normal pickup",
-      "opendota_json_predates": [
-        "7d32aef0"
-      ]
-    },
-    {
-      "match_id": 9018736585,
-      "name": "pgl-wallachia-s9-short",
-      "dem": "9018736585.dem",
-      "opendota_json": "9018736585.opendota.json",
+      "match_id": 9097868416,
+      "name": "blast-slam-ix-median-feature-parity",
+      "dem": "9097868416.dem",
+      "opendota_json": "9097868416.opendota.json",
       "status": "active",
       "tier": "regression",
       "capabilities": [
         "opendota-parity",
-        "short-match"
+        "medium-match"
       ],
       "replaced_by": null,
-      "fetched_at": "2026-10-26T12:52:03Z",
-      "duration": 1510,
+      "fetched_at": "2026-11-23T08:28:25Z",
+      "duration": 2496,
       "game_mode": 2,
       "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay191.valve.net/570/9018736585_1634939129.dem.bz2",
+      "patch": 61,
+      "replay_url": "http://replay271.valve.net/570/9097868416_1085916060.dem.bz2",
       "artifact_url": null,
-      "dem_size_bytes": 99656328,
-      "dem_sha256": "47983661bbf5b78917a3a8a93ca2133e286b0a07d97567b0cb53cd6303dc4561",
-      "note": "PGL Wallachia 2026 Season 9 final, game 1 (Natus Vincere vs Team Yandex), 25 min; OpenDota parsed it after odota/parser efe5794b"
-    },
-    {
-      "match_id": 9038120227,
-      "name": "blast-slam-viii-long",
-      "dem": "9038120227.dem",
-      "opendota_json": "9038120227.opendota.json",
-      "status": "active",
-      "tier": "regression",
-      "capabilities": [
-        "long-match",
-        "opendota-parity"
-      ],
-      "replaced_by": null,
-      "fetched_at": "2026-10-26T12:53:10Z",
-      "duration": 3916,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay271.valve.net/570/9038120227_1341401166.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 216231019,
-      "dem_sha256": "93542be5101bdc220e2fbb434db5887e088c979639cbdc9490fc3c2c47afcb7c",
-      "note": "BLAST SLAM VIII playoffs (PARIVISION vs Aurora Gaming), 65 min; OpenDota parsed it after odota/parser efe5794b"
-    },
-    {
-      "match_id": 9039619076,
-      "name": "blast-slam-viii-fixed8-encoder",
-      "dem": "9039619076.dem",
-      "opendota_json": "9039619076.opendota.json",
-      "status": "active",
-      "tier": "regression",
-      "capabilities": [
-        "fixed8-encoder",
-        "medium-match",
-        "opendota-parity"
-      ],
-      "replaced_by": null,
-      "fetched_at": "2026-10-13T06:15:23Z",
-      "duration": 2293,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay272.valve.net/570/9039619076_1900156309.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 138583332,
-      "dem_sha256": "c338ebbee2721264d6b246f89a8098c4c21e636b1fc3bb2d5406a9c01b4bb86b",
-      "note": "BLAST SLAM VIII (PARIVISION vs Team Spirit), game build 6956: the first fixture whose send tables declare the fixed8 var encoder (build 6951+); regression for GitHub #301 / HY-177",
-      "opendota_json_predates": [
-        "7d32aef0"
-      ]
-    },
-    {
-      "match_id": 9040268873,
-      "name": "blast-slam-viii-aegis-reincarnation",
-      "dem": "9040268873.dem",
-      "opendota_json": "9040268873.opendota.json",
-      "status": "active",
-      "tier": "regression",
-      "capabilities": [
-        "aegis-reincarnation",
-        "medium-match",
-        "opendota-parity"
-      ],
-      "replaced_by": null,
-      "fetched_at": "2026-10-14T00:47:51Z",
-      "duration": 3169,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay272.valve.net/570/9040268873_1117230017.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 182086072,
-      "dem_sha256": "301965d2711bb38ffe4424eb68b924bd78c66cf9c65ce9f2f3c0a42797dd80ca",
-      "note": "BLAST SLAM VIII (Team Spirit vs Team Yandex), game build 6956: Kez reincarnates on two Aegises (2388 s, 3087 s), and OpenDota's August 2026 reincarnation rule (odota/parser efe5794b) counts neither death; regression for HY-178",
-      "opendota_json_predates": [
-        "7d32aef0"
-      ]
-    },
-    {
-      "match_id": 9040578015,
-      "name": "blast-slam-viii-grand-final-decider",
-      "dem": "9040578015.dem",
-      "opendota_json": "9040578015.opendota.json",
-      "status": "active",
-      "tier": "regression",
-      "capabilities": [
-        "medium-match",
-        "opendota-parity"
-      ],
-      "replaced_by": null,
-      "fetched_at": "2026-10-26T12:52:16Z",
-      "duration": 3400,
-      "game_mode": 2,
-      "lobby_type": 1,
-      "patch": 60,
-      "replay_url": "http://replay271.valve.net/570/9040578015_350559250.dem.bz2",
-      "artifact_url": null,
-      "dem_size_bytes": 184606189,
-      "dem_sha256": "8c84fe54c3b67fe8d8bbe3b9e7f45ab16d0b49a13de04ed18978e6be0d402181",
-      "note": "BLAST SLAM VIII grand final, game 4 (Team Yandex vs Team Spirit), 57 min, the game that decided the series; OpenDota parsed it after odota/parser efe5794b"
+      "dem_size_bytes": 159191659,
+      "dem_sha256": "369071878022c51b2f9fdb6a2d69e0406577c81b163e610fd411953cb149fd5e",
+      "note": "BLAST SLAM IX, a median-length game (Team Nemesis vs Team Spirit, 42 min); feature parity fixture"
     },
     {
       "match_id": 9101479361,
@@ -371,6 +140,375 @@
       "dem_size_bytes": 139859371,
       "dem_sha256": "6a6f094f332a10f73d8afe9178abd8f73a88062883513752d9c9c0ba695d48b3",
       "note": "BLAST SLAM IX (Team Liquid vs PARIVISION, 22 November 2026), 38 min; the first patch 7.42 fixture: ogre seals counted as ancients, sourceless damage, passive gold paid at 0:00"
+    },
+    {
+      "match_id": 8974053011,
+      "name": "patch-741-legacy-regression",
+      "dem": "8974053011.dem",
+      "opendota_json": "8974053011.opendota.json",
+      "status": "active",
+      "tier": "regression",
+      "capabilities": [
+        "patch-7.41",
+        "aegis-denial",
+        "enemy-hero-illusions",
+        "roshan-conversion-calibration"
+      ],
+      "replaced_by": null,
+      "fetched_at": "2026-09-23T07:06:41Z",
+      "duration": 2279,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay272.valve.net/570/8974053011_1931905916.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 128411224,
+      "dem_sha256": "8e17a913425908be62aa85d0fd501a3527c54f8a76d896120f3943249886b1da",
+      "note": "The one patch 7.41 replay, kept for backward compatibility: 7.41 camps, a denied Aegis followed by a later normal pickup, and Dark Seer Wall of Replica illusions of enemy heroes",
+      "opendota_json_predates": [
+        "7d32aef0"
+      ]
+    },
+    {
+      "match_id": 9098373280,
+      "name": "blast-slam-ix-stolen-aegis",
+      "dem": "9098373280.dem",
+      "opendota_json": "9098373280.opendota.json",
+      "status": "active",
+      "tier": "regression",
+      "capabilities": [
+        "aegis-stolen",
+        "roshan-conversion-calibration"
+      ],
+      "replaced_by": null,
+      "fetched_at": "2026-11-23T13:20:00Z",
+      "duration": 2161,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 61,
+      "replay_url": "http://replay444.valve.net/570/9098373280_94273170.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 137301794,
+      "dem_sha256": "d2501644ed22546fe1db8bc428d579bbe3aeded959dde8eb973825e6ff72e48b",
+      "note": "BLAST SLAM IX, DO KONCA vs Team Liquid (36 min); a stolen Aegis at 33:38 for the Roshan conversion corpus"
+    },
+    {
+      "match_id": 8822520406,
+      "name": "dreamleague-s29-performance-baseline",
+      "dem": "8822520406.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "opendota-parity",
+        "performance-baseline",
+        "short-match"
+      ],
+      "replaced_by": 9098298585,
+      "fetched_at": "2026-05-24T01:33:43Z",
+      "duration": 1397,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay273.valve.net/570/8822520406_214683618.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 98983300,
+      "dem_sha256": "5f976ab73b2efb0e4eca9f7f14d5980f3aae5f63e7952e16a8497eeded57d39d",
+      "note": "DreamLeague Season 29 patch 60 short playoff fixture; retained through issues #144-#148 for comparison with performance baseline #143. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed.",
+      "opendota_json_predates": [
+        "efe5794b",
+        "7d32aef0"
+      ]
+    },
+    {
+      "match_id": 8822593932,
+      "name": "dreamleague-s29-medium",
+      "dem": "8822593932.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "medium-match",
+        "opendota-parity"
+      ],
+      "replaced_by": 9101190574,
+      "fetched_at": "2026-05-24T01:33:58Z",
+      "duration": 2612,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay274.valve.net/570/8822593932_1755614783.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 146656180,
+      "dem_sha256": "0860d4bd6c50d82dbaf863cae244c8aaf9af78a1b53d0a5915988593db3177fa",
+      "note": "DreamLeague Season 29 patch 60 recent playoff fixture; superseded as the default medium validation role by TI2026 match 8860187335. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed.",
+      "opendota_json_predates": [
+        "efe5794b",
+        "7d32aef0"
+      ]
+    },
+    {
+      "match_id": 8855188139,
+      "name": "regression-roshan-purchases-inventory",
+      "dem": "8855188139.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "banner-plants",
+        "derived-kills",
+        "final-inventory",
+        "purchases",
+        "roshan-drops"
+      ],
+      "replaced_by": 9097868416,
+      "fetched_at": "2026-06-17T13:13:24Z",
+      "duration": 2419,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay225.valve.net/570/8855188139_1436544844.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 184151707,
+      "dem_sha256": "3fa4e1e9b2e4168f421c975f8f591ad34e9de2ff01c92977ed20c19ab7866044",
+      "note": "Feature-specific regression fixture for Roshan drops, banner plants, purchases, final inventory, and derived kills. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed.",
+      "opendota_json_predates": [
+        "efe5794b",
+        "7d32aef0"
+      ]
+    },
+    {
+      "match_id": 8855242704,
+      "name": "regression-final-interval-xp",
+      "dem": "8855242704.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "final-interval-boundary",
+        "long-match",
+        "xp-advantage"
+      ],
+      "replaced_by": 9101299342,
+      "fetched_at": "2026-06-17T13:03:31Z",
+      "duration": 4176,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay225.valve.net/570/8855242704_307043427.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 300386331,
+      "dem_sha256": "8775c564a7062672443921ddc91f9b16235e16ec85368e6b3943b72fa32398cd",
+      "note": "Feature-specific regression fixture for the final interval XP source and boundary behavior. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed.",
+      "opendota_json_predates": [
+        "efe5794b",
+        "7d32aef0"
+      ]
+    },
+    {
+      "match_id": 8856501050,
+      "name": "ti2026-long-stress",
+      "dem": "8856501050.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "long-match",
+        "opendota-parity"
+      ],
+      "replaced_by": 9101299342,
+      "fetched_at": "2026-09-02T01:19:25Z",
+      "duration": 5576,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay225.valve.net/570/8856501050_1230793646.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 385487555,
+      "dem_sha256": "0f7577525b995347ed9df0c793cc8661c2a9db4ee176bf35cb5dd940e5af17e2",
+      "note": "TI2026 China regional qualifier: long 93-minute fixture for stress, memory, and OpenDota parity validation. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed.",
+      "opendota_json_predates": [
+        "efe5794b",
+        "7d32aef0"
+      ]
+    },
+    {
+      "match_id": 8860187335,
+      "name": "ti2026-medium-extended",
+      "dem": "8860187335.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "medium-match",
+        "opendota-parity"
+      ],
+      "replaced_by": 9101190574,
+      "fetched_at": "2026-09-02T01:16:46Z",
+      "duration": 3005,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay152.valve.net/570/8860187335_670734759.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 212649245,
+      "dem_sha256": "b42f5d07d62d5c09a55c429dd7cb0f57c03c2f0c90e16e4397eb8c26d717cee4",
+      "note": "TI2026 Southeast Asia regional qualifier: medium 50-minute fixture for extended OpenDota parity validation. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed.",
+      "opendota_json_predates": [
+        "efe5794b",
+        "7d32aef0"
+      ]
+    },
+    {
+      "match_id": 8868259993,
+      "name": "ti2026-short-canonical",
+      "dem": "8868259993.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "canonical-integration",
+        "opendota-parity",
+        "short-match"
+      ],
+      "replaced_by": 9097870389,
+      "fetched_at": "2026-09-02T01:16:29Z",
+      "duration": 1142,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay121.valve.net/570/8868259993_728230634.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 89720955,
+      "dem_sha256": "a0560e349ccd30d7f58a97747d33e3d2a6033c11d54a848fe3918a044650a622",
+      "note": "TI2026 North America regional qualifier: short 19-minute canonical integration and OpenDota parity fixture. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed.",
+      "opendota_json_predates": [
+        "efe5794b",
+        "7d32aef0"
+      ]
+    },
+    {
+      "match_id": 9018736585,
+      "name": "pgl-wallachia-s9-short",
+      "dem": "9018736585.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "opendota-parity",
+        "short-match"
+      ],
+      "replaced_by": 9097870389,
+      "fetched_at": "2026-10-26T12:52:03Z",
+      "duration": 1510,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay191.valve.net/570/9018736585_1634939129.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 99656328,
+      "dem_sha256": "47983661bbf5b78917a3a8a93ca2133e286b0a07d97567b0cb53cd6303dc4561",
+      "note": "PGL Wallachia 2026 Season 9 final, game 1 (Natus Vincere vs Team Yandex), 25 min; OpenDota parsed it after odota/parser efe5794b. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed."
+    },
+    {
+      "match_id": 9038120227,
+      "name": "blast-slam-viii-long",
+      "dem": "9038120227.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "long-match",
+        "opendota-parity"
+      ],
+      "replaced_by": 9101299342,
+      "fetched_at": "2026-10-26T12:53:10Z",
+      "duration": 3916,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay271.valve.net/570/9038120227_1341401166.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 216231019,
+      "dem_sha256": "93542be5101bdc220e2fbb434db5887e088c979639cbdc9490fc3c2c47afcb7c",
+      "note": "BLAST SLAM VIII playoffs (PARIVISION vs Aurora Gaming), 65 min; OpenDota parsed it after odota/parser efe5794b. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed."
+    },
+    {
+      "match_id": 9039619076,
+      "name": "blast-slam-viii-fixed8-encoder",
+      "dem": "9039619076.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "fixed8-encoder",
+        "medium-match",
+        "opendota-parity"
+      ],
+      "replaced_by": 9101190574,
+      "fetched_at": "2026-10-13T06:15:23Z",
+      "duration": 2293,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay272.valve.net/570/9039619076_1900156309.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 138583332,
+      "dem_sha256": "c338ebbee2721264d6b246f89a8098c4c21e636b1fc3bb2d5406a9c01b4bb86b",
+      "note": "BLAST SLAM VIII (PARIVISION vs Team Spirit), game build 6956: the first fixture whose send tables declare the fixed8 var encoder (build 6951+); regression for GitHub #301 / HY-177. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed.",
+      "opendota_json_predates": [
+        "7d32aef0"
+      ]
+    },
+    {
+      "match_id": 9040268873,
+      "name": "blast-slam-viii-aegis-reincarnation",
+      "dem": "9040268873.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "aegis-reincarnation",
+        "medium-match",
+        "opendota-parity"
+      ],
+      "replaced_by": 9101299342,
+      "fetched_at": "2026-10-14T00:47:51Z",
+      "duration": 3169,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay272.valve.net/570/9040268873_1117230017.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 182086072,
+      "dem_sha256": "301965d2711bb38ffe4424eb68b924bd78c66cf9c65ce9f2f3c0a42797dd80ca",
+      "note": "BLAST SLAM VIII (Team Spirit vs Team Yandex), game build 6956: Kez reincarnates on two Aegises (2388 s, 3087 s), and OpenDota's August 2026 reincarnation rule (odota/parser efe5794b) counts neither death; regression for HY-178. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed.",
+      "opendota_json_predates": [
+        "7d32aef0"
+      ]
+    },
+    {
+      "match_id": 9040578015,
+      "name": "blast-slam-viii-grand-final-decider",
+      "dem": "9040578015.dem",
+      "opendota_json": null,
+      "status": "deprecated",
+      "tier": "archive",
+      "capabilities": [
+        "medium-match",
+        "opendota-parity"
+      ],
+      "replaced_by": 9101190574,
+      "fetched_at": "2026-10-26T12:52:16Z",
+      "duration": 3400,
+      "game_mode": 2,
+      "lobby_type": 1,
+      "patch": 60,
+      "replay_url": "http://replay271.valve.net/570/9040578015_350559250.dem.bz2",
+      "artifact_url": null,
+      "dem_size_bytes": 184606189,
+      "dem_sha256": "8c84fe54c3b67fe8d8bbe3b9e7f45ab16d0b49a13de04ed18978e6be0d402181",
+      "note": "BLAST SLAM VIII grand final, game 4 (Team Yandex vs Team Spirit), 57 min, the game that decided the series; OpenDota parsed it after odota/parser efe5794b. Retired with the move to patch 7.42 fixtures (HY-574); its OpenDota JSON was removed."
     }
   ]
 }

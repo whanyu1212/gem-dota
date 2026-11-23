@@ -17,6 +17,7 @@ from scripts.sync_opendota_fixtures import (
     sync_fixture,
     verify_fixture,
 )
+from tests.conftest import LONG_MATCH_ID, MEDIUM_MATCH_ID, SHORT_MATCH_ID
 
 
 def _entry(
@@ -65,13 +66,15 @@ def test_load_fixture_manifest_validates_deprecated_replacement(tmp_path: Path) 
     assert specs[0].replaced_by == 2
 
 
-def test_committed_manifest_defines_ti2026_tiers_and_integrity() -> None:
+def test_committed_manifest_defines_tiers_and_integrity() -> None:
     specs = load_fixture_manifest(DEFAULT_MANIFEST)
-    by_tier = {spec.tier: spec for spec in specs if "ti2026" in spec.capabilities}
 
-    assert by_tier["canonical"].match_id == 8868259993
-    assert by_tier["extended"].match_id == 8860187335
-    assert by_tier["stress"].match_id == 8856501050
+    def ids(tier: str) -> list[int]:
+        return [spec.match_id for spec in specs if spec.tier == tier]
+
+    assert ids("canonical") == [SHORT_MATCH_ID]
+    assert ids("extended") == [MEDIUM_MATCH_ID]
+    assert ids("stress") == [LONG_MATCH_ID]
     for spec in specs:
         assert spec.dem_size_bytes is not None
         assert spec.dem_sha256 is not None

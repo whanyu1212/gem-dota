@@ -27,7 +27,7 @@ python examples/cookbook/roshan_next_fight.py replays/*.dem   # recipes: one rep
 
 ## Replay fixtures (`opendota_parity.py` no-arg default)
 
-The canonical short TI2026 replay and its sibling `<match_id>.opendota.json`
+The canonical short replay and its sibling `<match_id>.opendota.json`
 (which powers the parity cross-check) are **local/ignored downloads, not committed**
 to the repo (see the root `CLAUDE.md` and `tests/fixtures/` notes). With no argument,
 `opendota_parity.py` prefers that download when present (full match + parity

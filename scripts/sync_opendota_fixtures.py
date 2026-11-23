@@ -7,7 +7,7 @@ and verifies recorded size and SHA-256 metadata before installing each file.
 Examples:
     uv run python scripts/sync_opendota_fixtures.py
     uv run python scripts/sync_opendota_fixtures.py --tier extended --tier stress
-    uv run python scripts/sync_opendota_fixtures.py --match 8822520406
+    uv run python scripts/sync_opendota_fixtures.py --match 9098298585
     uv run python scripts/sync_opendota_fixtures.py --all-active --verify-only
 """
 
