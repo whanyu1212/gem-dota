@@ -660,7 +660,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CDOTAMatchPrivateMetadata.Team.Player.GoldReceived</code> — fields: 9; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CDOTAMatchPrivateMetadata.Team.Player.GoldReceived</code> — fields: 10; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CDOTAMatchPrivateMetadata.Team.Player`
 - Oneofs: *(none)*
@@ -676,6 +676,7 @@ Expand any message to inspect all fields.
 | 7 | `wards` | `uint32` | `optional` |  |  |
 | 8 | `other` | `uint32` | `optional` |  |  |
 | 9 | `summons` | `uint32` | `optional` |  |  |
+| 10 | `midas` | `uint32` | `optional` |  |  |
 
 </details>
 

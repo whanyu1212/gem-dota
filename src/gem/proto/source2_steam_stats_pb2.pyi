@@ -47,11 +47,14 @@ Source2PlayStats_SteamIDTrustBucketMin: ESource2PlayStatsFieldType
 Source2PlayStats_SteamID: ESource2PlayStatsFieldType
 
 class CMsgSource2SystemSpecs(_message.Message):
-    __slots__ = ("cpu_id", "cpu_brand", "cpu_model", "cpu_num_physical", "ram_physical_total_mb", "gpu_rendersystem_dll_name", "gpu_vendor_id", "gpu_driver_name", "gpu_driver_version_high", "gpu_driver_version_low", "gpu_dx_support_level", "gpu_texture_memory_size_mb", "backbuffer_width", "backbuffer_height")
+    __slots__ = ("cpu_id", "cpu_brand", "cpu_model", "cpu_num_physical", "cpu_num_logical", "cpu_num_performance", "cpu_num_efficiency", "ram_physical_total_mb", "gpu_rendersystem_dll_name", "gpu_vendor_id", "gpu_driver_name", "gpu_driver_version_high", "gpu_driver_version_low", "gpu_dx_support_level", "gpu_texture_memory_size_mb", "backbuffer_width", "backbuffer_height", "thread_pool_workers")
     CPU_ID_FIELD_NUMBER: _ClassVar[int]
     CPU_BRAND_FIELD_NUMBER: _ClassVar[int]
     CPU_MODEL_FIELD_NUMBER: _ClassVar[int]
     CPU_NUM_PHYSICAL_FIELD_NUMBER: _ClassVar[int]
+    CPU_NUM_LOGICAL_FIELD_NUMBER: _ClassVar[int]
+    CPU_NUM_PERFORMANCE_FIELD_NUMBER: _ClassVar[int]
+    CPU_NUM_EFFICIENCY_FIELD_NUMBER: _ClassVar[int]
     RAM_PHYSICAL_TOTAL_MB_FIELD_NUMBER: _ClassVar[int]
     GPU_RENDERSYSTEM_DLL_NAME_FIELD_NUMBER: _ClassVar[int]
     GPU_VENDOR_ID_FIELD_NUMBER: _ClassVar[int]
@@ -62,10 +65,14 @@ class CMsgSource2SystemSpecs(_message.Message):
     GPU_TEXTURE_MEMORY_SIZE_MB_FIELD_NUMBER: _ClassVar[int]
     BACKBUFFER_WIDTH_FIELD_NUMBER: _ClassVar[int]
     BACKBUFFER_HEIGHT_FIELD_NUMBER: _ClassVar[int]
+    THREAD_POOL_WORKERS_FIELD_NUMBER: _ClassVar[int]
     cpu_id: str
     cpu_brand: str
     cpu_model: int
     cpu_num_physical: int
+    cpu_num_logical: int
+    cpu_num_performance: int
+    cpu_num_efficiency: int
     ram_physical_total_mb: int
     gpu_rendersystem_dll_name: str
     gpu_vendor_id: int
@@ -76,7 +83,8 @@ class CMsgSource2SystemSpecs(_message.Message):
     gpu_texture_memory_size_mb: int
     backbuffer_width: int
     backbuffer_height: int
-    def __init__(self, cpu_id: _Optional[str] = ..., cpu_brand: _Optional[str] = ..., cpu_model: _Optional[int] = ..., cpu_num_physical: _Optional[int] = ..., ram_physical_total_mb: _Optional[int] = ..., gpu_rendersystem_dll_name: _Optional[str] = ..., gpu_vendor_id: _Optional[int] = ..., gpu_driver_name: _Optional[str] = ..., gpu_driver_version_high: _Optional[int] = ..., gpu_driver_version_low: _Optional[int] = ..., gpu_dx_support_level: _Optional[int] = ..., gpu_texture_memory_size_mb: _Optional[int] = ..., backbuffer_width: _Optional[int] = ..., backbuffer_height: _Optional[int] = ...) -> None: ...
+    thread_pool_workers: int
+    def __init__(self, cpu_id: _Optional[str] = ..., cpu_brand: _Optional[str] = ..., cpu_model: _Optional[int] = ..., cpu_num_physical: _Optional[int] = ..., cpu_num_logical: _Optional[int] = ..., cpu_num_performance: _Optional[int] = ..., cpu_num_efficiency: _Optional[int] = ..., ram_physical_total_mb: _Optional[int] = ..., gpu_rendersystem_dll_name: _Optional[str] = ..., gpu_vendor_id: _Optional[int] = ..., gpu_driver_name: _Optional[str] = ..., gpu_driver_version_high: _Optional[int] = ..., gpu_driver_version_low: _Optional[int] = ..., gpu_dx_support_level: _Optional[int] = ..., gpu_texture_memory_size_mb: _Optional[int] = ..., backbuffer_width: _Optional[int] = ..., backbuffer_height: _Optional[int] = ..., thread_pool_workers: _Optional[int] = ...) -> None: ...
 
 class CMsgSource2VProfLiteReportItem(_message.Message):
     __slots__ = ("name", "active_samples", "active_samples_1secmax", "usec_max", "usec_avg_active", "usec_p50_active", "usec_p99_active", "usec_avg_all", "usec_p50_all", "usec_p99_all", "usec_1secmax_avg_active", "usec_1secmax_p50_active", "usec_1secmax_p95_active", "usec_1secmax_p99_active", "usec_1secmax_avg_all", "usec_1secmax_p50_all", "usec_1secmax_p95_all", "usec_1secmax_p99_all")

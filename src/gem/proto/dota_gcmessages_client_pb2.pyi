@@ -66,16 +66,6 @@ class EPurchaseHeroRelicResult(int, metaclass=_enum_type_wrapper.EnumTypeWrapper
     k_EPurchaseHeroRelicResult_AlreadyOwned: _ClassVar[EPurchaseHeroRelicResult]
     k_EPurchaseHeroRelicResult_InvalidRarity: _ClassVar[EPurchaseHeroRelicResult]
 
-class EDevEventRequestResult(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-    __slots__ = ()
-    k_EDevEventRequestResult_Success: _ClassVar[EDevEventRequestResult]
-    k_EDevEventRequestResult_NotAllowed: _ClassVar[EDevEventRequestResult]
-    k_EDevEventRequestResult_InvalidEvent: _ClassVar[EDevEventRequestResult]
-    k_EDevEventRequestResult_SqlFailure: _ClassVar[EDevEventRequestResult]
-    k_EDevEventRequestResult_Timeout: _ClassVar[EDevEventRequestResult]
-    k_EDevEventRequestResult_LockFailure: _ClassVar[EDevEventRequestResult]
-    k_EDevEventRequestResult_SDOLoadFailure: _ClassVar[EDevEventRequestResult]
-
 class ESupportEventRequestResult(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
     k_ESupportEventRequestResult_Success: _ClassVar[ESupportEventRequestResult]
@@ -150,13 +140,6 @@ k_EPurchaseHeroRelicResult_PurchaseNotAllowed: EPurchaseHeroRelicResult
 k_EPurchaseHeroRelicResult_InvalidRelic: EPurchaseHeroRelicResult
 k_EPurchaseHeroRelicResult_AlreadyOwned: EPurchaseHeroRelicResult
 k_EPurchaseHeroRelicResult_InvalidRarity: EPurchaseHeroRelicResult
-k_EDevEventRequestResult_Success: EDevEventRequestResult
-k_EDevEventRequestResult_NotAllowed: EDevEventRequestResult
-k_EDevEventRequestResult_InvalidEvent: EDevEventRequestResult
-k_EDevEventRequestResult_SqlFailure: EDevEventRequestResult
-k_EDevEventRequestResult_Timeout: EDevEventRequestResult
-k_EDevEventRequestResult_LockFailure: EDevEventRequestResult
-k_EDevEventRequestResult_SDOLoadFailure: EDevEventRequestResult
 k_ESupportEventRequestResult_Success: ESupportEventRequestResult
 k_ESupportEventRequestResult_Timeout: ESupportEventRequestResult
 k_ESupportEventRequestResult_CantLockSOCache: ESupportEventRequestResult
@@ -1070,14 +1053,6 @@ class CMsgClientToGCClaimEventActionUsingItemResponse(_message.Message):
     ACTION_RESULTS_FIELD_NUMBER: _ClassVar[int]
     action_results: _dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse
     def __init__(self, action_results: _Optional[_Union[_dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse, _Mapping]] = ...) -> None: ...
-
-class CMsgGCToClientClaimEventActionUsingItemCompleted(_message.Message):
-    __slots__ = ("item_id", "action_results")
-    ITEM_ID_FIELD_NUMBER: _ClassVar[int]
-    ACTION_RESULTS_FIELD_NUMBER: _ClassVar[int]
-    item_id: int
-    action_results: _dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse
-    def __init__(self, item_id: _Optional[int] = ..., action_results: _Optional[_Union[_dota_gcmessages_common_pb2.CMsgDOTAClaimEventActionResponse, _Mapping]] = ...) -> None: ...
 
 class CMsgDOTAGetEventPoints(_message.Message):
     __slots__ = ("event_id", "account_id")
@@ -3883,40 +3858,6 @@ class CMsgGCToClientRecordContestVoteResponse(_message.Message):
     ERESULT_FIELD_NUMBER: _ClassVar[int]
     eresult: CMsgGCToClientRecordContestVoteResponse.EResult
     def __init__(self, eresult: _Optional[_Union[CMsgGCToClientRecordContestVoteResponse.EResult, str]] = ...) -> None: ...
-
-class CMsgDevGrantEventAction(_message.Message):
-    __slots__ = ("event_id", "action_id", "action_score")
-    EVENT_ID_FIELD_NUMBER: _ClassVar[int]
-    ACTION_ID_FIELD_NUMBER: _ClassVar[int]
-    ACTION_SCORE_FIELD_NUMBER: _ClassVar[int]
-    event_id: _events_pb2.EEvent
-    action_id: int
-    action_score: int
-    def __init__(self, event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., action_id: _Optional[int] = ..., action_score: _Optional[int] = ...) -> None: ...
-
-class CMsgDevGrantEventActionResponse(_message.Message):
-    __slots__ = ("result",)
-    RESULT_FIELD_NUMBER: _ClassVar[int]
-    result: EDevEventRequestResult
-    def __init__(self, result: _Optional[_Union[EDevEventRequestResult, str]] = ...) -> None: ...
-
-class CMsgDevDeleteEventActions(_message.Message):
-    __slots__ = ("event_id", "start_action_id", "end_action_id", "remove_audit")
-    EVENT_ID_FIELD_NUMBER: _ClassVar[int]
-    START_ACTION_ID_FIELD_NUMBER: _ClassVar[int]
-    END_ACTION_ID_FIELD_NUMBER: _ClassVar[int]
-    REMOVE_AUDIT_FIELD_NUMBER: _ClassVar[int]
-    event_id: _events_pb2.EEvent
-    start_action_id: int
-    end_action_id: int
-    remove_audit: bool
-    def __init__(self, event_id: _Optional[_Union[_events_pb2.EEvent, str]] = ..., start_action_id: _Optional[int] = ..., end_action_id: _Optional[int] = ..., remove_audit: bool = ...) -> None: ...
-
-class CMsgDevDeleteEventActionsResponse(_message.Message):
-    __slots__ = ("result",)
-    RESULT_FIELD_NUMBER: _ClassVar[int]
-    result: EDevEventRequestResult
-    def __init__(self, result: _Optional[_Union[EDevEventRequestResult, str]] = ...) -> None: ...
 
 class CMsgConsumeEventSupportGrantItem(_message.Message):
     __slots__ = ("item_id",)

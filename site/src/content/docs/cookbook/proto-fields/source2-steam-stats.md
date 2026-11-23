@@ -12,7 +12,7 @@
 Expand any message to inspect all fields.
 
 <details>
-<summary><code>CMsgSource2SystemSpecs</code> — fields: 14; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgSource2SystemSpecs</code> — fields: 18; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -23,6 +23,9 @@ Expand any message to inspect all fields.
 | 2 | `cpu_brand` | `string` | `optional` |  |  |
 | 3 | `cpu_model` | `uint32` | `optional` |  |  |
 | 4 | `cpu_num_physical` | `uint32` | `optional` |  |  |
+| 5 | `cpu_num_logical` | `uint32` | `optional` |  |  |
+| 6 | `cpu_num_performance` | `uint32` | `optional` |  |  |
+| 7 | `cpu_num_efficiency` | `uint32` | `optional` |  |  |
 | 21 | `ram_physical_total_mb` | `uint32` | `optional` |  |  |
 | 41 | `gpu_rendersystem_dll_name` | `string` | `optional` |  |  |
 | 42 | `gpu_vendor_id` | `uint32` | `optional` |  |  |
@@ -33,6 +36,7 @@ Expand any message to inspect all fields.
 | 47 | `gpu_texture_memory_size_mb` | `uint32` | `optional` |  |  |
 | 51 | `backbuffer_width` | `uint32` | `optional` |  |  |
 | 52 | `backbuffer_height` | `uint32` | `optional` |  |  |
+| 61 | `thread_pool_workers` | `uint32` | `optional` |  |  |
 
 </details>
 

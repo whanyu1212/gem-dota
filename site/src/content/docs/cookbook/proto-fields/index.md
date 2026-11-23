@@ -15,7 +15,7 @@ gem decodes messages from these files.
 - [dota_match_metadata.proto](dota-match-metadata.md) — messages: 46, enums: 2
 - [dota_shared_enums.proto](dota-shared-enums.md) — messages: 13, enums: 52
 - [dota_usermessages.proto](dota-usermessages.md) — messages: 193, enums: 20
-- [gameevents.proto](gameevents.md) — messages: 18, enums: 1
+- [gameevents.proto](gameevents.md) — messages: 19, enums: 1
 - [netmessages.proto](netmessages.md) — messages: 77, enums: 12
 - [networkbasetypes.proto](networkbasetypes.md) — messages: 28, enums: 3
 
@@ -23,11 +23,11 @@ gem decodes messages from these files.
 
 gem doesn't use these files, but the files above import them, so Python loads them.
 
-- [base_gcmessages.proto](base-gcmessages.md) — messages: 62, enums: 6
+- [base_gcmessages.proto](base-gcmessages.md) — messages: 63, enums: 6
 - [dota_commonmessages.proto](dota-commonmessages.md) — messages: 13, enums: 4
 - [dota_gcmessages_common_craftworks.proto](dota-gcmessages-common-craftworks.md) — messages: 2, enums: 1
 - [dota_gcmessages_common_lobby.proto](dota-gcmessages-common-lobby.md) — messages: 32, enums: 5
-- [dota_gcmessages_common_match_management.proto](dota-gcmessages-common-match-management.md) — messages: 15, enums: 9
+- [dota_gcmessages_common_match_management.proto](dota-gcmessages-common-match-management.md) — messages: 16, enums: 9
 - [dota_gcmessages_common_monster_hunter.proto](dota-gcmessages-common-monster-hunter.md) — messages: 35, enums: 16
 - [dota_gcmessages_common_overworld.proto](dota-gcmessages-common-overworld.md) — messages: 67, enums: 26
 - [dota_gcmessages_common_survivors.proto](dota-gcmessages-common-survivors.md) — messages: 4, enums: 1
@@ -50,9 +50,9 @@ Not needed to parse a replay: mostly Valve's backend and Steam platform messages
 - [connectionless_netmessages.proto](connectionless-netmessages.md) — messages: 3, enums: 0
 - [dota_broadcastmessages.proto](dota-broadcastmessages.md) — messages: 4, enums: 1
 - [dota_client_enums.proto](dota-client-enums.md) — messages: 0, enums: 7
-- [dota_clientmessages.proto](dota-clientmessages.md) — messages: 120, enums: 4
+- [dota_clientmessages.proto](dota-clientmessages.md) — messages: 121, enums: 4
 - [dota_fighting_game_p2p_messages.proto](dota-fighting-game-p2p-messages.md) — messages: 6, enums: 1
-- [dota_gcmessages_client.proto](dota-gcmessages-client.md) — messages: 470, enums: 86
+- [dota_gcmessages_client.proto](dota-gcmessages-client.md) — messages: 465, enums: 85
 - [dota_gcmessages_client_bingo.proto](dota-gcmessages-client-bingo.md) — messages: 23, enums: 10
 - [dota_gcmessages_client_candy_shop.proto](dota-gcmessages-client-candy-shop.md) — messages: 34, enums: 9
 - [dota_gcmessages_client_chat.proto](dota-gcmessages-client-chat.md) — messages: 27, enums: 2
@@ -78,11 +78,11 @@ Not needed to parse a replay: mostly Valve's backend and Steam platform messages
 - [dota_modifiers.proto](dota-modifiers.md) — messages: 2, enums: 1
 - [dota_scenariomessages.proto](dota-scenariomessages.md) — messages: 23, enums: 0
 - [dota_usercmd.proto](dota-usercmd.md) — messages: 1, enums: 0
-- [econ_gcmessages.proto](econ-gcmessages.md) — messages: 143, enums: 16
+- [econ_gcmessages.proto](econ-gcmessages.md) — messages: 145, enums: 16
 - [econ_shared_enums.proto](econ-shared-enums.md) — messages: 1, enums: 3
 - [engine_gcmessages.proto](engine-gcmessages.md) — messages: 1, enums: 0
 - [enums_clientserver.proto](enums-clientserver.md) — messages: 0, enums: 4
-- [event_gcmessages_client.proto](event-gcmessages-client.md) — messages: 19, enums: 9
+- [event_gcmessages_client.proto](event-gcmessages-client.md) — messages: 20, enums: 9
 - [event_gcmessages_server.proto](event-gcmessages-server.md) — messages: 0, enums: 0
 - [gcsystemmsgs.proto](gcsystemmsgs.md) — messages: 0, enums: 2
 - [networksystem_protomessages.proto](networksystem-protomessages.md) — messages: 5, enums: 0
@@ -103,4 +103,4 @@ Not needed to parse a replay: mostly Valve's backend and Steam platform messages
 - [te.proto](te.md) — messages: 25, enums: 1
 - [uifontfile_format.proto](uifontfile-format.md) — messages: 3, enums: 0
 - [usercmd.proto](usercmd.md) — messages: 5, enums: 0
-- [usermessages.proto](usermessages.md) — messages: 109, enums: 7
+- [usermessages.proto](usermessages.md) — messages: 111, enums: 7

@@ -637,7 +637,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CSVCMsg_CreateStringTable</code> — fields: 10; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CSVCMsg_CreateStringTable</code> — fields: 9; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -651,7 +651,6 @@ Expand any message to inspect all fields.
 | 5 | `user_data_size_bits` | `int32` | `optional` |  |  |
 | 6 | `flags` | `int32` | `optional` |  |  |
 | 7 | `string_data` | `bytes` | `optional` |  |  |
-| 8 | `uncompressed_size` | `int32` | `optional` |  |  |
 | 9 | `data_compressed` | `bool` | `optional` |  |  |
 | 10 | `using_varint_bitcounts` | `bool` | `optional` |  |  |
 

@@ -578,7 +578,7 @@ class CDOTAMatchPrivateMetadata(_message.Message):
                 by_hero_targets: _containers.RepeatedCompositeFieldContainer[CDOTAMatchPrivateMetadata.Team.Player.BuffRecord.ByHeroTarget]
                 def __init__(self, buff_ability_id: _Optional[int] = ..., buff_modifier_name: _Optional[str] = ..., by_hero_targets: _Optional[_Iterable[_Union[CDOTAMatchPrivateMetadata.Team.Player.BuffRecord.ByHeroTarget, _Mapping]]] = ...) -> None: ...
             class GoldReceived(_message.Message):
-                __slots__ = ("creep", "heroes", "bounty_runes", "passive", "buildings", "abilities", "wards", "other", "summons")
+                __slots__ = ("creep", "heroes", "bounty_runes", "passive", "buildings", "abilities", "wards", "other", "summons", "midas")
                 CREEP_FIELD_NUMBER: _ClassVar[int]
                 HEROES_FIELD_NUMBER: _ClassVar[int]
                 BOUNTY_RUNES_FIELD_NUMBER: _ClassVar[int]
@@ -588,6 +588,7 @@ class CDOTAMatchPrivateMetadata(_message.Message):
                 WARDS_FIELD_NUMBER: _ClassVar[int]
                 OTHER_FIELD_NUMBER: _ClassVar[int]
                 SUMMONS_FIELD_NUMBER: _ClassVar[int]
+                MIDAS_FIELD_NUMBER: _ClassVar[int]
                 creep: int
                 heroes: int
                 bounty_runes: int
@@ -597,7 +598,8 @@ class CDOTAMatchPrivateMetadata(_message.Message):
                 wards: int
                 other: int
                 summons: int
-                def __init__(self, creep: _Optional[int] = ..., heroes: _Optional[int] = ..., bounty_runes: _Optional[int] = ..., passive: _Optional[int] = ..., buildings: _Optional[int] = ..., abilities: _Optional[int] = ..., wards: _Optional[int] = ..., other: _Optional[int] = ..., summons: _Optional[int] = ...) -> None: ...
+                midas: int
+                def __init__(self, creep: _Optional[int] = ..., heroes: _Optional[int] = ..., bounty_runes: _Optional[int] = ..., passive: _Optional[int] = ..., buildings: _Optional[int] = ..., abilities: _Optional[int] = ..., wards: _Optional[int] = ..., other: _Optional[int] = ..., summons: _Optional[int] = ..., midas: _Optional[int] = ...) -> None: ...
             class XPReceived(_message.Message):
                 __slots__ = ("creep", "heroes", "roshan", "tome_of_knowledge", "outpost", "other", "abilities", "summons")
                 CREEP_FIELD_NUMBER: _ClassVar[int]

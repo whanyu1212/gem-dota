@@ -397,8 +397,6 @@ class EDOTAGCMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientToGCHasPlayerVotedForMVPResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCVoteForMVP: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCVoteForMVPResponse: _ClassVar[EDOTAGCMsg]
-    k_EMsgGCToGCGetEventParticipation: _ClassVar[EDOTAGCMsg]
-    k_EMsgGCToGCGetEventParticipationResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgGCToClientAutomatedTournamentStateChange: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCWeekendTourneyOpts: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCWeekendTourneyOptsResponse: _ClassVar[EDOTAGCMsg]
@@ -562,12 +560,9 @@ class EDOTAGCMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgGCToGCGrantAutographResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgSignOutConsumableUsage: _ClassVar[EDOTAGCMsg]
     k_EMsgLobbyEventGameDetails: _ClassVar[EDOTAGCMsg]
-    k_EMsgDevGrantEventAction: _ClassVar[EDOTAGCMsg]
-    k_EMsgDevGrantEventActionResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgGCToGCReconcileEventOwnership: _ClassVar[EDOTAGCMsg]
     k_EMsgConsumeEventSupportGrantItem: _ClassVar[EDOTAGCMsg]
     k_EMsgConsumeEventSupportGrantItemResponse: _ClassVar[EDOTAGCMsg]
-    k_EMsgGCToClientClaimEventActionUsingItemCompleted: _ClassVar[EDOTAGCMsg]
     k_EMsgGCToClientCavernCrawlMapUpdated: _ClassVar[EDOTAGCMsg]
     k_EMsgServerToGCRequestPlayerRecentAccomplishments: _ClassVar[EDOTAGCMsg]
     k_EMsgServerToGCRequestPlayerRecentAccomplishmentsResponse: _ClassVar[EDOTAGCMsg]
@@ -592,8 +587,6 @@ class EDOTAGCMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientToGCSubmitPlayerMatchSurveyResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgSQLGCToGCGrantAllHeroProgressAccount: _ClassVar[EDOTAGCMsg]
     k_EMsgSQLGCToGCGrantAllHeroProgressVictory: _ClassVar[EDOTAGCMsg]
-    k_EMsgDevDeleteEventActions: _ClassVar[EDOTAGCMsg]
-    k_EMsgDevDeleteEventActionsResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgGCToGCGetAllHeroCurrent: _ClassVar[EDOTAGCMsg]
     k_EMsgGCToGCGetAllHeroCurrentResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgGCSubmitPlayerAvoidRequest: _ClassVar[EDOTAGCMsg]
@@ -690,8 +683,6 @@ class EDOTAGCMsg(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     k_EMsgClientToGCApplyGauntletTicket: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCUnderDraftRollBackBench: _ClassVar[EDOTAGCMsg]
     k_EMsgClientToGCUnderDraftRollBackBenchResponse: _ClassVar[EDOTAGCMsg]
-    k_EMsgGCToGCGetEventActionScore: _ClassVar[EDOTAGCMsg]
-    k_EMsgGCToGCGetEventActionScoreResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgServerToGCGetGuildContracts: _ClassVar[EDOTAGCMsg]
     k_EMsgServerToGCGetGuildContractsResponse: _ClassVar[EDOTAGCMsg]
     k_EMsgLobbyEventGameData: _ClassVar[EDOTAGCMsg]
@@ -1417,8 +1408,6 @@ k_EMsgClientToGCHasPlayerVotedForMVP: EDOTAGCMsg
 k_EMsgClientToGCHasPlayerVotedForMVPResponse: EDOTAGCMsg
 k_EMsgClientToGCVoteForMVP: EDOTAGCMsg
 k_EMsgClientToGCVoteForMVPResponse: EDOTAGCMsg
-k_EMsgGCToGCGetEventParticipation: EDOTAGCMsg
-k_EMsgGCToGCGetEventParticipationResponse: EDOTAGCMsg
 k_EMsgGCToClientAutomatedTournamentStateChange: EDOTAGCMsg
 k_EMsgClientToGCWeekendTourneyOpts: EDOTAGCMsg
 k_EMsgClientToGCWeekendTourneyOptsResponse: EDOTAGCMsg
@@ -1582,12 +1571,9 @@ k_EMsgGCToGCGrantAutograph: EDOTAGCMsg
 k_EMsgGCToGCGrantAutographResponse: EDOTAGCMsg
 k_EMsgSignOutConsumableUsage: EDOTAGCMsg
 k_EMsgLobbyEventGameDetails: EDOTAGCMsg
-k_EMsgDevGrantEventAction: EDOTAGCMsg
-k_EMsgDevGrantEventActionResponse: EDOTAGCMsg
 k_EMsgGCToGCReconcileEventOwnership: EDOTAGCMsg
 k_EMsgConsumeEventSupportGrantItem: EDOTAGCMsg
 k_EMsgConsumeEventSupportGrantItemResponse: EDOTAGCMsg
-k_EMsgGCToClientClaimEventActionUsingItemCompleted: EDOTAGCMsg
 k_EMsgGCToClientCavernCrawlMapUpdated: EDOTAGCMsg
 k_EMsgServerToGCRequestPlayerRecentAccomplishments: EDOTAGCMsg
 k_EMsgServerToGCRequestPlayerRecentAccomplishmentsResponse: EDOTAGCMsg
@@ -1612,8 +1598,6 @@ k_EMsgClientToGCSubmitPlayerMatchSurvey: EDOTAGCMsg
 k_EMsgClientToGCSubmitPlayerMatchSurveyResponse: EDOTAGCMsg
 k_EMsgSQLGCToGCGrantAllHeroProgressAccount: EDOTAGCMsg
 k_EMsgSQLGCToGCGrantAllHeroProgressVictory: EDOTAGCMsg
-k_EMsgDevDeleteEventActions: EDOTAGCMsg
-k_EMsgDevDeleteEventActionsResponse: EDOTAGCMsg
 k_EMsgGCToGCGetAllHeroCurrent: EDOTAGCMsg
 k_EMsgGCToGCGetAllHeroCurrentResponse: EDOTAGCMsg
 k_EMsgGCSubmitPlayerAvoidRequest: EDOTAGCMsg
@@ -1710,8 +1694,6 @@ k_EMsgGCToGCSignoutSpendBounty: EDOTAGCMsg
 k_EMsgClientToGCApplyGauntletTicket: EDOTAGCMsg
 k_EMsgClientToGCUnderDraftRollBackBench: EDOTAGCMsg
 k_EMsgClientToGCUnderDraftRollBackBenchResponse: EDOTAGCMsg
-k_EMsgGCToGCGetEventActionScore: EDOTAGCMsg
-k_EMsgGCToGCGetEventActionScoreResponse: EDOTAGCMsg
 k_EMsgServerToGCGetGuildContracts: EDOTAGCMsg
 k_EMsgServerToGCGetGuildContractsResponse: EDOTAGCMsg
 k_EMsgLobbyEventGameData: EDOTAGCMsg

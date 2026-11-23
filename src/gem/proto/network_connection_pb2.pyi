@@ -91,6 +91,7 @@ class ENetworkDisconnectionReason(int, metaclass=_enum_type_wrapper.EnumTypeWrap
     NETWORK_DISCONNECT_REMOTE_CERTNOTTRUSTED: _ClassVar[ENetworkDisconnectionReason]
     NETWORK_DISCONNECT_UNUSUAL: _ClassVar[ENetworkDisconnectionReason]
     NETWORK_DISCONNECT_INTERNAL_ERROR: _ClassVar[ENetworkDisconnectionReason]
+    NETWORK_DISCONNECT_STEAM_GROUPMEMBERSHIP: _ClassVar[ENetworkDisconnectionReason]
     NETWORK_DISCONNECT_REJECT_BADCHALLENGE: _ClassVar[ENetworkDisconnectionReason]
     NETWORK_DISCONNECT_REJECT_NOLOBBY: _ClassVar[ENetworkDisconnectionReason]
     NETWORK_DISCONNECT_REJECT_BACKGROUND_MAP: _ClassVar[ENetworkDisconnectionReason]
@@ -212,6 +213,7 @@ NETWORK_DISCONNECT_REMOTE_BADCRYPT: ENetworkDisconnectionReason
 NETWORK_DISCONNECT_REMOTE_CERTNOTTRUSTED: ENetworkDisconnectionReason
 NETWORK_DISCONNECT_UNUSUAL: ENetworkDisconnectionReason
 NETWORK_DISCONNECT_INTERNAL_ERROR: ENetworkDisconnectionReason
+NETWORK_DISCONNECT_STEAM_GROUPMEMBERSHIP: ENetworkDisconnectionReason
 NETWORK_DISCONNECT_REJECT_BADCHALLENGE: ENetworkDisconnectionReason
 NETWORK_DISCONNECT_REJECT_NOLOBBY: ENetworkDisconnectionReason
 NETWORK_DISCONNECT_REJECT_BACKGROUND_MAP: ENetworkDisconnectionReason

@@ -26,7 +26,7 @@ from . import networkbasetypes_pb2 as networkbasetypes__pb2
 from google.protobuf import descriptor_pb2 as google_dot_protobuf_dot_descriptor__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10gameevents.proto\x1a\x16networkbasetypes.proto\x1a google/protobuf/descriptor.proto\"G\n\x1c\x43MsgVDebugGameSessionIDEvent\x12\x10\n\x08\x63lientid\x18\x01 \x01(\x05\x12\x15\n\rgamesessionid\x18\x02 \x01(\t\"\x9b\x03\n\x13\x43MsgPlaceDecalEvent\x12\x1d\n\x08position\x18\x01 \x01(\x0b\x32\x0b.CMsgVector\x12\x1b\n\x06normal\x18\x02 \x01(\x0b\x32\x0b.CMsgVector\x12\x1a\n\x05saxis\x18\x03 \x01(\x0b\x32\x0b.CMsgVector\x12\x11\n\tboneindex\x18\x04 \x01(\x05\x12\x15\n\rtriangleindex\x18\r \x01(\x05\x12\r\n\x05\x66lags\x18\x05 \x01(\r\x12\r\n\x05\x63olor\x18\x06 \x01(\x07\x12\x13\n\x0brandom_seed\x18\x07 \x01(\x05\x12\x18\n\x10\x64\x65\x63\x61l_group_name\x18\x08 \x01(\r\x12\x15\n\rsize_override\x18\t \x01(\x02\x12\x1e\n\x0c\x65ntityhandle\x18\n \x01(\r:\x08\x31\x36\x37\x37\x37\x32\x31\x35\x12\x13\n\x0bmaterial_id\x18\x0b \x01(\x04\x12\x15\n\rsequence_name\x18\x0c \x01(\r\x12)\n\x14position_objectspace\x18\x0e \x01(\x0b\x32\x0b.CMsgVector\x12\'\n\x12normal_objectspace\x18\x0f \x01(\x0b\x32\x0b.CMsgVector\"1\n\x19\x43MsgClearWorldDecalsEvent\x12\x14\n\x0c\x66lagstoclear\x18\x01 \x01(\r\"2\n\x1a\x43MsgClearEntityDecalsEvent\x12\x14\n\x0c\x66lagstoclear\x18\x01 \x01(\r\"U\n\x1d\x43MsgClearDecalsForEntityEvent\x12\x14\n\x0c\x66lagstoclear\x18\x01 \x01(\r\x12\x1e\n\x0c\x65ntityhandle\x18\x02 \x01(\r:\x08\x31\x36\x37\x37\x37\x32\x31\x35\"\xf4\x01\n\x1e\x43MsgSource1LegacyGameEventList\x12\x41\n\x0b\x64\x65scriptors\x18\x01 \x03(\x0b\x32,.CMsgSource1LegacyGameEventList.descriptor_t\x1a#\n\x05key_t\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x1a\x62\n\x0c\x64\x65scriptor_t\x12\x0f\n\x07\x65ventid\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x33\n\x04keys\x18\x03 \x03(\x0b\x32%.CMsgSource1LegacyGameEventList.key_t:\x06\x80\xb5\x18\x80\x80\x02\"K\n\x1d\x43MsgSource1LegacyListenEvents\x12\x12\n\nplayerslot\x18\x01 \x01(\x05\x12\x16\n\x0e\x65ventarraybits\x18\x02 \x03(\r\"\xb8\x02\n\x1a\x43MsgSource1LegacyGameEvent\x12\x12\n\nevent_name\x18\x01 \x01(\t\x12\x0f\n\x07\x65ventid\x18\x02 \x01(\x05\x12/\n\x04keys\x18\x03 \x03(\x0b\x32!.CMsgSource1LegacyGameEvent.key_t\x12\x13\n\x0bserver_tick\x18\x04 \x01(\x05\x12\x13\n\x0bpassthrough\x18\x05 \x01(\x05\x1a\x99\x01\n\x05key_t\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\x12\n\nval_string\x18\x02 \x01(\t\x12\x11\n\tval_float\x18\x03 \x01(\x02\x12\x10\n\x08val_long\x18\x04 \x01(\x05\x12\x11\n\tval_short\x18\x05 \x01(\x05\x12\x10\n\x08val_byte\x18\x06 \x01(\x05\x12\x10\n\x08val_bool\x18\x07 \x01(\x08\x12\x12\n\nval_uint64\x18\x08 \x01(\x04\"\xa4\x01\n\x16\x43MsgSosStartSoundEvent\x12\x17\n\x0fsoundevent_guid\x18\x01 \x01(\x05\x12\x17\n\x0fsoundevent_hash\x18\x02 \x01(\x07\x12\x1f\n\x13source_entity_index\x18\x03 \x01(\x05:\x02-1\x12\x0c\n\x04seed\x18\x04 \x01(\x05\x12\x15\n\rpacked_params\x18\x05 \x01(\x0c\x12\x12\n\nstart_time\x18\x06 \x01(\x02\"0\n\x15\x43MsgSosStopSoundEvent\x12\x17\n\x0fsoundevent_guid\x18\x01 \x01(\x05\"U\n\x19\x43MsgSosStopSoundEventHash\x12\x17\n\x0fsoundevent_hash\x18\x01 \x01(\x07\x12\x1f\n\x13source_entity_index\x18\x02 \x01(\x05:\x02-1\"L\n\x1a\x43MsgSosSetSoundEventParams\x12\x17\n\x0fsoundevent_guid\x18\x01 \x01(\x05\x12\x15\n\rpacked_params\x18\x05 \x01(\x0c\"I\n\x1c\x43MsgSosSetLibraryStackFields\x12\x12\n\nstack_hash\x18\x01 \x01(\x07\x12\x15\n\rpacked_fields\x18\x05 \x01(\x0c\"\x9d\x01\n\x19\x43MsgClothStiffenAnimEvent\x12\x1f\n\x13source_entity_index\x18\x01 \x01(\x05:\x02-1\x12\x17\n\x0fvertex_set_hash\x18\x02 \x01(\x05\x12\x11\n\tintensity\x18\x03 \x01(\x02\x12\x0e\n\x06length\x18\x04 \x01(\x02\x12\x10\n\x08speed_in\x18\x05 \x01(\x02\x12\x11\n\tspeed_out\x18\x06 \x01(\x02\"\x9f\x01\n\x18\x43MsgClothEffectAnimEvent\x12\x1f\n\x13source_entity_index\x18\x01 \x01(\x05:\x02-1\x12\x18\n\x10\x65\x66\x66\x65\x63t_name_hash\x18\x02 \x01(\x05\x12\x11\n\toperation\x18\x03 \x01(\x05\x12\r\n\x05\x66lags\x18\x04 \x01(\x05\x12\x0c\n\x04tags\x18\x05 \x01(\t\x12\x18\n\x03pte\x18\x06 \x01(\x0b\x32\x0b.CMsgVector*\xea\x03\n\x0f\x45\x42\x61seGameEvents\x12 \n\x1bGE_VDebugGameSessionIDEvent\x10\xc8\x01\x12\x17\n\x12GE_PlaceDecalEvent\x10\xc9\x01\x12\x1d\n\x18GE_ClearWorldDecalsEvent\x10\xca\x01\x12\x1e\n\x19GE_ClearEntityDecalsEvent\x10\xcb\x01\x12!\n\x1cGE_ClearDecalsForEntityEvent\x10\xcc\x01\x12\"\n\x1dGE_Source1LegacyGameEventList\x10\xcd\x01\x12!\n\x1cGE_Source1LegacyListenEvents\x10\xce\x01\x12\x1e\n\x19GE_Source1LegacyGameEvent\x10\xcf\x01\x12\x1a\n\x15GE_SosStartSoundEvent\x10\xd0\x01\x12\x19\n\x14GE_SosStopSoundEvent\x10\xd1\x01\x12\x1e\n\x19GE_SosSetSoundEventParams\x10\xd2\x01\x12 \n\x1bGE_SosSetLibraryStackFields\x10\xd3\x01\x12\x1d\n\x18GE_SosStopSoundEventHash\x10\xd4\x01\x12\x1d\n\x18GE_ClothStiffenAnimEvent\x10\xd5\x01\x12\x1c\n\x17GE_ClothEffectAnimEvent\x10\xd6\x01')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10gameevents.proto\x1a\x16networkbasetypes.proto\x1a google/protobuf/descriptor.proto\"G\n\x1c\x43MsgVDebugGameSessionIDEvent\x12\x10\n\x08\x63lientid\x18\x01 \x01(\x05\x12\x15\n\rgamesessionid\x18\x02 \x01(\t\"\x9b\x03\n\x13\x43MsgPlaceDecalEvent\x12\x1d\n\x08position\x18\x01 \x01(\x0b\x32\x0b.CMsgVector\x12\x1b\n\x06normal\x18\x02 \x01(\x0b\x32\x0b.CMsgVector\x12\x1a\n\x05saxis\x18\x03 \x01(\x0b\x32\x0b.CMsgVector\x12\x11\n\tboneindex\x18\x04 \x01(\x05\x12\x15\n\rtriangleindex\x18\r \x01(\x05\x12\r\n\x05\x66lags\x18\x05 \x01(\r\x12\r\n\x05\x63olor\x18\x06 \x01(\x07\x12\x13\n\x0brandom_seed\x18\x07 \x01(\x05\x12\x18\n\x10\x64\x65\x63\x61l_group_name\x18\x08 \x01(\r\x12\x15\n\rsize_override\x18\t \x01(\x02\x12\x1e\n\x0c\x65ntityhandle\x18\n \x01(\r:\x08\x31\x36\x37\x37\x37\x32\x31\x35\x12\x13\n\x0bmaterial_id\x18\x0b \x01(\x04\x12\x15\n\rsequence_name\x18\x0c \x01(\r\x12)\n\x14position_objectspace\x18\x0e \x01(\x0b\x32\x0b.CMsgVector\x12\'\n\x12normal_objectspace\x18\x0f \x01(\x0b\x32\x0b.CMsgVector\"1\n\x19\x43MsgClearWorldDecalsEvent\x12\x14\n\x0c\x66lagstoclear\x18\x01 \x01(\r\"m\n\x18\x43MsgMoveWorldDecalsEvent\x12\x19\n\x04mins\x18\x01 \x01(\x0b\x32\x0b.CMsgVector\x12\x19\n\x04maxs\x18\x02 \x01(\x0b\x32\x0b.CMsgVector\x12\x1b\n\x06offset\x18\x03 \x01(\x0b\x32\x0b.CMsgVector\"2\n\x1a\x43MsgClearEntityDecalsEvent\x12\x14\n\x0c\x66lagstoclear\x18\x01 \x01(\r\"U\n\x1d\x43MsgClearDecalsForEntityEvent\x12\x14\n\x0c\x66lagstoclear\x18\x01 \x01(\r\x12\x1e\n\x0c\x65ntityhandle\x18\x02 \x01(\r:\x08\x31\x36\x37\x37\x37\x32\x31\x35\"\xf4\x01\n\x1e\x43MsgSource1LegacyGameEventList\x12\x41\n\x0b\x64\x65scriptors\x18\x01 \x03(\x0b\x32,.CMsgSource1LegacyGameEventList.descriptor_t\x1a#\n\x05key_t\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x1a\x62\n\x0c\x64\x65scriptor_t\x12\x0f\n\x07\x65ventid\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x33\n\x04keys\x18\x03 \x03(\x0b\x32%.CMsgSource1LegacyGameEventList.key_t:\x06\x80\xb5\x18\x80\x80\x02\"K\n\x1d\x43MsgSource1LegacyListenEvents\x12\x12\n\nplayerslot\x18\x01 \x01(\x05\x12\x16\n\x0e\x65ventarraybits\x18\x02 \x03(\r\"\xb8\x02\n\x1a\x43MsgSource1LegacyGameEvent\x12\x12\n\nevent_name\x18\x01 \x01(\t\x12\x0f\n\x07\x65ventid\x18\x02 \x01(\x05\x12/\n\x04keys\x18\x03 \x03(\x0b\x32!.CMsgSource1LegacyGameEvent.key_t\x12\x13\n\x0bserver_tick\x18\x04 \x01(\x05\x12\x13\n\x0bpassthrough\x18\x05 \x01(\x05\x1a\x99\x01\n\x05key_t\x12\x0c\n\x04type\x18\x01 \x01(\x05\x12\x12\n\nval_string\x18\x02 \x01(\t\x12\x11\n\tval_float\x18\x03 \x01(\x02\x12\x10\n\x08val_long\x18\x04 \x01(\x05\x12\x11\n\tval_short\x18\x05 \x01(\x05\x12\x10\n\x08val_byte\x18\x06 \x01(\x05\x12\x10\n\x08val_bool\x18\x07 \x01(\x08\x12\x12\n\nval_uint64\x18\x08 \x01(\x04\"\xa4\x01\n\x16\x43MsgSosStartSoundEvent\x12\x17\n\x0fsoundevent_guid\x18\x01 \x01(\x05\x12\x17\n\x0fsoundevent_hash\x18\x02 \x01(\x07\x12\x1f\n\x13source_entity_index\x18\x03 \x01(\x05:\x02-1\x12\x0c\n\x04seed\x18\x04 \x01(\x05\x12\x15\n\rpacked_params\x18\x05 \x01(\x0c\x12\x12\n\nstart_time\x18\x06 \x01(\x02\"0\n\x15\x43MsgSosStopSoundEvent\x12\x17\n\x0fsoundevent_guid\x18\x01 \x01(\x05\"U\n\x19\x43MsgSosStopSoundEventHash\x12\x17\n\x0fsoundevent_hash\x18\x01 \x01(\x07\x12\x1f\n\x13source_entity_index\x18\x02 \x01(\x05:\x02-1\"L\n\x1a\x43MsgSosSetSoundEventParams\x12\x17\n\x0fsoundevent_guid\x18\x01 \x01(\x05\x12\x15\n\rpacked_params\x18\x05 \x01(\x0c\"I\n\x1c\x43MsgSosSetLibraryStackFields\x12\x12\n\nstack_hash\x18\x01 \x01(\x07\x12\x15\n\rpacked_fields\x18\x05 \x01(\x0c\"\x9d\x01\n\x19\x43MsgClothStiffenAnimEvent\x12\x1f\n\x13source_entity_index\x18\x01 \x01(\x05:\x02-1\x12\x17\n\x0fvertex_set_hash\x18\x02 \x01(\x05\x12\x11\n\tintensity\x18\x03 \x01(\x02\x12\x0e\n\x06length\x18\x04 \x01(\x02\x12\x10\n\x08speed_in\x18\x05 \x01(\x02\x12\x11\n\tspeed_out\x18\x06 \x01(\x02\"\x9f\x01\n\x18\x43MsgClothEffectAnimEvent\x12\x1f\n\x13source_entity_index\x18\x01 \x01(\x05:\x02-1\x12\x18\n\x10\x65\x66\x66\x65\x63t_name_hash\x18\x02 \x01(\x05\x12\x11\n\toperation\x18\x03 \x01(\x05\x12\r\n\x05\x66lags\x18\x04 \x01(\x05\x12\x0c\n\x04tags\x18\x05 \x01(\t\x12\x18\n\x03pte\x18\x06 \x01(\x0b\x32\x0b.CMsgVector*\x88\x04\n\x0f\x45\x42\x61seGameEvents\x12 \n\x1bGE_VDebugGameSessionIDEvent\x10\xc8\x01\x12\x17\n\x12GE_PlaceDecalEvent\x10\xc9\x01\x12\x1d\n\x18GE_ClearWorldDecalsEvent\x10\xca\x01\x12\x1e\n\x19GE_ClearEntityDecalsEvent\x10\xcb\x01\x12!\n\x1cGE_ClearDecalsForEntityEvent\x10\xcc\x01\x12\"\n\x1dGE_Source1LegacyGameEventList\x10\xcd\x01\x12!\n\x1cGE_Source1LegacyListenEvents\x10\xce\x01\x12\x1e\n\x19GE_Source1LegacyGameEvent\x10\xcf\x01\x12\x1a\n\x15GE_SosStartSoundEvent\x10\xd0\x01\x12\x19\n\x14GE_SosStopSoundEvent\x10\xd1\x01\x12\x1e\n\x19GE_SosSetSoundEventParams\x10\xd2\x01\x12 \n\x1bGE_SosSetLibraryStackFields\x10\xd3\x01\x12\x1d\n\x18GE_SosStopSoundEventHash\x10\xd4\x01\x12\x1d\n\x18GE_ClothStiffenAnimEvent\x10\xd5\x01\x12\x1c\n\x17GE_ClothEffectAnimEvent\x10\xd6\x01\x12\x1c\n\x17GE_MoveWorldDecalsEvent\x10\xd7\x01')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,42 +35,44 @@ if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST']._loaded_options = None
   _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST']._serialized_options = b'\200\265\030\200\200\002'
-  _globals['_EBASEGAMEEVENTS']._serialized_start=2174
-  _globals['_EBASEGAMEEVENTS']._serialized_end=2664
+  _globals['_EBASEGAMEEVENTS']._serialized_start=2285
+  _globals['_EBASEGAMEEVENTS']._serialized_end=2805
   _globals['_CMSGVDEBUGGAMESESSIONIDEVENT']._serialized_start=78
   _globals['_CMSGVDEBUGGAMESESSIONIDEVENT']._serialized_end=149
   _globals['_CMSGPLACEDECALEVENT']._serialized_start=152
   _globals['_CMSGPLACEDECALEVENT']._serialized_end=563
   _globals['_CMSGCLEARWORLDDECALSEVENT']._serialized_start=565
   _globals['_CMSGCLEARWORLDDECALSEVENT']._serialized_end=614
-  _globals['_CMSGCLEARENTITYDECALSEVENT']._serialized_start=616
-  _globals['_CMSGCLEARENTITYDECALSEVENT']._serialized_end=666
-  _globals['_CMSGCLEARDECALSFORENTITYEVENT']._serialized_start=668
-  _globals['_CMSGCLEARDECALSFORENTITYEVENT']._serialized_end=753
-  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST']._serialized_start=756
-  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST']._serialized_end=1000
-  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST_KEY_T']._serialized_start=857
-  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST_KEY_T']._serialized_end=892
-  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST_DESCRIPTOR_T']._serialized_start=894
-  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST_DESCRIPTOR_T']._serialized_end=992
-  _globals['_CMSGSOURCE1LEGACYLISTENEVENTS']._serialized_start=1002
-  _globals['_CMSGSOURCE1LEGACYLISTENEVENTS']._serialized_end=1077
-  _globals['_CMSGSOURCE1LEGACYGAMEEVENT']._serialized_start=1080
-  _globals['_CMSGSOURCE1LEGACYGAMEEVENT']._serialized_end=1392
-  _globals['_CMSGSOURCE1LEGACYGAMEEVENT_KEY_T']._serialized_start=1239
-  _globals['_CMSGSOURCE1LEGACYGAMEEVENT_KEY_T']._serialized_end=1392
-  _globals['_CMSGSOSSTARTSOUNDEVENT']._serialized_start=1395
-  _globals['_CMSGSOSSTARTSOUNDEVENT']._serialized_end=1559
-  _globals['_CMSGSOSSTOPSOUNDEVENT']._serialized_start=1561
-  _globals['_CMSGSOSSTOPSOUNDEVENT']._serialized_end=1609
-  _globals['_CMSGSOSSTOPSOUNDEVENTHASH']._serialized_start=1611
-  _globals['_CMSGSOSSTOPSOUNDEVENTHASH']._serialized_end=1696
-  _globals['_CMSGSOSSETSOUNDEVENTPARAMS']._serialized_start=1698
-  _globals['_CMSGSOSSETSOUNDEVENTPARAMS']._serialized_end=1774
-  _globals['_CMSGSOSSETLIBRARYSTACKFIELDS']._serialized_start=1776
-  _globals['_CMSGSOSSETLIBRARYSTACKFIELDS']._serialized_end=1849
-  _globals['_CMSGCLOTHSTIFFENANIMEVENT']._serialized_start=1852
-  _globals['_CMSGCLOTHSTIFFENANIMEVENT']._serialized_end=2009
-  _globals['_CMSGCLOTHEFFECTANIMEVENT']._serialized_start=2012
-  _globals['_CMSGCLOTHEFFECTANIMEVENT']._serialized_end=2171
+  _globals['_CMSGMOVEWORLDDECALSEVENT']._serialized_start=616
+  _globals['_CMSGMOVEWORLDDECALSEVENT']._serialized_end=725
+  _globals['_CMSGCLEARENTITYDECALSEVENT']._serialized_start=727
+  _globals['_CMSGCLEARENTITYDECALSEVENT']._serialized_end=777
+  _globals['_CMSGCLEARDECALSFORENTITYEVENT']._serialized_start=779
+  _globals['_CMSGCLEARDECALSFORENTITYEVENT']._serialized_end=864
+  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST']._serialized_start=867
+  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST']._serialized_end=1111
+  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST_KEY_T']._serialized_start=968
+  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST_KEY_T']._serialized_end=1003
+  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST_DESCRIPTOR_T']._serialized_start=1005
+  _globals['_CMSGSOURCE1LEGACYGAMEEVENTLIST_DESCRIPTOR_T']._serialized_end=1103
+  _globals['_CMSGSOURCE1LEGACYLISTENEVENTS']._serialized_start=1113
+  _globals['_CMSGSOURCE1LEGACYLISTENEVENTS']._serialized_end=1188
+  _globals['_CMSGSOURCE1LEGACYGAMEEVENT']._serialized_start=1191
+  _globals['_CMSGSOURCE1LEGACYGAMEEVENT']._serialized_end=1503
+  _globals['_CMSGSOURCE1LEGACYGAMEEVENT_KEY_T']._serialized_start=1350
+  _globals['_CMSGSOURCE1LEGACYGAMEEVENT_KEY_T']._serialized_end=1503
+  _globals['_CMSGSOSSTARTSOUNDEVENT']._serialized_start=1506
+  _globals['_CMSGSOSSTARTSOUNDEVENT']._serialized_end=1670
+  _globals['_CMSGSOSSTOPSOUNDEVENT']._serialized_start=1672
+  _globals['_CMSGSOSSTOPSOUNDEVENT']._serialized_end=1720
+  _globals['_CMSGSOSSTOPSOUNDEVENTHASH']._serialized_start=1722
+  _globals['_CMSGSOSSTOPSOUNDEVENTHASH']._serialized_end=1807
+  _globals['_CMSGSOSSETSOUNDEVENTPARAMS']._serialized_start=1809
+  _globals['_CMSGSOSSETSOUNDEVENTPARAMS']._serialized_end=1885
+  _globals['_CMSGSOSSETLIBRARYSTACKFIELDS']._serialized_start=1887
+  _globals['_CMSGSOSSETLIBRARYSTACKFIELDS']._serialized_end=1960
+  _globals['_CMSGCLOTHSTIFFENANIMEVENT']._serialized_start=1963
+  _globals['_CMSGCLOTHSTIFFENANIMEVENT']._serialized_end=2120
+  _globals['_CMSGCLOTHEFFECTANIMEVENT']._serialized_start=2123
+  _globals['_CMSGCLOTHEFFECTANIMEVENT']._serialized_end=2282
 # @@protoc_insertion_point(module_scope)

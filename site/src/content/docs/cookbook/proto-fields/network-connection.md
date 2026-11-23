@@ -22,7 +22,7 @@ Expand any message to inspect all fields.
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>ENetworkDisconnectionReason</code> — values: 121</summary>
+<summary><code>ENetworkDisconnectionReason</code> — values: 122</summary>
 
 - Parent: *(top-level)*
 
@@ -112,6 +112,7 @@ Expand any enum to inspect all values.
 | `NETWORK_DISCONNECT_REMOTE_CERTNOTTRUSTED` | 83 |
 | `NETWORK_DISCONNECT_UNUSUAL` | 84 |
 | `NETWORK_DISCONNECT_INTERNAL_ERROR` | 85 |
+| `NETWORK_DISCONNECT_STEAM_GROUPMEMBERSHIP` | 86 |
 | `NETWORK_DISCONNECT_REJECT_BADCHALLENGE` | 128 |
 | `NETWORK_DISCONNECT_REJECT_NOLOBBY` | 129 |
 | `NETWORK_DISCONNECT_REJECT_BACKGROUND_MAP` | 130 |

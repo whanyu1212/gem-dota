@@ -142,6 +142,7 @@ class EDotaClientMessages(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DOTA_CM_ChooseAghanimUpgrade: _ClassVar[EDotaClientMessages]
     DOTA_CM_ChooseAbilityImbue: _ClassVar[EDotaClientMessages]
     DOTA_CM_NetworkStats: _ClassVar[EDotaClientMessages]
+    DOTA_CM_BrewmasterAssignScepterItem: _ClassVar[EDotaClientMessages]
 DOTA_CM_MapLine: EDotaClientMessages
 DOTA_CM_AspectRatio: EDotaClientMessages
 DOTA_CM_MapPing: EDotaClientMessages
@@ -270,6 +271,7 @@ DOTA_CM_ChooseDeityBlessing: EDotaClientMessages
 DOTA_CM_ChooseAghanimUpgrade: EDotaClientMessages
 DOTA_CM_ChooseAbilityImbue: EDotaClientMessages
 DOTA_CM_NetworkStats: EDotaClientMessages
+DOTA_CM_BrewmasterAssignScepterItem: EDotaClientMessages
 
 class CDOTAClientMsg_MapPing(_message.Message):
     __slots__ = ("location_ping",)
@@ -1290,6 +1292,14 @@ class CDOTAClientMsg_ChooseAbilityImbue(_message.Message):
     ABILITY_TO_IMBUE_FIELD_NUMBER: _ClassVar[int]
     ability_to_imbue: int
     def __init__(self, ability_to_imbue: _Optional[int] = ...) -> None: ...
+
+class CDOTAClientMsg_BrewmasterAssignScepterItem(_message.Message):
+    __slots__ = ("brewling", "item_entindex")
+    BREWLING_FIELD_NUMBER: _ClassVar[int]
+    ITEM_ENTINDEX_FIELD_NUMBER: _ClassVar[int]
+    brewling: int
+    item_entindex: int
+    def __init__(self, brewling: _Optional[int] = ..., item_entindex: _Optional[int] = ...) -> None: ...
 
 class CDOTAClientMsg_NetworkStats(_message.Message):
     __slots__ = ("tick", "missed_snapshot_rate")

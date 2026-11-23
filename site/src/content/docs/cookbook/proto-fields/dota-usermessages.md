@@ -3029,7 +3029,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>DOTA_CHAT_MESSAGE</code> — values: 118</summary>
+<summary><code>DOTA_CHAT_MESSAGE</code> — values: 119</summary>
 
 - Parent: *(top-level)*
 
@@ -3153,6 +3153,7 @@ Expand any enum to inspect all values.
 | `CHAT_MESSAGE_STONE_OF_RECALL_USED` | 124 |
 | `CHAT_MESSAGE_DEITY_BLESSING` | 125 |
 | `CHAT_MESSAGE_SMOKE_ACTIVATED` | 126 |
+| `CHAT_MESSAGE_HORN_OF_BATTLE_USED` | 128 |
 
 </details>
 

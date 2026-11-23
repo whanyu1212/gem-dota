@@ -4,7 +4,7 @@
 
 - Module: `event_gcmessages_client_pb2`
 - Imports: **4**
-- Messages: **19** (top-level: 19)
+- Messages: **20** (top-level: 20)
 - Enums: **9** (top-level: 1)
 
 ## Imports
@@ -200,7 +200,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCDevDeleteEventActions</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgClientToGCDevResetEventActions</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -215,14 +215,14 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCDevDeleteEventActionsResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 1</summary>
+<summary><code>CMsgClientToGCDevResetEventActionsResponse</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 1</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
 
 | Tag | Field | Type | Label | Oneof | Notes |
 |---:|---|---|---|---|---|
-| 1 | `result` | `.CMsgClientToGCDevDeleteEventActionsResponse.EResponse` | `optional` |  | default = k_eInternalError |
+| 1 | `result` | `.CMsgClientToGCDevResetEventActionsResponse.EResponse` | `optional` |  | default = k_eInternalError |
 
 </details>
 
@@ -241,6 +241,18 @@ Expand any message to inspect all fields.
 | 5 | `suppress_rewards` | `bool` | `optional` |  |  |
 | 6 | `claim_data` | `bytes` | `optional` |  |  |
 | 7 | `consume_item_id` | `uint64` | `optional` |  | boxed_type = "itemid_t" |
+
+</details>
+
+<details>
+<summary><code>CMsgEventActionGrantLootListRewardData</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `item_def` | `uint32` | `repeated` |  | boxed_type = "item_definition_index_t" |
 
 </details>
 
@@ -295,8 +307,8 @@ Expand any enum to inspect all values.
 | `k_EMsgClientToGCDevResetEventStateResponse` | 15008 |
 | `k_EMsgClientToGCDevGrantEventAction` | 15009 |
 | `k_EMsgClientToGCDevGrantEventActionResponse` | 15010 |
-| `k_EMsgClientToGCDevDeleteEventActions` | 15011 |
-| `k_EMsgClientToGCDevDeleteEventActionsResponse` | 15012 |
+| `k_EMsgClientToGCDevResetEventActions` | 15011 |
+| `k_EMsgClientToGCDevResetEventActionsResponse` | 15012 |
 | `k_EMsgClientToGCClaimEventAction` | 15020 |
 | `k_EMsgClientToGCClaimEventActionResponse` | 15021 |
 | `k_EMsgClientToGCGetPeriodicResource` | 15100 |
@@ -388,7 +400,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>CMsgClientToGCDevGrantEventActionResponse.EResponse</code> — values: 6</summary>
+<summary><code>CMsgClientToGCDevGrantEventActionResponse.EResponse</code> — values: 10</summary>
 
 - Parent: `CMsgClientToGCDevGrantEventActionResponse`
 
@@ -400,13 +412,17 @@ Expand any enum to inspect all values.
 | `k_eDisabled` | 3 |
 | `k_eTimeout` | 4 |
 | `k_eNotAllowed` | 5 |
+| `k_eInvalidEvent` | 6 |
+| `k_eInvalidAccount` | 7 |
+| `k_eGrantFailed` | 8 |
+| `k_eNotGranted` | 9 |
 
 </details>
 
 <details>
-<summary><code>CMsgClientToGCDevDeleteEventActionsResponse.EResponse</code> — values: 6</summary>
+<summary><code>CMsgClientToGCDevResetEventActionsResponse.EResponse</code> — values: 8</summary>
 
-- Parent: `CMsgClientToGCDevDeleteEventActionsResponse`
+- Parent: `CMsgClientToGCDevResetEventActionsResponse`
 
 | Name | Number |
 |---|---:|
@@ -416,11 +432,13 @@ Expand any enum to inspect all values.
 | `k_eDisabled` | 3 |
 | `k_eTimeout` | 4 |
 | `k_eNotAllowed` | 5 |
+| `k_eInvalidEvent` | 6 |
+| `k_eInvalidAccount` | 7 |
 
 </details>
 
 <details>
-<summary><code>CMsgClientToGCClaimEventActionResponse.EResponse</code> — values: 6</summary>
+<summary><code>CMsgClientToGCClaimEventActionResponse.EResponse</code> — values: 16</summary>
 
 - Parent: `CMsgClientToGCClaimEventActionResponse`
 
@@ -432,5 +450,15 @@ Expand any enum to inspect all values.
 | `k_eDisabled` | 3 |
 | `k_eTimeout` | 4 |
 | `k_eNotAllowed` | 5 |
+| `k_eInvalidAction` | 6 |
+| `k_eInvalidEvent` | 7 |
+| `k_eEventNotActive` | 8 |
+| `k_eEventNotOwned` | 9 |
+| `k_eInsufficientLevel` | 10 |
+| `k_eInsufficientPoints` | 11 |
+| `k_eAlreadyClaimed` | 12 |
+| `k_eInvalidScoreMode` | 13 |
+| `k_eRequiresSubscription` | 14 |
+| `k_eInvalidItem` | 15 |
 
 </details>

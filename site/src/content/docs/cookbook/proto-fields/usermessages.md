@@ -4,7 +4,7 @@
 
 - Module: `usermessages_pb2`
 - Imports: **2**
-- Messages: **109** (top-level: 56)
+- Messages: **111** (top-level: 57)
 - Enums: **7** (top-level: 5)
 
 ## Imports
@@ -497,7 +497,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CUserMsg_ParticleManager</code> — fields: 43; oneofs: 0; nested messages: 41; nested enums: 0</summary>
+<summary><code>CUserMsg_ParticleManager</code> — fields: 44; oneofs: 0; nested messages: 42; nested enums: 0</summary>
 
 - Parent: *(top-level)*
 - Oneofs: *(none)*
@@ -547,6 +547,7 @@ Expand any message to inspect all fields.
 | 42 | `remove_fan` | `.CUserMsg_ParticleManager.RemoveFan` | `optional` |  |  |
 | 43 | `create_smoke_grid` | `.CUserMsg_ParticleManager.CreateSmokeGrid` | `optional` |  |  |
 | 44 | `set_override_texture` | `.CUserMsg_ParticleManager.SetOverrideTexture` | `optional` |  |  |
+| 45 | `set_control_point_client_snapshot` | `.CUserMsg_ParticleManager.SetControlPointClientSnapshot` | `optional` |  |  |
 
 </details>
 
@@ -869,6 +870,19 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
+<summary><code>CUserMsg_ParticleManager.SetControlPointClientSnapshot</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: `CUserMsg_ParticleManager`
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `control_point` | `int32` | `optional` |  |  |
+| 2 | `snapshot_name` | `string` | `optional` |  |  |
+
+</details>
+
+<details>
 <summary><code>CUserMsg_ParticleManager.SetSceneObjectGenericFlag</code> — fields: 1; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CUserMsg_ParticleManager`
@@ -1038,7 +1052,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CUserMsg_ParticleManager.CreatePhysicsSim</code> — fields: 3; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CUserMsg_ParticleManager.CreatePhysicsSim</code> — fields: 4; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CUserMsg_ParticleManager`
 - Oneofs: *(none)*
@@ -1048,6 +1062,7 @@ Expand any message to inspect all fields.
 | 1 | `prop_group_name` | `string` | `optional` |  |  |
 | 2 | `use_high_quality_simulation` | `bool` | `optional` |  |  |
 | 3 | `max_particle_count` | `uint32` | `optional` |  |  |
+| 4 | `reuse_existing_sims` | `bool` | `optional` |  |  |
 
 </details>
 
@@ -1642,12 +1657,25 @@ Expand any message to inspect all fields.
 
 </details>
 
+<details>
+<summary><code>CUserMessageEntitySpawnGroupChanged</code> — fields: 2; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+
+- Parent: *(top-level)*
+- Oneofs: *(none)*
+
+| Tag | Field | Type | Label | Oneof | Notes |
+|---:|---|---|---|---|---|
+| 1 | `spawn_group_handle` | `uint32` | `optional` |  |  |
+| 2 | `entity_handles` | `uint32` | `repeated` |  |  |
+
+</details>
+
 ## Enums
 
 Expand any enum to inspect all values.
 
 <details>
-<summary><code>EBaseUserMessages</code> — values: 53</summary>
+<summary><code>EBaseUserMessages</code> — values: 54</summary>
 
 - Parent: *(top-level)*
 
@@ -1705,6 +1733,7 @@ Expand any enum to inspect all values.
 | `UM_UsageReport` | 168 |
 | `UM_RemoteServerCommand` | 169 |
 | `UM_RemoteServerResponse` | 170 |
+| `UM_EntitySpawnGroupChanged` | 171 |
 | `UM_MAX_BASE` | 200 |
 
 </details>
@@ -1740,7 +1769,7 @@ Expand any enum to inspect all values.
 </details>
 
 <details>
-<summary><code>PARTICLE_MESSAGE</code> — values: 42</summary>
+<summary><code>PARTICLE_MESSAGE</code> — values: 43</summary>
 
 - Parent: *(top-level)*
 
@@ -1788,6 +1817,7 @@ Expand any enum to inspect all values.
 | `GAME_PARTICLE_MANAGER_EVENT_REMOVE_FAN` | 39 |
 | `GAME_PARTICLE_MANAGER_EVENT_CREATE_SMOKE_GRID` | 40 |
 | `GAME_PARTICLE_MANAGER_EVENT_SET_OVERRIDE_TEXTURE` | 41 |
+| `GAME_PARTICLE_MANAGER_EVENT_SET_CONTROL_POINT_CLIENT_SNAPSHOT` | 42 |
 
 </details>
 

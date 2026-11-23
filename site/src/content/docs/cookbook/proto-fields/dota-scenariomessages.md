@@ -271,7 +271,7 @@ Expand any message to inspect all fields.
 </details>
 
 <details>
-<summary><code>CMsgDotaScenario.Hero</code> — fields: 70; oneofs: 0; nested messages: 0; nested enums: 0</summary>
+<summary><code>CMsgDotaScenario.Hero</code> — fields: 71; oneofs: 0; nested messages: 0; nested enums: 0</summary>
 
 - Parent: `CMsgDotaScenario`
 - Oneofs: *(none)*
@@ -348,6 +348,7 @@ Expand any message to inspect all fields.
 | 157 | `refresher_charges_used` | `int32` | `optional` |  |  |
 | 158 | `summon_kill_gold` | `int32` | `optional` |  |  |
 | 159 | `wisdom_shrines_taken` | `int32` | `optional` |  |  |
+| 160 | `midas_gold` | `int32` | `optional` |  |  |
 
 </details>
 
