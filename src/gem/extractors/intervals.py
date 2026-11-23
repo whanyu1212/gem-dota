@@ -229,10 +229,10 @@ class IntervalExtractor:
         self._last_emitted_tick: int | None = None
         self._initial_boundary_pending = False
         # Minute-zero candidates: one batch read at the tick start where each raw
-        # (unshifted) clock second begins, kept until minute zero is emitted.
-        # OpenDota's t=0 interval is the one read when the raw clock first
-        # reaches the rounded game start, which can precede the tick where the
-        # start itself becomes visible. See _on_tick_start.
+        # (unshifted) second of OpenDota's tick-start clock begins, kept until
+        # minute zero is emitted. OpenDota's t=0 interval is the one read when
+        # that clock first reaches the rounded game start, which can precede the
+        # tick where the start itself becomes visible. See _on_tick_start.
         self._minute_zero_candidates: dict[int, list[IntervalSnapshot]] = {}
         self._last_raw_time_s: int | None = None
         self._ended = False
@@ -394,8 +394,16 @@ class IntervalExtractor:
             self._pending_tick_start_boundary = None
 
     def _record_minute_zero_candidate(self) -> None:
-        """Read a candidate minute-zero batch when a new raw clock second begins."""
-        raw_time_s = getattr(self._parser, "raw_game_time_s", None)
+        """Read a candidate minute-zero batch when a new tick-start second begins.
+
+        OpenDota's interval clock is set in ``@OnTickStart`` from the network
+        tick the previous tick left behind (odota/parser Parse.java), so a new
+        second begins one network tick after the replay's own clock shows it.
+        The difference matters when gold is earned on that tick: 7.42 pays the
+        first passive gold at 0:00, which OpenDota's ``gold_t[0]`` includes
+        (replay 9101479361).
+        """
+        raw_time_s = getattr(self._parser, "opendota_tick_start_raw_s", None)
         if raw_time_s is None or raw_time_s == self._last_raw_time_s:
             return
         self._last_raw_time_s = raw_time_s
