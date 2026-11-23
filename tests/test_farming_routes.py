@@ -13,6 +13,7 @@ from gem.analysis.farming import (
     build_farming_routes,
 )
 from gem.combat.log import CombatLogEntry, CombatLogType
+from gem.extractors.neutral_camps import NeutralCreep
 from gem.results.models import ParsedMatch, ParsedPlayer
 
 
@@ -132,6 +133,24 @@ def test_only_pregame_positions_are_unavailable(monkeypatch: pytest.MonkeyPatch)
 
     assert route.status == "unavailable"
     assert route.status_reasons == ["in_game_position_samples_unavailable"]
+
+
+@pytest.mark.parametrize(("spawned", "expected"), [((1,), 1), ((2,), 2), ((), 2)])
+def test_only_spawned_camps_are_zones(
+    monkeypatch: pytest.MonkeyPatch, spawned: tuple[int, ...], expected: int
+) -> None:
+    """Of two overlapping camps from different patches, the one that spawned wins.
+
+    With no spawn record (JSON from before gem kept one), every camp stays a candidate and
+    the nearer one wins.
+    """
+    monkeypatch.setattr(farming, "load_camp_zones", lambda: _catalog(_zone(1, 0), _zone(2, 6)))
+    creeps = [NeutralCreep(camp_id=camp_id, spawned_tick=0) for camp_id in spawned]
+    match = ParsedMatch(players=[_player([(0, 5.0, 0.0)])], neutral_creeps=creeps)
+
+    route = build_farming_routes(match)[0]
+
+    assert [point.camp_id for point in route.points] == [expected]
 
 
 def test_overlap_prefers_current_zone_then_normalized_distance_and_id(
@@ -391,3 +410,17 @@ def test_neutral_evidence_window_is_inclusive_and_per_hero() -> None:
     )
 
     assert (kills, damage) == (2, 40)
+
+
+@pytest.mark.parametrize(
+    ("spawned", "patch"), [((1, 5), "7.41"), ((1, 29), "7.42"), ((1,), None), ((), None)]
+)
+def test_route_reports_the_spawned_camps_patch(spawned: tuple[int, ...], patch: str | None) -> None:
+    """The camps a replay spawned name its map's patch; camps on every patch name none."""
+    creeps = [NeutralCreep(camp_id=camp_id, spawned_tick=0) for camp_id in spawned]
+    match = ParsedMatch(players=[_player([(0, 8071.0, 15831.0)])], neutral_creeps=creeps)
+
+    route = build_farming_routes(match)[0]
+
+    assert route.camp_map_patch == patch
+    assert route.camp_topology_patch == patch

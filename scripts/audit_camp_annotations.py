@@ -184,6 +184,13 @@ def audit_match(
     max_camp_distance: float = DEFAULT_MAX_CAMP_DISTANCE,
     gold_window_ticks: int = DEFAULT_GOLD_WINDOW_TICKS,
 ) -> MatchAuditReport:
+    # The catalog spans patches whose camps overlap; audit the camps this replay's
+    # spawners produced creeps at.
+    spawned = {
+        creep.camp_id for creep in getattr(match, "neutral_creeps", []) if creep.camp_id is not None
+    }
+    if spawned:
+        zones = tuple(zone for zone in zones if zone.id in spawned)
     positions_by_hero = _positions_by_hero(match)
     observations: list[NeutralObservation] = []
     skipped_no_position = 0

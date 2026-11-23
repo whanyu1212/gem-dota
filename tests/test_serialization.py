@@ -14,6 +14,7 @@ from gem.analysis.fight_positioning import build_fight_positioning
 from gem.analysis.roshan import build_rosh_conversions
 from gem.combat.log import CombatLogEntry, CombatLogSource, CombatLogType
 from gem.extractors.fights import Fight, FightPlayer, OpenDotaTeamfight
+from gem.extractors.neutral_camps import NeutralCreep
 from gem.extractors.objectives import AegisEvent, RoshanKill
 from gem.extractors.runes import Rune
 from gem.results.models import (
@@ -80,10 +81,11 @@ class TestSerializationHelpers:
             team=2,
             position_log=[(0, 8647.0, 15564.0), (30, 8650.0, 15564.0)],
         )
+        # Camp 5 spawns only on 7.41, so the routes report that patch.
+        spawned = [NeutralCreep(camp_id=camp_id, spawned_tick=0) for camp_id in (1, 5)]
+        match = ParsedMatch(players=[player], neutral_creeps=spawned)
 
-        decoded = json.loads(
-            json.dumps(gem.to_dict(build_farming_routes(ParsedMatch(players=[player]))))
-        )
+        decoded = json.loads(json.dumps(gem.to_dict(build_farming_routes(match))))
         segment = decoded[0]["segments"][0]
 
         assert segment["start_reason"] == "zone_entry"
@@ -91,7 +93,7 @@ class TestSerializationHelpers:
         assert segment["evidence_strength"] == "transit_like"
         assert segment["window_xp_delta"] is None
         assert segment["camp_owner_team"] == 2
-        assert segment["camp_catalog_version"] == 4
+        assert segment["camp_catalog_version"] == 5
         assert segment["camp_map_patch"] == "7.41"
         assert segment["camp_topology_patch"] == "7.41"
         assert "context" not in segment  # removed in 0.13

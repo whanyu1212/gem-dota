@@ -17,6 +17,7 @@ from gem.extractors.fights import (
     OpenDotaTeamfight,
     OpenDotaTeamfightPlayer,
 )
+from gem.extractors.neutral_camps import NeutralCreep
 from gem.extractors.objectives import (
     AegisEvent,
     BannerPlant,
@@ -520,7 +521,9 @@ class TestBuildDataframes:
             team=2,
             position_log=[(0, 8647.0, 15564.0), (150, 8650.0, 15564.0)],
         )
-        match = ParsedMatch(players=[player])
+        # Camp 5 spawns only on 7.41, so the routes report that patch.
+        spawned = [NeutralCreep(camp_id=camp_id, spawned_tick=0) for camp_id in (1, 5)]
+        match = ParsedMatch(players=[player], neutral_creeps=spawned)
 
         dfs = build_dataframes(match, include="analysis")
         assert_schemas_match_empty_match(dfs)
@@ -528,7 +531,7 @@ class TestBuildDataframes:
         segment = dfs["farming_route_segments"].iloc[0]
         points = dfs["farming_route_points"]
 
-        assert route["camp_catalog_version"] == 4
+        assert route["camp_catalog_version"] == 5
         assert route["camp_map_patch"] == "7.41"
         assert route["camp_topology_patch"] == "7.41"
         assert route["status"] == "partial"
@@ -539,7 +542,7 @@ class TestBuildDataframes:
         assert pd.isna(segment["window_total_earned_gold_delta"])
         assert segment["camp_owner_team"] == 2
         assert segment["camp_lane"] == "top"
-        assert segment["camp_catalog_version"] == 4
+        assert segment["camp_catalog_version"] == 5
         assert segment["camp_map_patch"] == "7.41"
         assert segment["camp_topology_patch"] == "7.41"
         assert not any(

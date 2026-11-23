@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from gem.combat.log import CombatLogEntry
+from gem.extractors.neutral_camps import NeutralCreep
 from gem.results.models import ParsedMatch, ParsedPlayer
 from scripts.audit_camp_annotations import (
     CampZone,
@@ -189,6 +190,32 @@ def test_collect_neutral_observations_prefers_combat_log_location() -> None:
 
     assert observations[0].camp_id == 2
     assert observations[0].position_source == "combat_log"
+
+
+def test_audit_match_uses_only_spawned_camps() -> None:
+    """A death between two overlapping camps goes to the one that spawned, not the nearer."""
+    match = ParsedMatch(
+        match_id=123,
+        neutral_creeps=[NeutralCreep(camp_id=1, spawned_tick=0)],
+        combat_log=[
+            CombatLogEntry(
+                tick=100,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_neutral_tadpole",
+                location_x=180.0,
+                location_y=100.0,
+            ),
+        ],
+    )
+    zones = (
+        CampZone(id=1, type="small", x=100.0, y=100.0, shape="ellipse", rx=200.0, ry=200.0),
+        CampZone(id=2, type="small", x=200.0, y=100.0, shape="ellipse", rx=200.0, ry=200.0),
+    )
+
+    report = audit_match(match, zones, max_position_delta_ticks=30)
+
+    assert [observation.camp_id for observation in report.observations] == [1]
 
 
 def test_summarize_camps_flags_inferred_type_mismatch() -> None:
