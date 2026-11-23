@@ -425,7 +425,9 @@ totals:
 
 - earned by source (`m_iHeroKillGold`, `m_iCreepKillGold`, `m_iNeutralKillGold`,
   `m_iIncomeGold`, `m_iBuildingGold`, `m_iRoshanGold`, `m_iBountyGold`, …, plus
-  `m_iSharedGold`);
+  `m_iSharedGold`). Later schemas add `m_iSummonKillGold`, `m_iMidasGold` (7.42)
+  and two `m_iExperimental*Gold` fields; gem reads these as optional sources,
+  `None` where a replay lacks the field;
 - spent (`m_iGoldSpentOnItems`, `…OnConsumables`, `…OnSupport`, `…OnBuybacks`);
 - lost (`m_iGoldLostToDeath`).
 
@@ -434,9 +436,11 @@ embedded `CMsgDOTAMatch` postgame summary, checked on all 9 local fixtures (90
 players):
 
 - items + consumables == summary `gold_spent`, 90/90;
-- the earned sources minus shared gold == `m_iTotalEarnedGold`. This failed only
-  on 8974053011, where the combat log has a new gold reason 22 that has no ledger
-  field;
+- the earned sources minus shared gold == `m_iTotalEarnedGold`, once
+  `m_iSummonKillGold` is counted: 80/80 players on the 7.41 and 7.42 fixtures
+  (HY-575). Midas and the experimental fields were 0 on every fixture, so their
+  place in the sum is unverified. (Before HY-575 this failed on 8974053011,
+  blamed on combat-log gold reason 22; the gap was summon-kill gold.);
 - support spend is a subset of items + consumables.
 
 **Exact buyback cost.** `m_iGoldSpentOnBuybacks` rises on the same tick as the

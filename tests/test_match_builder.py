@@ -2917,7 +2917,7 @@ class TestGoldLedgerAssembly:
         from gem.extractors.intervals import LEDGER_FIELDS, IntervalTimeSeries
         from gem.results.assembly import _gold_ledger
 
-        values = tuple(range(len(LEDGER_FIELDS)))
+        values = (tuple(range(len(LEDGER_FIELDS))), (1326, None, 0, 0))
         complete = IntervalTimeSeries(player_id=0, ticks=[10, 20], times=[0, 60])
         complete.ledger = [values, values]
         ledger = _gold_ledger(complete, (30, 90, values))
@@ -2926,6 +2926,9 @@ class TestGoldLedgerAssembly:
         assert ledger.final is not None
         assert (ledger.final.tick, ledger.final.hero_kill_gold) == (30, 0)
         assert ledger.final.lost_to_death == len(LEDGER_FIELDS) - 1
+        # The later sources keep None where the replay lacks the field.
+        assert (ledger.final.summon_kill_gold, ledger.final.midas_gold) == (1326, None)
+        assert ledger.final.experimental_gold == 0
 
         partial = IntervalTimeSeries(player_id=0, ticks=[10, 20], times=[0, 60])
         partial.ledger = [values, None]
@@ -2946,7 +2949,7 @@ class TestGoldLedgerAssembly:
         interval_ext.all_snapshots = []
         ledger = dict.fromkeys((attr for attr, _ in LEDGER_FIELDS), 0)
         ledger.update(spent_on_items=26175, spent_on_consumables=985, spent_on_buybacks=1836)
-        interval_ext.final_ledgers = {0: (7000, 2400, tuple(ledger.values()))}
+        interval_ext.final_ledgers = {0: (7000, 2400, (tuple(ledger.values()), (0, 0, 0, 0)))}
         interval_ext.player_for_team_slot.side_effect = lambda team, slot: 0
 
         match = build_parsed_match(

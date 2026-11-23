@@ -265,9 +265,10 @@ if ledger is not None and ledger.final is not None:
         print(snap.game_time_s, snap.hero_kill_gold)
 ```
 
-The earned sources sum to the player's total earned gold, except for a gold source
-a newer patch adds before the replay schema has a field for it. `shared_gold` is
-already counted in them, and `spent_on_support` is already part of items and
+The earned sources, including `summon_kill_gold`, sum to the player's total earned
+gold. `summon_kill_gold`, `midas_gold` (patch 7.42) and the two `experimental*`
+fields are `None` on a replay whose schema lacks them. `shared_gold` is already
+counted in the sources, and `spent_on_support` is already part of items and
 consumables. In DataFrames, pass `include="gold_ledger"` for the
 `player_gold_ledger` and `player_gold_ledger_minutes` tables.
 

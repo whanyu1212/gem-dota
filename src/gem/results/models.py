@@ -432,11 +432,11 @@ class GoldLedgerSnapshot:
     - ``spent_on_items + spent_on_consumables`` equals the summary's
       ``gold_spent`` (and OpenDota's).
     - ``lost_to_death`` equals the summary's ``gold_lost_to_death``.
-    - The earned sources (``hero_kill_gold`` through ``other_gold``) sum to the
-      team data's ``m_iTotalEarnedGold``. ``shared_gold`` overlaps them and is
-      not part of that sum. A gold source the game adds before the replay
-      schema has a field for it is missing from the sum (seen once, on a newer
-      patch).
+    - The earned sources (``hero_kill_gold`` through ``other_gold``, plus
+      ``summon_kill_gold``) sum to the team data's ``m_iTotalEarnedGold`` for
+      every player on the patch 7.41 and 7.42 fixtures. ``shared_gold`` overlaps
+      them and is not part of that sum. ``midas_gold`` and the two experimental
+      fields were 0 on every fixture, so whether they belong in it is unverified.
     - ``spent_on_support`` is part of ``spent_on_items + spent_on_consumables``,
       not a separate category.
 
@@ -465,6 +465,14 @@ class GoldLedgerSnapshot:
             a subset of the two above.
         spent_on_buybacks: Gold spent on buybacks (``m_iGoldSpentOnBuybacks``).
         lost_to_death: Gold lost on death (``m_iGoldLostToDeath``).
+        summon_kill_gold: Gold from kills by the player's summons
+            (``m_iSummonKillGold``); None when the replay lacks the field.
+        midas_gold: Gold from Hand of Midas (``m_iMidasGold``, new in patch
+            7.42); None when the replay lacks the field.
+        experimental_gold: The replay's ``m_iExperimentalGold``, undocumented;
+            None when the replay lacks the field.
+        experimental2_gold: The replay's ``m_iExperimental2Gold``, undocumented;
+            None when the replay lacks the field.
     """
 
     tick: int
@@ -488,6 +496,10 @@ class GoldLedgerSnapshot:
     spent_on_support: int = 0
     spent_on_buybacks: int = 0
     lost_to_death: int = 0
+    summon_kill_gold: int | None = None
+    midas_gold: int | None = None
+    experimental_gold: int | None = None
+    experimental2_gold: int | None = None
 
 
 @dataclass

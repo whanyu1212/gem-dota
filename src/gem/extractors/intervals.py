@@ -64,10 +64,23 @@ LEDGER_FIELDS: tuple[tuple[str, str], ...] = (
     ("spent_on_buybacks", "m_iGoldSpentOnBuybacks"),
     ("lost_to_death", "m_iGoldLostToDeath"),
 )
+# Ledger sources the schema gained later (``m_iMidasGold`` is new in 7.42), so
+# older replays lack some of them. Each one is None where its field is missing,
+# without making the rest of the ledger unavailable.
+OPTIONAL_LEDGER_FIELDS: tuple[tuple[str, str], ...] = (
+    ("summon_kill_gold", "m_iSummonKillGold"),
+    ("midas_gold", "m_iMidasGold"),
+    ("experimental_gold", "m_iExperimentalGold"),
+    ("experimental2_gold", "m_iExperimental2Gold"),
+)
+_ALL_LEDGER_FIELDS = (*LEDGER_FIELDS, *OPTIONAL_LEDGER_FIELDS)
+# A ledger: the LEDGER_FIELDS values, and the OPTIONAL_LEDGER_FIELDS values (each
+# None where the replay lacks the field).
+LedgerValues = tuple[tuple[int, ...], tuple[int | None, ...]]
 
 # One slot's values at a boundary: (gold, xp, lh, dn, net_worth, ledger), where
-# ledger follows LEDGER_FIELDS and is None unless every ledger field is present.
-_SlotValues = tuple[int, int, int, int, int, tuple[int, ...] | None]
+# ledger is None unless every LEDGER_FIELDS field is present.
+_SlotValues = tuple[int, int, int, int, int, LedgerValues | None]
 # One observed team-data frame for a slot: (observed_tick, slot values).
 _TeamDataFrame = tuple[int, _SlotValues]
 
@@ -94,7 +107,7 @@ _TEAM_DATA_FIELD_NAMES = (
     "m_iDenyCount",
     "m_iNetWorth",
     *_TEAM_COUNTER_FIELDS.values(),
-    *(field_name for _, field_name in LEDGER_FIELDS),
+    *(field_name for _, field_name in _ALL_LEDGER_FIELDS),
 )
 _COUNTER_OFFSET = 5
 _LEDGER_OFFSET = _COUNTER_OFFSET + len(_TEAM_COUNTER_FIELDS)
@@ -139,8 +152,8 @@ class IntervalSnapshot:
     lh: int = 0
     dn: int = 0
     net_worth: int = 0
-    # Gold ledger values in LEDGER_FIELDS order, or None when incomplete.
-    ledger: tuple[int, ...] | None = None
+    # Gold ledger values (see LedgerValues), or None when incomplete.
+    ledger: LedgerValues | None = None
 
 
 @dataclass(slots=True)
@@ -155,8 +168,8 @@ class IntervalTimeSeries:
     lh_t: list[int] = field(default_factory=list)
     dn_t: list[int] = field(default_factory=list)
     net_worth_t: list[int] = field(default_factory=list)
-    # Gold ledger per sample in LEDGER_FIELDS order, None where incomplete.
-    ledger: list[tuple[int, ...] | None] = field(default_factory=list)
+    # Gold ledger per sample (see LedgerValues), None where incomplete.
+    ledger: list[LedgerValues | None] = field(default_factory=list)
 
 
 class IntervalExtractor:
@@ -237,9 +250,9 @@ class IntervalExtractor:
         self._last_raw_time_s: int | None = None
         self._ended = False
         self.snapshots = []
-        # player id -> (tick, game_time_s, ledger in LEDGER_FIELDS order), read at
-        # the game-end tick. Players without a complete ledger are absent.
-        self.final_ledgers: dict[int, tuple[int, int, tuple[int, ...]]] = {}
+        # player id -> (tick, game_time_s, ledger values), read at the game-end
+        # tick. Players without a complete ledger are absent.
+        self.final_ledgers: dict[int, tuple[int, int, LedgerValues]] = {}
 
     def attach(self, parser: ReplayParser) -> None:
         """Register parser callbacks."""
@@ -915,14 +928,17 @@ def _int_or_zero(value: int | None) -> int:
 def _read_slot(entity: Entity, fields: tuple[ResolvedField, ...], offset: int) -> _SlotValues:
     """Read one team slot's series values and gold ledger from a data entity."""
     ledger_start = offset + _LEDGER_OFFSET
-    raw = [entity._get_int32_resolved(fields[ledger_start + i]) for i in range(len(LEDGER_FIELDS))]
-    ledger = tuple(value for value in raw if value is not None)
+    raw = [
+        entity._get_int32_resolved(fields[ledger_start + i]) for i in range(len(_ALL_LEDGER_FIELDS))
+    ]
+    required = tuple(value for value in raw[: len(LEDGER_FIELDS)] if value is not None)
+    optional = tuple(raw[len(LEDGER_FIELDS) :])
     return (
         _int_or_zero(entity._get_int32_resolved(fields[offset])),
         _int_or_zero(entity._get_int32_resolved(fields[offset + 1])),
         _int_or_zero(entity._get_int32_resolved(fields[offset + 2])),
         _int_or_zero(entity._get_int32_resolved(fields[offset + 3])),
         _int_or_zero(entity._get_int32_resolved(fields[offset + 4])),
-        # A ledger with any field missing is unavailable, never zero-filled.
-        ledger if len(ledger) == len(LEDGER_FIELDS) else None,
+        # A ledger missing any LEDGER_FIELDS field is unavailable, never zero-filled.
+        (required, optional) if len(required) == len(LEDGER_FIELDS) else None,
     )

@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from gem.errors import TruncatedReplayError
-from gem.extractors.intervals import LEDGER_FIELDS, IntervalExtractor
+from gem.extractors.intervals import LEDGER_FIELDS, OPTIONAL_LEDGER_FIELDS, IntervalExtractor
 from gem.state.entities import Entity, EntityOp
 from gem.state.string_table import StringTable, StringTables
 from tests._entities import set_fields
@@ -1189,9 +1189,35 @@ def test_interval_batch_carries_the_gold_ledger():
 
     radiant = next(s for s in ext.snapshots if s.team == 2)
     dire = next(s for s in ext.snapshots if s.team == 3)
-    assert radiant.ledger == tuple(100 + i for i in range(len(LEDGER_FIELDS)))
+    assert radiant.ledger == (
+        tuple(100 + i for i in range(len(LEDGER_FIELDS))),
+        (None,) * len(OPTIONAL_LEDGER_FIELDS),
+    )
     # Dire's slot has no ledger fields: unavailable, never zero-filled.
     assert dire.ledger is None
+
+
+def test_ledger_reads_later_sources_where_present():
+    """A replay with some later sources reads them; the others stay None."""
+    radiant = _with_ledger(_radiant_data(), 1, 0)
+    set_fields(radiant, {"m_vecDataTeam.0001.m_iSummonKillGold": 1326})
+    ext = IntervalExtractor()
+    ext.attach(FakeParser(game_time_s=60))  # type: ignore[arg-type]
+    ext._on_entity(_player_resource(), EntityOp.UPDATED)
+    ext._on_entity(radiant, EntityOp.UPDATED)
+    ext._on_entity(_dire_data(), EntityOp.UPDATED)
+    ext._on_entity(_ent("CDOTAGamerulesProxy"), EntityOp.UPDATED)
+
+    radiant_snap = next(s for s in ext.snapshots if s.team == 2)
+    assert radiant_snap.ledger is not None
+    required, optional = radiant_snap.ledger
+    assert len(required) == len(LEDGER_FIELDS)
+    assert dict(zip((attr for attr, _ in OPTIONAL_LEDGER_FIELDS), optional, strict=True)) == {
+        "summon_kill_gold": 1326,
+        "midas_gold": None,
+        "experimental_gold": None,
+        "experimental2_gold": None,
+    }
 
 
 def test_ledger_with_one_missing_field_is_unavailable():
@@ -1222,6 +1248,6 @@ def test_game_end_reads_each_players_final_ledger():
     dire_id = ext.player_for_team_slot(3, 4)
     assert radiant_id is not None and dire_id is not None
     assert ext.final_ledgers[radiant_id][:2] == (3560, 118)
-    assert ext.final_ledgers[radiant_id][2][0] == 10
-    assert ext.final_ledgers[dire_id][2][0] == 20
+    assert ext.final_ledgers[radiant_id][2][0][0] == 10
+    assert ext.final_ledgers[dire_id][2][0][0] == 20
     assert ext.player_for_team_slot(2, 0) is None

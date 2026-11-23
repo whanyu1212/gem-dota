@@ -819,7 +819,7 @@ def _populated_match() -> ParsedMatch:
     laner.gold = 321
     laner.gold_ledger = GoldLedger(
         final=GoldLedgerSnapshot(
-            tick=90, game_time_s=62, hero_kill_gold=300, spent_on_buybacks=400
+            tick=90, game_time_s=62, hero_kill_gold=300, spent_on_buybacks=400, summon_kill_gold=50
         ),
         per_minute=[GoldLedgerSnapshot(tick=1800, game_time_s=60, hero_kill_gold=300)],
     )
@@ -957,6 +957,8 @@ class TestStableSchemas:
         assert ledger[
             ["player_id", "tick", "hero_kill_gold", "spent_on_buybacks"]
         ].values.tolist() == [[0, 90, 300, 400]]
+        assert ledger.loc[0, "summon_kill_gold"] == 50
+        assert pd.isna(ledger.loc[0, "midas_gold"])
         minutes = dfs["player_gold_ledger_minutes"]
         assert minutes[["player_id", "game_time_s"]].values.tolist() == [[0, 60]]
         members = dfs["smoke_members"]
