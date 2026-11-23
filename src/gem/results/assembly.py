@@ -15,7 +15,7 @@ from gem.analysis import net_worth_at
 from gem.catalog import hero_id
 from gem.combat.log import opendota_translate
 from gem.extractors._cells import WORLD_UNITS_PER_CELL, od_cell_index
-from gem.extractors.intervals import LEDGER_FIELDS
+from gem.extractors.intervals import LEDGER_FIELDS, OPTIONAL_LEDGER_FIELDS, LedgerValues
 from gem.extractors.lane import assign_lane
 from gem.extractors.neutral_camps import credit_stacks, resolve_killers
 from gem.extractors.players import LANE_WINDOW_S
@@ -974,14 +974,18 @@ def _buyback_event(
     )
 
 
-def _ledger_snapshot(tick: int, game_time_s: int, values: tuple[int, ...]) -> GoldLedgerSnapshot:
-    attrs = {attr: value for (attr, _), value in zip(LEDGER_FIELDS, values, strict=True)}
-    return GoldLedgerSnapshot(tick=tick, game_time_s=game_time_s, **attrs)
+def _ledger_snapshot(tick: int, game_time_s: int, values: LedgerValues) -> GoldLedgerSnapshot:
+    required, optional = values
+    attrs = {attr: value for (attr, _), value in zip(LEDGER_FIELDS, required, strict=True)}
+    snapshot = GoldLedgerSnapshot(tick=tick, game_time_s=game_time_s, **attrs)
+    for (attr, _), value in zip(OPTIONAL_LEDGER_FIELDS, optional, strict=True):
+        setattr(snapshot, attr, value)
+    return snapshot
 
 
 def _gold_ledger(
     interval_ts: IntervalTimeSeries | None,
-    final: tuple[int, int, tuple[int, ...]] | None,
+    final: tuple[int, int, LedgerValues] | None,
 ) -> GoldLedger | None:
     """Build a player's gold ledger from interval samples and the game-end read.
 

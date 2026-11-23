@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The gold ledger reads the newer gold sources** (HY-575):
+  `GoldLedgerSnapshot.summon_kill_gold`, `midas_gold` (new in patch 7.42),
+  `experimental_gold` and `experimental2_gold`, also in the `include="gold_ledger"`
+  tables. Each is `None` on a replay whose schema lacks the field. With summon-kill
+  gold counted, the earned sources now sum to total earned gold for every player
+  on the fixtures; they fell short by up to 1,839 gold on 7.42 replays and on one
+  7.41 replay.
 - **The patch 7.42 map** (`assets/maps/Game_map_7.42.jpg`, 2400 × 2259, 1.3 MB).
   It has the 7.41 map's framing, so `gem.catalog.map`'s calibration places
   replay positions on it as it is; `assets/maps/README.md` records its source and

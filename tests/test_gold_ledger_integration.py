@@ -38,6 +38,10 @@ _EARNED_SOURCES = (
     "comeback_gold",
     "creep_deny_gold",
     "other_gold",
+    "summon_kill_gold",
+    "midas_gold",
+    "experimental_gold",
+    "experimental2_gold",
 )
 
 

@@ -454,7 +454,10 @@ class TestJsonRoundTrip:
             )
         ]
         player.gold_ledger = GoldLedger(
-            final=GoldLedgerSnapshot(tick=90, game_time_s=62, spent_on_buybacks=1836),
+            # summon_kill_gold is set and midas_gold left None, as on a 7.41 replay.
+            final=GoldLedgerSnapshot(
+                tick=90, game_time_s=62, spent_on_buybacks=1836, summon_kill_gold=1326
+            ),
             per_minute=[GoldLedgerSnapshot(tick=30, game_time_s=0)],
         )
         match = ParsedMatch(players=[player])
