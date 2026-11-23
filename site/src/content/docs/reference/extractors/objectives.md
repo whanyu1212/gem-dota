@@ -27,7 +27,7 @@ class TowerKill
 
 One tower destruction event.
 
-Source: [src/gem/extractors/objectives.py:113](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L113)
+Source: [src/gem/extractors/objectives.py:116](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L116)
 
 #### Dataclass fields
 
@@ -48,7 +48,7 @@ class RoshanKill
 
 One confirmed Roshan death.
 
-Source: [src/gem/extractors/objectives.py:138](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L138)
+Source: [src/gem/extractors/objectives.py:141](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L141)
 
 #### Dataclass fields
 
@@ -69,7 +69,7 @@ class BarracksKill
 
 One barracks destruction event.
 
-Source: [src/gem/extractors/objectives.py:163](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L163)
+Source: [src/gem/extractors/objectives.py:166](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L166)
 
 #### Dataclass fields
 
@@ -90,7 +90,7 @@ class TormentorKill
 
 One Tormentor (miniboss) kill event.
 
-Source: [src/gem/extractors/objectives.py:186](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L186)
+Source: [src/gem/extractors/objectives.py:189](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L189)
 
 #### Dataclass fields
 
@@ -111,7 +111,7 @@ class ShrineKill
 
 One Shrine of Wisdom destruction event.
 
-Source: [src/gem/extractors/objectives.py:216](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L216)
+Source: [src/gem/extractors/objectives.py:219](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L219)
 
 #### Dataclass fields
 
@@ -128,7 +128,7 @@ class AegisEvent
 
 An Aegis of the Immortal pickup, steal, or denial event.
 
-Source: [src/gem/extractors/objectives.py:229](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L229)
+Source: [src/gem/extractors/objectives.py:232](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L232)
 
 #### Dataclass fields
 
@@ -146,7 +146,7 @@ class BannerPlant
 
 One Roshan's Banner plant event.
 
-Source: [src/gem/extractors/objectives.py:245](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L245)
+Source: [src/gem/extractors/objectives.py:248](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L248)
 
 #### Dataclass fields
 
@@ -166,7 +166,7 @@ class CourierDeath
 
 One courier death, detected from the combat log.
 
-Source: [src/gem/extractors/objectives.py:269](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L269)
+Source: [src/gem/extractors/objectives.py:272](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L272)
 
 #### Dataclass fields
 
@@ -184,7 +184,7 @@ class ObjectivesExtractor
 
 Extracts tower kills, Roshan kills, barracks kills, tormentor kills, and shrine kills from a replay.
 
-Source: [src/gem/extractors/objectives.py:294](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L294)
+Source: [src/gem/extractors/objectives.py:297](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L297)
 
 #### Methods
 
@@ -194,4 +194,4 @@ Signature: `def ObjectivesExtractor.attach(self, parser: ReplayParser) -> None`
 
 Register this extractor's callbacks with a parser.
 
-Source: [src/gem/extractors/objectives.py:360](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L360)
+Source: [src/gem/extractors/objectives.py:366](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/extractors/objectives.py#L366)

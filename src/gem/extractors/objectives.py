@@ -21,7 +21,7 @@ from gem.proto.dota_usermessages_pb2 import (
     CHAT_MESSAGE_MINIBOSS_KILL,
     CHAT_MESSAGE_SHRINE_KILLED,
 )
-from gem.schema.sendtable.models import FieldAccessPlan
+from gem.schema.sendtable.models import FieldAccessPlan, ResolvedField
 from gem.state.entities import EntityOp
 
 if TYPE_CHECKING:
@@ -55,16 +55,19 @@ _ROSHAN_ITEM_DROPS: dict[str, str] = {
     "CDOTA_Item_Roshans_Banner": "banner",
 }
 
-# Tormentor item entity class name → short drop name. A Tormentor spawns carrying
-# its drops: on 7.41 an Aghanim's Shard; since 7.42 a Greater Horn of Battle,
-# plus an Aghanim's Shard from its second death. They are created unowned at the
-# spawn; a bought Aghanim's Shard has a player owner from creation, which is how
-# the two are told apart.
+# A Tormentor (``CDOTA_Unit_Miniboss``) spawns carrying its drops in its own
+# inventory: on 7.41 an Aghanim's Shard; since 7.42 a Greater Horn of Battle,
+# plus an Aghanim's Shard from its second death. Item class name → drop name.
+_TORMENTOR_UNIT_CLASS = "CDOTA_Unit_Miniboss"
 _TORMENTOR_ITEM_DROPS: dict[str, str] = {
     "CDOTA_Item_Horn_Of_Battle_Greater": "horn_of_battle_greater",
     "CDOTA_Item_Aghanims_Shard": "aghanims_shard",
 }
-_ITEM_OWNER_FIELDS = FieldAccessPlan(("m_iPlayerOwnerID",))
+_TORMENTOR_ITEM_SLOTS = 25
+_TORMENTOR_FIELDS = FieldAccessPlan(
+    ("m_lifeState", *(f"m_hItems.{slot:04d}" for slot in range(_TORMENTOR_ITEM_SLOTS)))
+)
+_NULL_HANDLE = 0xFFFFFF
 
 # Planted Roshan's Banner *unit* entity (distinct from the position-less
 # ``CDOTA_Item_Roshans_Banner`` drop). When a held banner is planted it spawns a
@@ -347,10 +350,13 @@ class ObjectivesExtractor:
         # Belt-and-suspenders against a transition re-emitted at the same tick:
         # one (index, spawn_tick) pair yields at most one BannerPlant.
         self._banner_seen: set[tuple[int, int]] = set()
-        # index → (creation_tick, short drop name) for unowned Tormentor item
-        # entities, and the last Tormentor death tick, as for Roshan above.
-        self._tormentor_items: dict[int, tuple[int, str]] = {}
-        self._last_tormentor_death_tick: int = -1
+        # Tormentor unit index → its drop names, as last read while it was
+        # alive. Items start dropping on the update the Tormentor dies, so the
+        # last alive inventory is the one that counts.
+        self._tormentor_inventories: dict[int, list[str]] = {}
+        # Inventories of Tormentors that have died, oldest first, waiting for
+        # their DEATH combat-log entry.
+        self._dying_tormentors: list[list[str]] = []
         # CHAT_MESSAGE_MINIBOSS_KILL (tick, playerid_1) not yet paired with a
         # Tormentor death, and the kill numbers already paired with one.
         self._pending_miniboss_chats: list[tuple[int, int]] = []
@@ -368,7 +374,7 @@ class ObjectivesExtractor:
         parser.on_chat_event(self._on_chat_event)
         parser._on_entity_filtered(
             self._on_entity,
-            class_names=(*_ROSHAN_ITEM_DROPS, *_TORMENTOR_ITEM_DROPS, _BANNER_UNIT_CLASS),
+            class_names=(*_ROSHAN_ITEM_DROPS, _TORMENTOR_UNIT_CLASS, _BANNER_UNIT_CLASS),
         )
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
@@ -376,9 +382,8 @@ class ObjectivesExtractor:
         if name == _BANNER_UNIT_CLASS:
             self._on_banner_unit(entity, op)
             return
-        tormentor_drop = _TORMENTOR_ITEM_DROPS.get(name)
-        if tormentor_drop is not None:
-            self._on_tormentor_item(entity, op, tormentor_drop)
+        if name == _TORMENTOR_UNIT_CLASS:
+            self._on_tormentor_unit(entity, op)
             return
         drop_name = _ROSHAN_ITEM_DROPS.get(name)
         if drop_name is None:
@@ -398,19 +403,32 @@ class ObjectivesExtractor:
                 tick = self._parser.tick if self._parser is not None else 0
                 self._roshan_items[idx] = (tick, drop_name)
 
-    def _on_tormentor_item(self, entity: Entity, op: EntityOp, drop_name: str) -> None:
+    def _on_tormentor_unit(self, entity: Entity, op: EntityOp) -> None:
         idx = entity.get_index()
         if op.has(EntityOp.DELETED):
-            self._tormentor_items.pop(idx, None)
+            self._tormentor_inventories.pop(idx, None)
             return
-        if not op.has(EntityOp.CREATED):
-            return
-        # A recycled slot is a new item: drop any record of the old one first.
-        self._tormentor_items.pop(idx, None)
-        owner = entity._get_int32_resolved(entity._resolve_fields(_ITEM_OWNER_FIELDS)[0])
-        if owner == -1:
-            tick = self._parser.tick if self._parser is not None else 0
-            self._tormentor_items[idx] = (tick, drop_name)
+        fields = entity._resolve_fields(_TORMENTOR_FIELDS)
+        if entity._get_int32_resolved(fields[0]) == 0:
+            self._tormentor_inventories[idx] = self._tormentor_drops(entity, fields[1:])
+        elif idx in self._tormentor_inventories:
+            # It just left the alive state: its death entry is next.
+            self._dying_tormentors.append(self._tormentor_inventories.pop(idx))
+
+    def _tormentor_drops(self, unit: Entity, slots: tuple[ResolvedField, ...]) -> list[str]:
+        em = self._parser.entity_manager if self._parser is not None else None
+        if em is None:
+            return []
+        drops = []
+        for slot in slots:
+            handle = unit._get_uint32_resolved(slot)
+            if handle is None or handle == _NULL_HANDLE:
+                continue
+            item = em.find_by_handle(handle)
+            drop = _TORMENTOR_ITEM_DROPS.get(item.get_class_name()) if item is not None else None
+            if drop is not None:
+                drops.append(drop)
+        return sorted(drops)
 
     def _on_banner_unit(self, entity: Entity, op: EntityOp) -> None:
         # A banner plant is the unit's transition into the alive life state, not a
@@ -489,13 +507,8 @@ class ObjectivesExtractor:
             self._pending_miniboss_chats.append((tick, msg.playerid_1))
 
     def _record_tormentor_kill(self, entry: CombatLogEntry) -> None:
-        # Items created at this Tormentor's spawn, after the previous death.
-        drops = sorted(
-            token
-            for created_tick, token in self._tormentor_items.values()
-            if created_tick > self._last_tormentor_death_tick
-        )
-        self._last_tormentor_death_tick = entry.tick
+        # The inventory of the Tormentor that died, read while it was alive.
+        drops = self._dying_tormentors.pop(0) if self._dying_tormentors else []
         kill = TormentorKill(
             tick=entry.tick,
             killer=entry.attacker_name,
