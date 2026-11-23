@@ -250,11 +250,11 @@ def _build_purchase_aggregates(
         if _count_only_purchase(key):
             continue
         seconds = _entry_game_seconds(entry, clock)
-        # OpenDota tests `!first_purchase_time[k]`, and 0 is falsy in JavaScript,
-        # so a purchase at exactly 0:00 is replaced by the item's next purchase.
-        # Reference: odota/core svc/util/compute.ts computeMatchData (7b4256f).
-        if not first_purchase_time.get(key):
-            first_purchase_time[key] = seconds
+        # The first purchase wins, a purchase at exactly 0:00 included. OpenDota
+        # tested `!first_purchase_time[k]`, which let the next purchase replace a
+        # 0, until odota/core 7d32aef0 (October 2026) changed it to `== null`.
+        # Reference: odota/core svc/util/compute.ts computeMatchData.
+        first_purchase_time.setdefault(key, seconds)
         # OpenDota's purchase_time is the SUM of every purchase time for the item
         # (a quirk of its additive map handler), not the latest buy. Match it for
         # parity. first_purchase_time stays the earliest buy. Verified against

@@ -784,9 +784,8 @@ class ParsedPlayer:
             (recipes and ``ward_dispenser`` excluded), keyed by translated name.
             Mirrors OpenDota's ``purchase_time``, which adds the times up.
         first_purchase_time: Game-seconds of the player's *first* purchase of each
-            item (recipes and ``ward_dispenser`` excluded). Mirrors OpenDota's
-            ``first_purchase_time``, including its quirk that a purchase at
-            exactly 0 is replaced by the item's next purchase.
+            item (recipes and ``ward_dispenser`` excluded), a purchase at exactly
+            0 included. Mirrors OpenDota's ``first_purchase_time``.
         purchase_tpscroll: Number of TP scrolls purchased. Mirrors OpenDota's
             ``purchase_tpscroll``.
         purchase_ward_observer: Number of observer wards purchased. Mirrors

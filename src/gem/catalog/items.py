@@ -11,11 +11,14 @@ from gem.catalog.resources import load_data_json
 
 # internal_key (without item_ prefix) -> {id, dname}
 ITEMS: dict[str, dict[str, Any]] = load_data_json("items.json")
+# An ID resolves to its first key: items.json lists the current patch's items
+# before retired ones, so a renamed item's ID gives its current name
+# (scripts/build_constants.py).
 _ITEM_KEYS_BY_ID: dict[int, str] = {}
 for _key, _item in ITEMS.items():
     _item_id = _item.get("id")
     if isinstance(_item_id, int):
-        _ITEM_KEYS_BY_ID[_item_id] = _key
+        _ITEM_KEYS_BY_ID.setdefault(_item_id, _key)
 
 # int_str -> internal_item_name, e.g. "1" -> "moon_shard"
 PERMANENT_BUFFS: dict[str, str] = load_data_json("permanent_buffs.json")

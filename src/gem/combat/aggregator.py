@@ -353,8 +353,11 @@ class _CombatAggregator:
                     self._accumulate_hero_tower_damage(source_pid, entry)
                 # damage_taken: only for non-illusion hero targets, keyed by the
                 # raw source unit (OpenDota does not illusion-prefix the source).
+                # A source with no name is CombatLogNames index 0 (""), which
+                # OpenDota prints as dota_unknown.
                 if target_pid is not None and not entry.target_is_illusion:
-                    self._agg(target_pid).damage_taken[source_unit] += entry.value
+                    taken_key = source_unit or "dota_unknown"
+                    self._agg(target_pid).damage_taken[taken_key] += entry.value
                     if entry.damage_type:
                         self._agg(target_pid).damage_taken_by_type[entry.damage_type] += entry.value
                 # Per-inflictor / per-target breakdowns fire only for damage dealt

@@ -40,6 +40,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Patch 7.42 replays match OpenDota again.** A BLAST SLAM IX match
+  (9101479361), now a regression fixture, showed four differences:
+  - **The bundled constants know 7.42.** `items.json`, `abilities.json`,
+    `heroes.json` and `ancients.json` are rebuilt from dotaconstants `0b0b4a68`
+    (10.9.0): 24 new items such as both Horns of Battle, 87 new abilities, and
+    Meepo as a universal hero. dotaconstants now lists the ogre seals as
+    ancients (they die in ancient camps on 7.42), so their kills count in
+    `ancient_kills`, as OpenDota's do. `scripts/build_constants.py`
+    keeps items and abilities a new patch drops, since 7.41 replays still buy
+    `recipe_harpoon` and `desolator_2`. A renamed item keeps its ID, which
+    resolves to the current name: 292 is now `stygian_desolator`.
+  - **Damage with no source is keyed `dota_unknown` in `damage_taken`**, as
+    OpenDota keys it and as gem's `killed_by` already did, instead of `""`. The
+    7.42 fixture has such damage, 1 at a time from 31:46, and 7.41 match
+    9040268873 has some too.
+  - **A first purchase at exactly 0:00 keeps its time.** OpenDota used to
+    replace it with the item's next purchase, and gem copied that, until
+    odota/core `7d32aef0` (14 October 2026) kept it. Fixture JSON fetched before
+    that change is marked with `opendota_json_predates: ["7d32aef0"]`, and the
+    parity audit reports its `first_purchase_time` as stale.
+  - **`gold_t[0]` includes gold paid at 0:00.** OpenDota reads its 0:00 interval
+    when its tick-start clock reaches the game start, one network tick after the
+    replay's own clock does. In the 7.42 fixture every player earns 1 gold on
+    that tick, so OpenDota's `gold_t[0]` is 1 where gem's was 0; gem's
+    minute-zero read now uses the same clock.
 - **The docs site's home page has room above and below its hero on phones**
   (HY-416). At 760px and narrower, the hero's heading started right under the
   top bar and its facts ran into the first chapter, because the narrow-screen

@@ -2193,21 +2193,19 @@ class TestBuildPurchaseAggregates:
         assert "ward_dispenser" not in aggs["purchase_time"]
         assert "ward_dispenser" not in aggs["first_purchase_time"]
 
-    def test_first_purchase_at_zero_is_replaced_by_next(self):
-        # OpenDota's `!first_purchase_time[k]` treats 0 as unset, so the next
-        # purchase replaces a first purchase at exactly 0:00.
+    def test_first_purchase_at_zero_kept(self):
+        """A first purchase at exactly 0:00 stays 0 when the item is bought again.
+
+        OpenDota treated 0 as unset until odota/core 7d32aef0 (October 2026).
+        """
         aggs = self._build(
             [
                 _purchase("item_tango", tick=0, game_time_s=0),
                 _purchase("item_tango", tick=2700, game_time_s=90),
             ]
         )
-        assert aggs["first_purchase_time"]["tango"] == 90
-        assert aggs["purchase_time"]["tango"] == 90
-
-    def test_first_purchase_at_zero_kept_without_later_purchase(self):
-        aggs = self._build([_purchase("item_tango", tick=0, game_time_s=0)])
         assert aggs["first_purchase_time"]["tango"] == 0
+        assert aggs["purchase_time"]["tango"] == 90
 
     def test_ward_and_tpscroll_scalars(self):
         aggs = self._build(

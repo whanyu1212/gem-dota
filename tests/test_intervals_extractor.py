@@ -57,6 +57,22 @@ class TickStartFakeParser(FakeParser):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.tick_start_handlers = []
+        self._tick_start_raw_s: int | None = None
+
+    @property
+    def opendota_tick_start_raw_s(self) -> int | None:
+        """OpenDota's tick-start clock; follows ``raw_game_time_s`` unless set.
+
+        The real clock lags the replay's own by one network tick. Tests that do
+        not model the lag see the two clocks equal.
+        """
+        if self._tick_start_raw_s is not None:
+            return self._tick_start_raw_s
+        return getattr(self, "raw_game_time_s", None)
+
+    @opendota_tick_start_raw_s.setter
+    def opendota_tick_start_raw_s(self, value: int | None) -> None:
+        self._tick_start_raw_s = value
 
     def on_tick_start(self, handler):
         self.tick_start_handlers.append(handler)
@@ -676,6 +692,30 @@ def test_minute_zero_is_read_when_the_raw_clock_reaches_the_game_start():
     assert [snap.time_s for snap in ext.snapshots] == [0, 0]
     assert [snap.lh for snap in ext.snapshots] == [0, 0]
     assert {snap.tick for snap in ext.snapshots} == {1792}
+
+
+def test_minute_zero_follows_the_tick_start_clock():
+    """Minute zero is read when OpenDota's tick-start clock reaches the start.
+
+    Replay 9101479361 (7.42): the replay's clock reaches the start (1041) at tick
+    30730 with no gold earned; OpenDota's clock, one network tick behind, gets
+    there at 30732, after the first passive gold, so its ``gold_t[0]`` is 1.
+    """
+    ext, parser = _pregame_extractor()
+    parser.tick, parser.raw_game_time_s = 1792, 825
+    parser.opendota_tick_start_raw_s = 824
+    parser.fire_tick_start(5992)
+    parser.tick = 1793
+    ext._on_entity(_radiant_data_with(1, 0, 0, 0, 601), EntityOp.UPDATED)
+
+    parser.tick, parser.game_time_s = 1794, 0
+    parser.opendota_tick_start_raw_s = 825
+    parser.fire_tick_start(5994)
+
+    radiant = next(snap for snap in ext.snapshots if snap.team == 2)
+    assert radiant.time_s == 0
+    assert radiant.gold == 1
+    assert radiant.tick == 1794
 
 
 def test_minute_zero_survives_a_start_seen_after_the_clock_passes_zero():
