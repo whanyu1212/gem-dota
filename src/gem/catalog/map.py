@@ -2,7 +2,9 @@
 
 The calibration (``MAP_XMIN``…``MAP_YMAX``, :func:`world_to_map_image`) places
 world coordinates on ``assets/maps/Game_map_7.41.jpg``; the docs site's figures
-and the map tooling in ``scripts/`` use it.
+and the map tooling in ``scripts/`` use it. ``Game_map_7.42.jpg`` has the same
+aspect ratio and framing (``assets/maps/README.md``), so it shares the calibration;
+pass its size as ``width`` and ``height``.
 
 Reference: https://github.com/odota/dotaconstants
 """
@@ -78,6 +80,31 @@ def load_camp_zones() -> dict[str, Any]:
         Decoded ``camp_zones.json`` payload.
     """
     return load_data_json("camp_zones.json")
+
+
+def camps_on_patch(patch: str, payload: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    """Return the camps ``camp_zones.json`` places on one patch's map.
+
+    A camp lists the patches it exists on in ``patches``; one without the key is
+    on every patch the catalog covers. 7.42 moved the two small flooded camps and
+    two medium camps, so each of those positions has its own camp ID.
+
+    Args:
+        patch: A Dota patch the catalog covers, such as ``"7.42"``.
+        payload: A decoded camp catalog; the bundled one when omitted.
+
+    Returns:
+        That patch's camps, as catalog entries in catalog order.
+
+    Raises:
+        ValueError: If the catalog does not cover ``patch``.
+    """
+    if payload is None:
+        payload = load_camp_zones()
+    covered = payload["patches"]
+    if patch not in covered:
+        raise ValueError(f"camp_zones.json covers patches {covered}, not {patch!r}")
+    return [camp for camp in payload["camps"] if patch in camp.get("patches", covered)]
 
 
 def load_map_constants() -> dict[str, Any]:

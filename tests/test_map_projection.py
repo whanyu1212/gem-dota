@@ -8,8 +8,10 @@ gridded full-resolution crops.
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import pytest
+from PIL import Image
 
 from gem.catalog.map import (
     MAP_IMAGE_HEIGHT,
@@ -21,6 +23,8 @@ from gem.catalog.map import (
     map_image_to_world,
     world_to_map_image,
 )
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
 
 # name: (world x, world y, image x, image y)
 _LANDMARKS = {
@@ -61,3 +65,15 @@ def test_image_to_world_inverts_the_projection() -> None:
         x, y = map_image_to_world(*_image_px(wx, wy))
         assert x == pytest.approx(wx)
         assert y == pytest.approx(wy)
+
+
+def test_742_map_shares_the_calibrated_canvas() -> None:
+    """The 7.42 image is the 7.41 canvas scaled down, so the same window places it.
+
+    It registers against the 7.41 export at scale 1 and offset 0 on that canvas
+    (``assets/maps/README.md``); its height keeps the canvas's aspect ratio to
+    within a pixel.
+    """
+    with Image.open(_REPO_ROOT / "assets" / "maps" / "Game_map_7.42.jpg") as image:
+        width, height = image.size
+    assert height == pytest.approx(width * MAP_IMAGE_HEIGHT / MAP_IMAGE_WIDTH, abs=0.5)

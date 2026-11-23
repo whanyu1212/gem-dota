@@ -70,6 +70,7 @@ from gem.catalog.map import (  # noqa: E402
     MAP_XMIN,
     MAP_YMAX,
     MAP_YMIN,
+    camps_on_patch,
     load_camp_zones,
     load_map_constants,
 )
@@ -99,6 +100,8 @@ DEFAULT_ICONS = REPO_ROOT / "site" / "src" / "assets" / "icons"
 #: pipeline, so these are served as they are.
 DEFAULT_PUBLIC_FIGURES = REPO_ROOT / "site" / "public" / "figures"
 SOURCE_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"
+#: The patch SOURCE_MAP shows, whose camps the figures draw on it.
+SOURCE_MAP_PATCH = "7.41"
 ITEM_ICONS = REPO_ROOT / "src" / "gem" / "data" / "item_icons"
 HERO_ICONS = REPO_ROOT / "src" / "gem" / "data" / "hero_icons"
 
@@ -197,7 +200,7 @@ def _project(x: float, y: float) -> list[float]:
 def map_overlay() -> dict:
     """gem's regions and camps, projected onto the map square."""
     regions = load_map_constants()["regions"]
-    camps = load_camp_zones()["camps"]
+    camps = camps_on_patch(SOURCE_MAP_PATCH)
     return {
         "size": SIZE,
         "half_line": [_project(*point) for point in regions["half_line"]],

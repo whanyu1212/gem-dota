@@ -20,7 +20,7 @@ def test_canonical_replay_farming_routes_are_stable_and_evidence_mixed(
     assert sum(len(route.points) for route in routes) == 11_430
     assert len(segments) == 312
     assert all(route.status == "complete" for route in routes)
-    assert all(route.camp_catalog_version == 4 for route in routes)
+    assert all(route.camp_catalog_version == 5 for route in routes)
     assert all(route.camp_map_patch == "7.41" for route in routes)
     assert all(route.camp_topology_patch == "7.41" for route in routes)
     assert all(segment.camp_topology_patch == "7.41" for segment in segments)

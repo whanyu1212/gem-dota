@@ -630,6 +630,43 @@ def _build_segments(
     return segments
 
 
+def _shared_patch(payload: dict[str, Any], camp_ids: set[int]) -> str | None:
+    """The one patch every camp in ``camp_ids`` is on, or ``None`` when that is not one."""
+    covered = set(payload["patches"])
+    shared = set(covered)
+    for camp in payload["camps"]:
+        if camp["id"] in camp_ids:
+            shared &= set(camp.get("patches", covered))
+    return shared.pop() if len(shared) == 1 else None
+
+
+def _replay_zones(
+    match: ParsedMatch,
+) -> tuple[tuple[FarmingCampZone, ...], int | None, str | None, str | None]:
+    """The catalog's zones for this replay, with the catalog version and patches.
+
+    The catalog spans patches whose camps overlap (7.42 moved four of them), so
+    keep the camps this replay's spawners produced creeps at, and report the patch
+    those camps share rather than the catalog's newest.
+    """
+    try:
+        payload = load_camp_zones()
+        zones = _parse_zones(payload)
+        catalog_version = int(payload["version"]) if "version" in payload else None
+        map_patch = str(payload["dota_patch"]) if payload.get("dota_patch") is not None else None
+        topology_patch = (
+            str(payload["topology_patch"]) if payload.get("topology_patch") is not None else None
+        )
+    except (OSError, ValueError, KeyError, TypeError):
+        return (), None, None, None
+    spawned = {creep.camp_id for creep in match.neutral_creeps if creep.camp_id is not None}
+    if spawned:
+        zones = tuple(zone for zone in zones if zone.camp_id in spawned)
+    if zones and "patches" in payload:
+        map_patch = topology_patch = _shared_patch(payload, spawned)
+    return zones, catalog_version, map_patch, topology_patch
+
+
 def build_farming_routes(
     match: ParsedMatch,
     *,
@@ -641,19 +678,7 @@ def build_farming_routes(
     tags describe evidence strength only; they do not infer farming intent or
     a complete camp clear.
     """
-    try:
-        payload = load_camp_zones()
-        zones = _parse_zones(payload)
-        catalog_version = int(payload["version"]) if "version" in payload else None
-        map_patch = str(payload["dota_patch"]) if payload.get("dota_patch") is not None else None
-        topology_patch = (
-            str(payload["topology_patch"]) if payload.get("topology_patch") is not None else None
-        )
-    except (OSError, ValueError, KeyError, TypeError):
-        zones = ()
-        catalog_version = None
-        map_patch = None
-        topology_patch = None
+    zones, catalog_version, map_patch, topology_patch = _replay_zones(match)
 
     routes: list[FarmingRoute] = []
     # One pass over the combat log, then each segment bisects its own window.

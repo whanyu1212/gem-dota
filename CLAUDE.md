@@ -375,7 +375,11 @@ Neutral-camp analysis lives in `analysis/farming.py` plus
 the bundled data assets `src/gem/data/camp_zones.json` and `map_constants.json`.
 `camp_zones.json` is the one camp catalog (`load_neutral_camps()` is a flat view of
 it): each camp's centre (its `CDOTA_NeutralSpawner`), type, owner team and ellipse
-geometry; neutral deaths are grouped into camp zones by world position.
+geometry; neutral deaths are grouped into camp zones by world position. It spans
+patches: a camp on some patches only lists them in `patches` (7.42 moved camps
+5, 8, 21 and 26, which became 29–32), and `camps_on_patch(patch)` gives one
+patch's 28. Code that needs a replay's camps uses those its spawners produced
+creeps at (`match.neutral_creeps`), never a guessed patch.
 
 Camp types and owners are checked against the replays, not a wiki:
 

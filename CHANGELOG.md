@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **The patch 7.42 map** (`assets/maps/Game_map_7.42.jpg`, 2400 × 2259, 1.3 MB).
+  It has the 7.41 map's framing, so `gem.catalog.map`'s calibration places
+  replay positions on it as it is; `assets/maps/README.md` records its source and
+  checks. `scripts/render_camp_zones_overlay.py --patch 7.42` draws 7.42's camps
+  on it.
+- **`gem.catalog.camps_on_patch(patch)`** gives one patch's 28 camps from the
+  camp catalog.
 - **Docs pages show where you are and can link to any section** (HY-417). The
   "On this page" outline marks the section on screen as you scroll, the sidebar
   marks the current page with an accent bar, and each h2–h4 shows a `#` link on
@@ -40,6 +47,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **7.42's neutral camps are in the camp catalog.** 7.42 moved four camps toward
+  the map's rims: both small flooded camps and two medium camps, the mediums to
+  where the Twin Gates stood. On a 7.42 replay their creeps had no camp (83 on
+  match 9101479361), so `neutral_creeps`, `camp_stacks` and the farming routes
+  missed them. `camp_zones.json` (version 5) now spans 7.41 and 7.42: camps 5, 8,
+  21 and 26 are 7.41 only, and the new positions are camps 29–32, 7.42 only, so
+  a 7.41 replay keeps its camp IDs. A camp on some patches only lists them in
+  `patches`. Each new camp's type is its spawner's `m_Type` and its owner the
+  combat log's `neutral_camp_team`, both checked on the 7.42 fixture. The farming
+  routes and the camp audit use the camps whose spawners produced creeps in the
+  replay, so a 7.41 position never claims a 7.42 replay's farming; the docs
+  site's figures and the README banner draw the 7.41 camps on the 7.41 map.
+  A farming route's `camp_map_patch` and `camp_topology_patch` are now the patch
+  those camps share (`"7.41"` or `"7.42"`), and `None` when the match has no
+  `neutral_creeps` to tell (JSON written before gem recorded them), where they
+  used to be the catalog's single patch.
 - **Patch 7.42 replays match OpenDota again.** A BLAST SLAM IX match
   (9101479361), now a regression fixture, showed four differences:
   - **The bundled constants know 7.42.** `items.json`, `abilities.json`,
