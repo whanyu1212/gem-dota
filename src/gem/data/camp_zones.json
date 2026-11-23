@@ -1,7 +1,8 @@
 {
-  "version": 4,
-  "dota_patch": "7.41",
-  "topology_patch": "7.41",
+  "version": 5,
+  "dota_patch": "7.42",
+  "topology_patch": "7.42",
+  "patches": ["7.41", "7.42"],
   "defaults_by_type": {
     "small": {
       "shape": "ellipse",
@@ -134,7 +135,8 @@
       "hysteresis": {
         "enter_margin": 0,
         "exit_margin": 120
-      }
+      },
+      "patches": ["7.41"]
     },
     {
       "id": 6,
@@ -191,7 +193,8 @@
       "hysteresis": {
         "enter_margin": 0,
         "exit_margin": 120
-      }
+      },
+      "patches": ["7.41"]
     },
     {
       "id": 9,
@@ -438,7 +441,8 @@
       "hysteresis": {
         "enter_margin": 0,
         "exit_margin": 120
-      }
+      },
+      "patches": ["7.41"]
     },
     {
       "id": 22,
@@ -533,7 +537,8 @@
       "hysteresis": {
         "enter_margin": 0,
         "exit_margin": 120
-      }
+      },
+      "patches": ["7.41"]
     },
     {
       "id": 27,
@@ -572,6 +577,86 @@
         "enter_margin": 0,
         "exit_margin": 120
       }
+    },
+    {
+      "id": 29,
+      "type": "medium",
+      "center": {
+        "x": 9976,
+        "y": 24200
+      },
+      "topology": {"owner_team": 3, "lane": "top", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      },
+      "patches": ["7.42"]
+    },
+    {
+      "id": 30,
+      "type": "flooded_small",
+      "center": {
+        "x": 12156,
+        "y": 24524
+      },
+      "topology": {"owner_team": 3, "lane": "top", "area": "flooded"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 600,
+        "ry": 540,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      },
+      "patches": ["7.42"]
+    },
+    {
+      "id": 31,
+      "type": "flooded_small",
+      "center": {
+        "x": 20904,
+        "y": 8048
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "flooded"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 600,
+        "ry": 540,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      },
+      "patches": ["7.42"]
+    },
+    {
+      "id": 32,
+      "type": "medium",
+      "center": {
+        "x": 23096,
+        "y": 8752
+      },
+      "topology": {"owner_team": 2, "lane": "bot", "area": "jungle"},
+      "zone": {
+        "shape": "ellipse",
+        "rx": 640,
+        "ry": 560,
+        "rotation_deg": 0
+      },
+      "hysteresis": {
+        "enter_margin": 0,
+        "exit_margin": 120
+      },
+      "patches": ["7.42"]
     }
   ]
 }

@@ -44,9 +44,9 @@ for player in match.players:
 
 ## Neutral camps
 
-`camp_zones.json` lists the 28 camps. Each camp's centre is its
-`CDOTA_NeutralSpawner` entity, and its zone is the ellipse for its type. Each side
-owns 14 camps with the same mix:
+`camp_zones.json` lists every patch's 28 camps. Each camp's centre is its
+`CDOTA_NeutralSpawner` entity, and its zone is the ellipse for its type. On each
+patch, each side owns 14 camps with the same mix:
 
 | Type | Per side |
 | --- | ---: |
@@ -75,6 +75,14 @@ medium camps by the offlane gates became small camps. The flooded camps by the
 bounty runes (13 and 16) can evolve into ancient frog camps; the other two stop
 at large.
 
+**Patches.** 7.42 moved four camps toward the map's rims: both small flooded
+camps (8 and 21 on 7.41, 30 and 31 on 7.42) and two medium camps (5 and 26 on
+7.41, 29 and 32 on 7.42), the mediums to where the Twin Gates stood. Each
+position keeps its own ID, and a camp that exists on some patches only lists them
+in `patches`; `gem.catalog.camps_on_patch("7.42")` gives one patch's 28. gem never
+guesses a replay's patch: a replay's creeps are matched to the camp at their
+spawner, and the farming routes use the camps whose spawners produced creeps.
+
 **Owners** come from the combat log. Each neutral death carries the game's
 `neutral_camp_team`, and every death at a camp carries the same value. All 28
 camps agree with it except camp 22: it sits in Dire jungle, and the catalog
@@ -84,7 +92,7 @@ under Radiant.
 ## Regenerating
 
 ```bash
-# The picture on this page
+# The picture on this page (--patch 7.42 draws 7.42's camps on the 7.42 map)
 uv run python scripts/render_camp_zones_overlay.py --regions --width 1800 \
     --margin 40 --legend-panel 420 --output docs/public/map-annotations.jpg
 
@@ -93,5 +101,5 @@ uv run --with opencv-python-headless python scripts/trace_river_region.py --chec
 ```
 
 A map patch that moves the river or the camps needs a new map image, a new trace,
-and new spawner positions; `tests/test_camp_zones_integration.py` checks the
-camp centres, types and owners against the canonical replay.
+and new spawner positions; `tests/test_camp_zones_integration.py` checks each
+patch's camp centres, types and owners against a replay from that patch.
