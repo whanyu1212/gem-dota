@@ -103,3 +103,15 @@ class TestRoshConversionDrops:
                 f"conversion #{conv.rosh_number}: had_high_value_drop="
                 f"{conv.had_high_value_drop} but drops={conv.drops}"
             )
+
+
+@pytest.mark.slow
+@pytest.mark.integration
+def test_tormentor_drops_follow_742s_rules(long_parsed_match):
+    # Every Tormentor drops a Greater Horn of Battle; from its second death on,
+    # also an Aghanim's Shard. The long fixture has three Tormentor kills.
+    assert [kill.drops for kill in long_parsed_match.tormentors] == [
+        ["horn_of_battle_greater"],
+        ["aghanims_shard", "horn_of_battle_greater"],
+        ["aghanims_shard", "horn_of_battle_greater"],
+    ]

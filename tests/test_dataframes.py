@@ -621,6 +621,7 @@ class TestBuildDataframes:
                     killer="npc_dota_hero_axe",
                     killer_player_id=0,
                     kill_number=1,
+                    drops=["aghanims_shard", "horn_of_battle_greater"],
                 )
             ],
             shrines=[ShrineKill(tick=1100, team=2)],
@@ -634,6 +635,8 @@ class TestBuildDataframes:
         assert "tormentor" in objective_types
         assert "shrine" in objective_types
         assert "aegis" in objective_types
+        tormentor = objectives_df[objectives_df["type"] == "tormentor"].iloc[0]
+        assert tormentor["drops"] == "aghanims_shard,horn_of_battle_greater"
 
     def test_player_breakdowns_is_long_form_of_player_dicts(self):
         pp = ParsedPlayer(player_id=3)

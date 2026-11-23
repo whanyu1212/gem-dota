@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Tormentor drops** (HY-578): `TormentorKill.drops` lists the items each
+  Tormentor carried, also as a `drops` column on the objectives table. On patch
+  7.42 that is a Greater Horn of Battle (`"horn_of_battle_greater"`), plus an
+  Aghanim's Shard (`"aghanims_shard"`) from the second Tormentor on; on 7.41, an
+  Aghanim's Shard. They are read from each Tormentor's own inventory while it is
+  alive, so a bought Aghanim's Shard is never counted, and two Tormentors alive at
+  once each keep their own. On 7.42 the first Tormentor's
+  `killer_player_id` is `-1`: its chat event names no player (OpenDota stores the
+  same), while `killer` still names the last hitter.
 - **The gold ledger reads the newer gold sources** (HY-575):
   `GoldLedgerSnapshot.summon_kill_gold`, `midas_gold` (new in patch 7.42),
   `experimental_gold` and `experimental2_gold`, also in the `include="gold_ledger"`
