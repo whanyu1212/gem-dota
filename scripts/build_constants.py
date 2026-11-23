@@ -4,7 +4,12 @@ Reads the raw JSON files from refs/dotaconstants/build/ and writes slim,
 pre-processed versions into src/gem/data/. Run this script whenever
 dotaconstants is updated.
 
+dotaconstants only describes the current patch, but gem parses replays from
+older ones too, so items and abilities that a new patch drops stay in the
+bundled files (see :func:`_keep_retired`).
+
 Usage:
+    git clone --depth 1 https://github.com/odota/dotaconstants refs/dotaconstants
     python scripts/build_constants.py
 """
 
@@ -53,6 +58,7 @@ def build_items() -> None:
         dname = item.get("dname") or _derive_recipe_dname(key, raw)
         if dname:
             out[key] = {"id": item.get("id"), "dname": dname}
+    _keep_retired("items.json", out)
     _write("items.json", out)
     print(f"  items.json: {len(out)} entries")
 
@@ -75,6 +81,7 @@ def build_abilities() -> None:
         dname = ab.get("dname") or _derive_ability_dname(name)
         if dname:
             out[name] = dname
+    _keep_retired("abilities.json", out)
     _write("abilities.json", out)
     print(f"  abilities.json: {len(out)} entries")
 
@@ -113,6 +120,30 @@ def build_ancients() -> None:
     raw: dict = _load("ancients.json")  # type: ignore[assignment]
     _write("ancients.json", raw)
     print(f"  ancients.json: {len(raw)} entries")
+
+
+def _keep_retired(name: str, out: dict) -> None:
+    """Append the entries the current dotaconstants no longer lists to ``out``.
+
+    Older replays still name retired items and abilities. A renamed item keeps
+    its ID (7.42 renamed ``desolator_2`` to ``stygian_desolator``, both 292);
+    retired entries come after current ones, and ``gem.catalog.items`` resolves
+    an ID to its first key, so the ID resolves to the current name.
+
+    Args:
+        name: The bundled file in ``src/gem/data/`` to read the previous build from.
+        out: The freshly built mapping, updated in place.
+    """
+    previous_path = _DST / name
+    if not previous_path.exists():
+        return
+    with open(previous_path) as f:
+        previous: dict = json.load(f)
+    kept = [key for key in previous if key not in out]
+    for key in kept:
+        out[key] = previous[key]
+    if kept:
+        print(f"  {name}: kept {len(kept)} retired entries: {', '.join(sorted(kept))}")
 
 
 def _write(name: str, data: dict | list) -> None:
