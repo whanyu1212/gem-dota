@@ -61,7 +61,7 @@ _WINDOW_CENTRE = ((MAP_XMIN + MAP_XMAX) / 2, (MAP_YMIN + MAP_YMAX) / 2)
 
 
 def _write_zones(path: Path, camps: list[dict]) -> None:
-    path.write_text(json.dumps({"camps": camps}), encoding="utf-8")
+    path.write_text(json.dumps({"patches": ["7.41"], "camps": camps}), encoding="utf-8")
 
 
 def test_camp_pixel_uses_the_report_projection() -> None:

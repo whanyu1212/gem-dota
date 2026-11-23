@@ -1,11 +1,12 @@
-"""Render camp zones (and optionally the map regions) on the 7.41 map image.
+"""Render one patch's camp zones (and optionally the map regions) on its map image.
 
 Reads ``camp_zones.json`` in world coordinates and draws each camp's zone, a
 type marker and its ID on a chip coloured by owner team. With ``--regions`` it
 also draws the analysis regions from ``map_constants.json``: the two halves, the
 river and the lotus areas. Points are placed with the report maps' calibrated
 projection (``gem.catalog.map.world_to_map_image``), so the picture
-shows exactly where gem puts things.
+shows exactly where gem puts things. ``--patch`` picks the camps and, unless
+``--image`` says otherwise, ``assets/maps/Game_map_<patch>.jpg``.
 
     uv run python scripts/render_camp_zones_overlay.py --regions --width 1800 \
         --margin 40 --legend-panel 420 --output site/public/map-annotations.jpg
@@ -24,9 +25,10 @@ from PIL import Image, ImageDraw, ImageFont
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
-from gem.catalog.map import MAP_XMAX, MAP_XMIN, world_to_map_image  # noqa: E402
+from gem.catalog.map import MAP_XMAX, MAP_XMIN, camps_on_patch, world_to_map_image  # noqa: E402
 
-DEFAULT_IMAGE = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"
+MAPS_DIR = REPO_ROOT / "assets" / "maps"
+DEFAULT_PATCH = "7.41"
 DEFAULT_ZONES = REPO_ROOT / "src" / "gem" / "data" / "camp_zones.json"
 DEFAULT_CONSTANTS = REPO_ROOT / "src" / "gem" / "data" / "map_constants.json"
 DEFAULT_OUT = Path("/tmp/camp_zones_overlay_preview.png")
@@ -334,6 +336,7 @@ def render_overlay(
     output_path: Path,
     *,
     constants_path: Path | None = None,
+    patch: str = DEFAULT_PATCH,
     width: int | None = None,
     margin: int = 0,
     legend_panel: int = 0,
@@ -341,10 +344,11 @@ def render_overlay(
     """Draw the camp zones, and optionally the regions, on the map image.
 
     Args:
-        image_path: The 7.41 map image (or a copy with the same aspect ratio).
+        image_path: ``patch``'s map image (or a copy with the same aspect ratio).
         zones_path: ``camp_zones.json``.
         output_path: Where to save the picture (PNG or JPEG by suffix).
         constants_path: ``map_constants.json``; when given, the regions are drawn.
+        patch: The patch whose camps to draw.
         width: Resize the image to this width first (keeps the aspect ratio).
         margin: Pad the picture by this many pixels on every side, so markers on
             the map's edge are not cut off.
@@ -383,7 +387,7 @@ def render_overlay(
         _draw_regions(ImageDraw.Draw(layer, "RGBA"), map_width, map_height, regions, marker_scale)
         overlay.alpha_composite(layer, (margin, margin))
 
-    for camp in zones["camps"]:
+    for camp in camps_on_patch(patch, zones):
         camp_id = int(camp["id"])
         camp_type = str(camp["type"])
         rgb = _camp_zone_color(camp_type)
@@ -441,8 +445,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--image",
         type=Path,
-        default=DEFAULT_IMAGE,
-        help=f"Background map image (default: {DEFAULT_IMAGE})",
+        help=f"Background map image (default: {MAPS_DIR}/Game_map_<patch>.jpg)",
+    )
+    parser.add_argument(
+        "--patch",
+        default=DEFAULT_PATCH,
+        help=f"Draw this patch's camps (default: {DEFAULT_PATCH})",
     )
     parser.add_argument(
         "--zones",
@@ -482,11 +490,13 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    image = args.image or MAPS_DIR / f"Game_map_{args.patch}.jpg"
     render_overlay(
-        args.image,
+        image,
         args.zones,
         args.output,
         constants_path=args.constants if args.regions else None,
+        patch=args.patch,
         width=args.width,
         margin=args.margin,
         legend_panel=args.legend_panel,

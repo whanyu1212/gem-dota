@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 import scripts.export_site_home_data as export
-from gem.catalog.map import load_camp_zones
+from gem.catalog.map import camps_on_patch
 from gem.combat.log import CombatLogEntry
 from gem.extractors.fights import Fight, FightPlayer
 from gem.extractors.wards import WardEvent
@@ -17,7 +17,7 @@ from scripts.export_site_home_data import SIZE, map_overlay
 
 def test_map_overlay_has_every_camp_and_both_lotus_pools() -> None:
     overlay = map_overlay()
-    assert len(overlay["camps"]) == len(load_camp_zones()["camps"]) == 28
+    assert len(overlay["camps"]) == len(camps_on_patch("7.41")) == 28
     assert len(overlay["lotus_pools"]) == 2
     assert {camp["type"] for camp in overlay["camps"]} <= {
         "small",
@@ -37,7 +37,7 @@ def test_map_overlay_points_fall_inside_the_square() -> None:
 
 def test_map_overlay_puts_radiant_camps_below_dire_camps() -> None:
     # Radiant is the bottom-left half of the map; y grows downwards in the square.
-    camps = load_camp_zones()["camps"]
+    camps = camps_on_patch("7.41")
     heights: dict[int, list[float]] = {2: [], 3: []}
     for camp, projected in zip(camps, map_overlay()["camps"], strict=True):
         heights[camp["topology"]["owner_team"]].append(projected["at"][1])

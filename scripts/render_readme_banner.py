@@ -38,12 +38,14 @@ from gem.catalog.map import (  # noqa: E402
     MAP_XMIN,
     MAP_YMAX,
     MAP_YMIN,
-    load_camp_zones,
+    camps_on_patch,
     load_map_constants,
 )
 
 DEFAULT_OUTPUT = REPO_ROOT / "site" / "public" / "gem-readme-banner-wordmark-subtitle-spaced.png"
 DEFAULT_MAP = REPO_ROOT / "assets" / "maps" / "Game_map_7.41.jpg"
+#: The patch DEFAULT_MAP shows, whose camps the banner draws on it.
+DEFAULT_MAP_PATCH = "7.41"
 DEFAULT_FONT = (
     REPO_ROOT / "site/node_modules/@fontsource-variable/inter/files/inter-latin-opsz-normal.woff2"
 )
@@ -134,7 +136,7 @@ def _map_square_b64(map_path: Path) -> str:
 
 def _overlay() -> str:
     regions = load_map_constants()["regions"]
-    camps = load_camp_zones()["camps"]
+    camps = camps_on_patch(DEFAULT_MAP_PATCH)
     half = [_project(*point) for point in regions["half_line"]]
     river = _points(_project(*point) for point in regions["river_outline"])
     margin = 2000
