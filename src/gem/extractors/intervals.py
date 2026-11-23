@@ -399,9 +399,9 @@ class IntervalExtractor:
         OpenDota's interval clock is set in ``@OnTickStart`` from the network
         tick the previous tick left behind (odota/parser Parse.java), so a new
         second begins one network tick after the replay's own clock shows it.
-        The difference matters when gold is earned on that tick: 7.42 pays the
-        first passive gold at 0:00, which OpenDota's ``gold_t[0]`` includes
-        (replay 9101479361).
+        The difference matters when gold is earned on that tick: in replay
+        9101479361 (7.42) every player earns 1 gold there, which OpenDota's
+        ``gold_t[0]`` includes.
         """
         raw_time_s = getattr(self._parser, "opendota_tick_start_raw_s", None)
         if raw_time_s is None or raw_time_s == self._last_raw_time_s:
@@ -418,7 +418,7 @@ class IntervalExtractor:
             del self._minute_zero_candidates[stale]
 
     def _emit_minute_zero_candidate(self, game_time_s: int) -> None:
-        """Emit the candidate read when the raw clock reached the game start.
+        """Emit the candidate read when the tick-start clock reached the game start.
 
         OpenDota emits an interval every raw second from pregame and shifts it by
         the rounded game start once that is known (odota/parser Parse.java

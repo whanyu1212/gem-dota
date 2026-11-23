@@ -231,6 +231,11 @@ class TestItemKeyById:
     def test_unknown_item_id_returns_none(self) -> None:
         assert C.item_key_by_id(999999) is None
 
+    def test_renamed_item_id_gives_current_name(self) -> None:
+        """7.42 renamed ``desolator_2``; both keys stay, the ID gives the new one."""
+        assert C.item_key_by_id(292) == "stygian_desolator"
+        assert C.ITEMS["desolator_2"]["id"] == 292
+
 
 # ---------------------------------------------------------------------------
 # ability_display()
