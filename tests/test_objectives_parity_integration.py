@@ -4,7 +4,8 @@ Parses the shared feature-parity fixture and compares its objectives with the
 OpenDota match API, then checks the causes HY-86 fixed:
 
 - first blood is the chat event's kill (gem once took a hero killed by neutrals
-  before it; no 7.42 fixture has one, so only the parity audit guards that);
+  before it; no fixture has one now, so ``TestFirstBloodDeath`` in
+  ``test_opendota_chat_clock.py`` covers that case);
 - Tormentor kills whose chat events arrive before their deaths (each used to
   carry the next kill's player), on the long fixture's three Tormentors;
 - courier kills, whose chat event carries the bounty ``value``;
