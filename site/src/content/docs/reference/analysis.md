@@ -915,7 +915,7 @@ def build_farming_routes(match: ParsedMatch, *, config: FarmingRouteConfig = DEF
 
 Build deterministic camp-local route evidence for every parsed player.
 
-Source: [src/gem/analysis/farming.py:633](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L633)
+Source: [src/gem/analysis/farming.py:670](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/analysis/farming.py#L670)
 
 ### Top-level classes
 

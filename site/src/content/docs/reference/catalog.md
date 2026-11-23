@@ -83,7 +83,7 @@ def item_display(internal: str) -> str
 
 Return display name for an ``item_*`` prefixed internal name.
 
-Source: [src/gem/catalog/items.py:24](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/items.py#L24)
+Source: [src/gem/catalog/items.py:27](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/items.py#L27)
 
 ### `item_key_by_id`
 
@@ -93,7 +93,7 @@ def item_key_by_id(item_id: int) -> str | None
 
 Return the internal item key for an item ability ID.
 
-Source: [src/gem/catalog/items.py:42](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/items.py#L42)
+Source: [src/gem/catalog/items.py:45](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/items.py#L45)
 
 ### `permanent_buff_name`
 
@@ -103,7 +103,7 @@ def permanent_buff_name(buff_id: int) -> str
 
 Return the item name for a permanent buff integer ID.
 
-Source: [src/gem/catalog/items.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/items.py#L54)
+Source: [src/gem/catalog/items.py:57](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/items.py#L57)
 
 ## Module `gem.catalog.abilities`
 
@@ -175,7 +175,7 @@ def world_to_map_image(x: float, y: float, width: float = MAP_IMAGE_WIDTH, heigh
 
 Project world coordinates onto the 7.41 map image.
 
-Source: [src/gem/catalog/map.py:30](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L30)
+Source: [src/gem/catalog/map.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L32)
 
 ### `map_image_to_world`
 
@@ -185,7 +185,7 @@ def map_image_to_world(px: float, py: float, width: float = MAP_IMAGE_WIDTH, hei
 
 Project a 7.41 map image pixel to world coordinates (inverse of :func:`world_to_map_image`).
 
-Source: [src/gem/catalog/map.py:54](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L54)
+Source: [src/gem/catalog/map.py:56](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L56)
 
 ### `load_camp_zones`
 
@@ -195,7 +195,17 @@ def load_camp_zones() -> dict[str, Any]
 
 Load calibrated neutral-camp zone geometry.
 
-Source: [src/gem/catalog/map.py:74](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L74)
+Source: [src/gem/catalog/map.py:76](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L76)
+
+### `camps_on_patch`
+
+```python
+def camps_on_patch(patch: str, payload: dict[str, Any] | None = None) -> list[dict[str, Any]]
+```
+
+Return the camps ``camp_zones.json`` places on one patch's map.
+
+Source: [src/gem/catalog/map.py:85](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L85)
 
 ### `load_map_constants`
 
@@ -205,7 +215,7 @@ def load_map_constants() -> dict[str, Any]
 
 Load static map calibration constants.
 
-Source: [src/gem/catalog/map.py:83](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L83)
+Source: [src/gem/catalog/map.py:110](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L110)
 
 ### `load_neutral_camps`
 
@@ -215,7 +225,7 @@ def load_neutral_camps() -> list[dict[str, Any]]
 
 Load each neutral camp's ID, centre and type.
 
-Source: [src/gem/catalog/map.py:92](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L92)
+Source: [src/gem/catalog/map.py:119](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L119)
 
 ### `load_neutral_camp_centers`
 
@@ -225,7 +235,7 @@ def load_neutral_camp_centers() -> dict[int, tuple[float, float]]
 
 Load neutral camp IDs mapped to world-coordinate centers.
 
-Source: [src/gem/catalog/map.py:112](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L112)
+Source: [src/gem/catalog/map.py:139](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L139)
 
 ## Module `gem.catalog.resources`
 
