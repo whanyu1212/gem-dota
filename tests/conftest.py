@@ -12,22 +12,21 @@ if TYPE_CHECKING:
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 OPENDOTA_FIXTURES_DIR = FIXTURES_DIR / "opendota"
-TI2026_SHORT_MATCH_ID = 8868259993
-TI2026_MEDIUM_MATCH_ID = 8860187335
-TI2026_LONG_MATCH_ID = 8856501050
-PERFORMANCE_BASELINE_MATCH_ID = 8822520406
-FEATURE_PARITY_MATCH_ID = 8855188139
-FIXED8_ENCODER_MATCH_ID = 9039619076
-AEGIS_REINCARNATION_MATCH_ID = 9040268873
+SHORT_MATCH_ID = 9097870389
+MEDIUM_MATCH_ID = 9101190574
+LONG_MATCH_ID = 9101299342
+PERFORMANCE_BASELINE_MATCH_ID = 9098298585
+FEATURE_PARITY_MATCH_ID = 9097868416
 PATCH_742_MATCH_ID = 9101479361
-DEPRECATED_OPENDOTA_REPLAY_IDS = frozenset({8822593932})
+PATCH_741_MATCH_ID = 8974053011
+DEPRECATED_OPENDOTA_REPLAY_IDS: frozenset[int] = frozenset()
 DEPRECATED_OPENDOTA_REPLAY_NAMES = frozenset(
     f"{match_id}.dem" for match_id in DEPRECATED_OPENDOTA_REPLAY_IDS
 )
 PREFERRED_OPENDOTA_REPLAY_IDS = (
-    TI2026_SHORT_MATCH_ID,
-    TI2026_MEDIUM_MATCH_ID,
-    TI2026_LONG_MATCH_ID,
+    SHORT_MATCH_ID,
+    MEDIUM_MATCH_ID,
+    LONG_MATCH_ID,
     PERFORMANCE_BASELINE_MATCH_ID,
 )
 # Session fixtures that parse a whole replay. Tests using one share an xdist
@@ -36,7 +35,9 @@ SHARED_PARSE_FIXTURES = (
     "canonical_parsed_match",
     "canonical_replay_pass",
     "feature_parity_match",
-    "fixed8_encoder_match",
+    "medium_parsed_match",
+    "long_parsed_match",
+    "patch_742_parsed_match",
 )
 
 
@@ -98,51 +99,45 @@ def _required_replay_path(match_id: int, role: str) -> Path:
 
 
 @pytest.fixture(scope="session")
-def ti2026_short_replay_path() -> Path:
-    """Return the canonical short TI2026 integration replay."""
-    return _required_replay_path(TI2026_SHORT_MATCH_ID, "TI2026 short canonical")
+def short_replay_path() -> Path:
+    """Return the canonical short integration replay."""
+    return _required_replay_path(SHORT_MATCH_ID, "short canonical")
 
 
 @pytest.fixture(scope="session")
-def ti2026_medium_replay_path() -> Path:
-    """Return the extended medium-length TI2026 replay."""
-    return _required_replay_path(TI2026_MEDIUM_MATCH_ID, "TI2026 medium extended")
+def medium_replay_path() -> Path:
+    """Return the extended medium-length replay."""
+    return _required_replay_path(MEDIUM_MATCH_ID, "medium extended")
 
 
 @pytest.fixture(scope="session")
-def ti2026_long_replay_path() -> Path:
-    """Return the long TI2026 stress replay."""
-    return _required_replay_path(TI2026_LONG_MATCH_ID, "TI2026 long stress")
+def long_replay_path() -> Path:
+    """Return the long stress replay."""
+    return _required_replay_path(LONG_MATCH_ID, "long stress")
 
 
 @pytest.fixture(scope="session")
 def performance_baseline_replay_path() -> Path:
-    """Return the DreamLeague fixture used by performance baseline issue #143."""
+    """Return the replay used by performance baseline issue #143."""
     return _required_replay_path(PERFORMANCE_BASELINE_MATCH_ID, "performance baseline")
 
 
 @pytest.fixture(scope="session")
-def fixed8_encoder_replay_path() -> Path:
-    """Return the BLAST SLAM VIII replay whose send tables use the fixed8 encoder."""
-    return _required_replay_path(FIXED8_ENCODER_MATCH_ID, "fixed8 encoder regression")
-
-
-@pytest.fixture(scope="session")
-def aegis_reincarnation_replay_path() -> Path:
-    """Return the BLAST SLAM VIII replay where Kez reincarnates on two Aegises."""
-    return _required_replay_path(AEGIS_REINCARNATION_MATCH_ID, "Aegis reincarnation regression")
-
-
-@pytest.fixture(scope="session")
 def patch_742_replay_path() -> Path:
-    """Return the BLAST SLAM IX replay, the first patch 7.42 fixture."""
+    """Return the BLAST SLAM IX replay with Dark Seer, the first patch 7.42 fixture."""
     return _required_replay_path(PATCH_742_MATCH_ID, "patch 7.42 regression")
 
 
 @pytest.fixture(scope="session")
-def full_replay_path(ti2026_short_replay_path: Path) -> Path:
-    """Compatibility alias for the canonical TI2026 integration replay."""
-    return ti2026_short_replay_path
+def patch_741_replay_path() -> Path:
+    """Return the one patch 7.41 replay, kept for backward compatibility."""
+    return _required_replay_path(PATCH_741_MATCH_ID, "patch 7.41 legacy")
+
+
+@pytest.fixture(scope="session")
+def full_replay_path(short_replay_path: Path) -> Path:
+    """Compatibility alias for the canonical integration replay."""
+    return short_replay_path
 
 
 @pytest.fixture(scope="session")
@@ -196,17 +191,53 @@ def feature_parity_match() -> "ParsedMatch":
 
 
 @pytest.fixture(scope="session")
-def fixed8_encoder_match(fixed8_encoder_replay_path: Path) -> "ParsedMatch":
-    """Share read-only output of the BLAST SLAM VIII build-6956 fixture (9039619076)."""
+def medium_parsed_match(medium_replay_path: Path) -> "ParsedMatch":
+    """Share read-only output of the medium-length replay."""
     import gem
 
-    return gem.parse(str(fixed8_encoder_replay_path))
+    return gem.parse(str(medium_replay_path))
 
 
 @pytest.fixture(scope="session")
-def fixed8_encoder_reference() -> dict:
-    """Load the 9039619076 OpenDota reference (a parse with OpenDota's current rules)."""
-    path = OPENDOTA_FIXTURES_DIR / f"{FIXED8_ENCODER_MATCH_ID}.opendota.json"
+def medium_reference() -> dict:
+    """Load the medium-length replay's OpenDota reference."""
+    return _reference(MEDIUM_MATCH_ID)
+
+
+@pytest.fixture(scope="session")
+def long_parsed_match(long_replay_path: Path) -> "ParsedMatch":
+    """Share read-only output of the long stress replay.
+
+    Its four Roshans drop Cheese, Refresher Shards and banners, its three
+    Tormentors fall, and Kez reincarnates on two Aegises.
+    """
+    import gem
+
+    return gem.parse(str(long_replay_path))
+
+
+@pytest.fixture(scope="session")
+def long_reference() -> dict:
+    """Load the long stress replay's OpenDota reference."""
+    return _reference(LONG_MATCH_ID)
+
+
+@pytest.fixture(scope="session")
+def patch_742_parsed_match(patch_742_replay_path: Path) -> "ParsedMatch":
+    """Share read-only output of the patch 7.42 regression replay (Dark Seer)."""
+    import gem
+
+    return gem.parse(str(patch_742_replay_path))
+
+
+@pytest.fixture(scope="session")
+def patch_742_reference() -> dict:
+    """Load the patch 7.42 regression replay's OpenDota reference."""
+    return _reference(PATCH_742_MATCH_ID)
+
+
+def _reference(match_id: int) -> dict:
+    path = OPENDOTA_FIXTURES_DIR / f"{match_id}.opendota.json"
     if not path.exists():
         pytest.skip(f"OpenDota reference {path.name} not available")
     with path.open() as stream:
@@ -216,8 +247,4 @@ def fixed8_encoder_reference() -> dict:
 @pytest.fixture(scope="session")
 def feature_parity_reference() -> dict:
     """Load the read-only OpenDota reference once, only for tests that need it."""
-    path = OPENDOTA_FIXTURES_DIR / f"{FEATURE_PARITY_MATCH_ID}.opendota.json"
-    if not path.exists():
-        pytest.skip(f"OpenDota reference {path.name} not available")
-    with path.open() as stream:
-        return json.load(stream)
+    return _reference(FEATURE_PARITY_MATCH_ID)

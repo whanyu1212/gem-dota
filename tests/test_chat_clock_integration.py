@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "opendota"
-_MATCH_IDS = (8822520406, 8860187335)
+_MATCH_IDS = (9097870389, 9101190574)
 _CHAT_TYPES = (
     "CHAT_MESSAGE_FIRSTBLOOD",
     "CHAT_MESSAGE_COURIER_LOST",

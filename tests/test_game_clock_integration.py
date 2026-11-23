@@ -13,15 +13,15 @@ from gem.state.game_clock import GamePause
 
 
 @pytest.fixture(scope="module")
-def paused_match(ti2026_medium_replay_path: Path) -> ParsedMatch:
+def paused_match(performance_baseline_replay_path: Path) -> ParsedMatch:
     import gem
 
-    return gem.parse(str(ti2026_medium_replay_path))
+    return gem.parse(str(performance_baseline_replay_path))
 
 
 @pytest.fixture(scope="module")
-def paused_reference(ti2026_medium_replay_path: Path) -> dict:
-    reference = ti2026_medium_replay_path.with_suffix(".opendota.json")
+def paused_reference(performance_baseline_replay_path: Path) -> dict:
+    reference = performance_baseline_replay_path.with_suffix(".opendota.json")
     if not reference.exists():
         pytest.skip(f"OpenDota reference JSON not available: {reference.name}")
     return json.loads(reference.read_text())
@@ -29,12 +29,17 @@ def paused_reference(ti2026_medium_replay_path: Path) -> dict:
 
 @pytest.mark.integration
 @pytest.mark.slow
-def test_medium_replay_records_pause_and_post_game(paused_match: ParsedMatch) -> None:
-    """Match 8860187335 has one ~22 s pause and records ~15 min after the Ancient falls."""
+def test_replay_records_pauses_and_post_game(paused_match: ParsedMatch) -> None:
+    """Match 9098298585 pauses before the horn and twice in game, and records ~15 min
+    after the Ancient falls."""
     clock = paused_match.game_clock
     assert clock is not None
-    assert clock.pauses == [GamePause(start_tick=58418, end_tick=59072)]
-    assert clock.net_tick_offset == 395
+    assert clock.pauses == [
+        GamePause(start_tick=24239, end_tick=25494),
+        GamePause(start_tick=52245, end_tick=52763),
+        GamePause(start_tick=98223, end_tick=98384),
+    ]
+    assert clock.net_tick_offset == 1746
 
     post_game_tick = paused_match.post_game_tick
     assert post_game_tick is not None
@@ -46,10 +51,8 @@ def test_medium_replay_records_pause_and_post_game(paused_match: ParsedMatch) ->
 
 @pytest.mark.integration
 @pytest.mark.slow
-def test_medium_replay_objective_times_match_opendota(
-    paused_match: ParsedMatch, paused_reference: dict
-) -> None:
-    """Pause-aware objective times agree with OpenDota; raw ticks drifted by ~21 s."""
+def test_objective_times_match_opendota(paused_match: ParsedMatch, paused_reference: dict) -> None:
+    """Pause-aware objective times agree with OpenDota; raw ticks drift by each pause."""
     reference: defaultdict[tuple[str, str | None], list[int]] = defaultdict(list)
     for objective in paused_reference["objectives"]:
         key = objective.get("key") if objective["type"] == "building_kill" else None

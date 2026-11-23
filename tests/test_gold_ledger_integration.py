@@ -8,10 +8,9 @@ with the replay's embedded postgame summary, which OpenDota reports:
 - each buyback's exact cost sums to the ledger's gold spent on buybacks;
 - the earned sources minus shared gold == total earned gold.
 
-Fixtures: 8855188139, where the last dense net-worth sample was 1 gold off the
-summary for one player, in the ``integration`` tier (it shares the feature parity
-parse); 8855242704 (16 buybacks) and 8856501050 (31 buybacks) in the ``corpus``
-tier, run with the parity audit.
+Fixtures: the feature parity replay (5 buybacks) in the ``integration`` tier (it
+shares that parse); the medium replay (3 buybacks) and the long one (19 buybacks)
+in the ``corpus`` tier, run with the parity audit.
 
 Marked ``slow``: needs the full ``.dem`` plus its ``.opendota.json``.
 """
@@ -24,7 +23,7 @@ from pathlib import Path
 import pytest
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "opendota"
-_CORPUS_MATCH_IDS = (8855242704, 8856501050)
+_CORPUS_MATCH_IDS = (9101190574, 9101299342)
 _EARNED_SOURCES = (
     "hero_kill_gold",
     "creep_kill_gold",

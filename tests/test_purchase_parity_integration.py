@@ -14,8 +14,8 @@ HY-80 closed the remaining gaps: starting items are read at OpenDota's first
 once-a-second interval and timed by its tick-start clock, ``ward_dispenser`` is
 left out of the log and timing maps. The whole purchase timeline now matches,
 including pre-horn times. ``first_purchase_time`` keeps a purchase at exactly
-0, as OpenDota has since odota/core 7d32aef0; this fixture's JSON is older, so
-the test applies that rule to OpenDota's own purchase log.
+0, as OpenDota has since odota/core 7d32aef0; the test applies that rule to
+OpenDota's own purchase log, so a fixture JSON from before it compares too.
 
 Marked ``slow`` + ``integration`` — needs a real ``.dem`` plus its
 ``.opendota.json``.
@@ -32,22 +32,20 @@ _NAME_TO_HERO_ID = {name: meta["id"] for name, meta in HEROES.items()}
 # Per-hero expected purchase counts, verified against the OpenDota fixture.
 # Keyed by hero_id (slot-independent so the test is robust to draft order).
 _EXPECTED_COUNTS = {
-    11: {  # Shadow Fiend
+    98: {  # Timbersaw
         "tango": 2,
-        "faerie_fire": 2,
-        "clarity": 5,
-        "tpscroll": 2,
+        "clarity": 3,
+        "tpscroll": 5,
+        "branches": 2,
         "black_king_bar": 1,
         "recipe_black_king_bar": 1,
     },
     120: {  # Pangolier
-        "tango": 2,
-        "faerie_fire": 1,
-        "clarity": 6,
-        "tpscroll": 6,
-        "branches": 4,
-        "ward_observer": 2,
-        "ward_sentry": 2,
+        "tango": 1,
+        "clarity": 4,
+        "tpscroll": 4,
+        "branches": 3,
+        "ward_observer": 1,
     },
 }
 
@@ -101,25 +99,25 @@ class TestPurchaseParityMatchesOpenDota:
 
     def test_purchase_time_is_sum(self, paired):
         # purchase_time matches OpenDota's SUM-of-buy-times on positive-time items.
-        # Shadow Fiend (11): clarity sums to 3696, tpscroll to 1377; BKB single buy 1648.
-        sf, _ = paired[11]
-        assert sf.purchase_time["clarity"] == 3696
-        assert sf.purchase_time["tpscroll"] == 1377
-        assert sf.purchase_time["black_king_bar"] == 1648
+        # Timbersaw (98): clarity sums to 3076, tpscroll to 6740; BKB single buy 1271.
+        timbersaw, _ = paired[98]
+        assert timbersaw.purchase_time["clarity"] == 3076
+        assert timbersaw.purchase_time["tpscroll"] == 6740
+        assert timbersaw.purchase_time["black_king_bar"] == 1271
 
     def test_first_purchase_time_is_earliest(self, paired):
         # first_purchase_time is the earliest buy. BKB is a clean positive-time
         # single buy (avoids the pre-horn ±1 and tango time-0 quirks).
-        sf, _ = paired[11]
-        assert sf.first_purchase_time["black_king_bar"] == 1648
-        assert sf.first_purchase_time["clarity"] == 470
+        timbersaw, _ = paired[98]
+        assert timbersaw.first_purchase_time["black_king_bar"] == 1271
+        assert timbersaw.first_purchase_time["clarity"] == 705
 
     def test_recipes_counted_but_excluded_from_timing(self, paired):
         # Recipes appear in the count map but never in the timing maps.
-        sf, _ = paired[11]
-        assert sf.purchase.get("recipe_black_king_bar") == 1
-        assert "recipe_black_king_bar" not in sf.purchase_time
-        assert "recipe_black_king_bar" not in sf.first_purchase_time
+        timbersaw, _ = paired[98]
+        assert timbersaw.purchase.get("recipe_black_king_bar") == 1
+        assert "recipe_black_king_bar" not in timbersaw.purchase_time
+        assert "recipe_black_king_bar" not in timbersaw.first_purchase_time
 
     def test_purchase_timeline_matches_opendota(self, paired, feature_parity_match):
         # purchase_log (key, time), purchase_time and first_purchase_time match

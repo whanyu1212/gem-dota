@@ -3,8 +3,9 @@
 Since build 6951 the send tables mark 90 field definitions ``fixed8`` (8 raw bits).
 Read as varints, the first 255 in the ``CParticleSystem`` instance baseline
 desynced the bit stream and every such replay stopped with ``BufferReadError``
-minutes in (GitHub #301). Fixture 9039619076 (BLAST SLAM VIII, build 6956) must
-parse to the end and agree with OpenDota on the per-player totals and curves.
+minutes in (GitHub #301). The medium fixture (patch 7.42) still declares fixed8,
+and must parse to the end and agree with OpenDota on the per-player totals and
+curves.
 
 Marked ``slow`` + ``integration``: needs the full ``.dem`` plus its
 ``.opendota.json``.
@@ -42,19 +43,19 @@ pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 
 @pytest.fixture(scope="module")
-def parsed(fixed8_encoder_match):
-    return fixed8_encoder_match
+def parsed(medium_parsed_match):
+    return medium_parsed_match
 
 
 @pytest.fixture(scope="module")
-def opendota(fixed8_encoder_reference) -> dict:
-    return fixed8_encoder_reference
+def opendota(medium_reference) -> dict:
+    return medium_reference
 
 
-def test_send_tables_use_the_fixed8_encoder(fixed8_encoder_replay_path: Path) -> None:
+def test_send_tables_use_the_fixed8_encoder(medium_replay_path: Path) -> None:
     from gem.parser import ReplayParser
 
-    parser = ReplayParser(str(fixed8_encoder_replay_path))
+    parser = ReplayParser(str(medium_replay_path))
     parser.stop_after_tick(1000)
     parser.parse()
     assert parser.entity_manager is not None

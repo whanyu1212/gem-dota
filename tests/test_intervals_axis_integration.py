@@ -4,9 +4,9 @@ OpenDota reads interval entities from Clarity's ``@OnTickStart`` callback. Gem
 decodes ``CNETMsg_Tick`` and queues rounded-minute crossings for the following
 tick start to reproduce Clarity's effective phase. Minute zero is the batch read when the raw clock reached the
 rounded game start, which can precede the tick where the start becomes visible
-(8855242704: start seen only after the rounded clock passed 0; 8974053011: a last
-hit between the two). These fixtures lock in exact parity, length included,
-against the published arrays.
+(8974053011: a last hit between the two; 8855242704, no longer a fixture, saw the
+start only after the rounded clock passed 0). These fixtures lock in exact
+parity, length included, against the published arrays.
 
 Marked ``slow`` + ``corpus``: needs a real ``.dem`` plus its ``.opendota.json``. The
 parity audit compares the same per-minute arrays on every fixture.
@@ -23,8 +23,8 @@ from gem.extractors.intervals import IntervalExtractor
 from gem.parser import ReplayParser
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "opendota"
-# The smallest full fixture, plus the two minute-zero edge cases above.
-_MATCH_IDS = (8822520406, 8855242704, 8974053011)
+# The smallest full fixture, the minute-zero edge case above, and the longest.
+_MATCH_IDS = (9097870389, 8974053011, 9101299342)
 _METRICS = ("gold_t", "xp_t", "lh_t", "dn_t")
 
 

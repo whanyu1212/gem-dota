@@ -127,4 +127,5 @@ def test_saved_opendota_fixtures_resolve_against_bundled_item_constants() -> Non
 
     assert report.missing_item_keys == ()
     assert report.missing_item_ids == ()
-    assert report.allowed_missing_item_keys == ("guardian_shell",)
+    # The allow-list covers older replays too; a fixture set need not hit it.
+    assert set(report.allowed_missing_item_keys) <= DEFAULT_ALLOWED_MISSING_ITEM_KEYS

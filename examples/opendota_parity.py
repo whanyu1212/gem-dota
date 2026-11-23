@@ -17,8 +17,8 @@ Usage:
     python examples/opendota_parity.py                      # default fixture (see below)
     python examples/opendota_parity.py path/to/replay.dem   # your own replay
 
-With no argument, the script prefers the canonical TI2026 validation replay
-(``tests/fixtures/opendota/8868259993.dem``) when that local/ignored download is
+With no argument, the script prefers the canonical validation replay
+(``tests/fixtures/opendota/9097870389.dem``) when that local/ignored download is
 present — it ships the sibling ``.opendota.json`` that drives the parity
 cross-check. That replay is NOT committed, so on a fresh clone the script falls
 back to the committed but *truncated* TI14 fixture (partial match, no parity
@@ -347,14 +347,14 @@ def report_catalog_helpers() -> None:
 # Default fixture resolution
 # ---------------------------------------------------------------------------
 
-# The canonical TI2026 OpenDota validation replay is a local/ignored download — it is
+# The canonical OpenDota validation replay is a local/ignored download — it is
 # NOT committed (see CLAUDE.md: "Full replay fixtures should be local/ignored
 # OpenDota downloads"). It is the *preferred* default because it ships a sibling
 # <match_id>.opendota.json that drives the parity cross-check. When it isn't
 # present, fall back to the committed (but truncated) TI14 replay so a fresh clone
 # still runs — at the cost of a partial match and no parity reference.
 _FIXTURES = Path(__file__).parent.parent / "tests" / "fixtures"
-_OPENDOTA_FIXTURE = _FIXTURES / "opendota" / "8868259993.dem"
+_OPENDOTA_FIXTURE = _FIXTURES / "opendota" / "9097870389.dem"
 _COMMITTED_FIXTURE = _FIXTURES / "ti14_finals_g3_xg_vs_falcons_truncated.dem"
 
 

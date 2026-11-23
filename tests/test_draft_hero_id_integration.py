@@ -16,9 +16,9 @@ import pytest
 pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 
-def test_draft_hero_ids_match_opendota(fixed8_encoder_match, fixed8_encoder_reference) -> None:
-    gem_draft = sorted((event.is_pick, event.hero_id) for event in fixed8_encoder_match.draft)
+def test_draft_hero_ids_match_opendota(medium_parsed_match, medium_reference) -> None:
+    gem_draft = sorted((event.is_pick, event.hero_id) for event in medium_parsed_match.draft)
     opendota_draft = sorted(
-        (entry["is_pick"], entry["hero_id"]) for entry in fixed8_encoder_reference["picks_bans"]
+        (entry["is_pick"], entry["hero_id"]) for entry in medium_reference["picks_bans"]
     )
     assert gem_draft == opendota_draft

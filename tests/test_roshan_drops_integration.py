@@ -24,8 +24,9 @@ from gem.analysis.roshan import _HIGH_VALUE_DROPS, build_rosh_conversions
 @pytest.mark.integration
 class TestRoshanDropsPopulate:
     @pytest.fixture(scope="class")
-    def match(self, feature_parity_match):
-        return feature_parity_match
+    def match(self, long_parsed_match):
+        # The long fixture's four Roshans drop Cheese, Refresher Shards and banners.
+        return long_parsed_match
 
     def test_has_roshan_kills(self, match):
         assert match.roshans, "fixture expected to contain at least one Roshan kill"
@@ -83,8 +84,8 @@ class TestRoshanDropsPopulate:
 @pytest.mark.integration
 class TestRoshConversionDrops:
     @pytest.fixture(scope="class")
-    def conversions(self, feature_parity_match):
-        return build_rosh_conversions(feature_parity_match)
+    def conversions(self, long_parsed_match):
+        return build_rosh_conversions(long_parsed_match)
 
     def test_conversions_built(self, conversions):
         assert conversions

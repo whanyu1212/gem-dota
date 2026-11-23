@@ -397,10 +397,10 @@ class TestPhase8Integration:
         # At least one snapshot should have non-empty ability_levels
         snaps_with_abilities = [s for s in ext.snapshots if s.ability_levels]
         assert snaps_with_abilities, "Expected at least one snapshot with ability levels"
-        # All levels should be in valid range 0-7
+        # Invoker's orbs go to 7, and Aghanim's Scepter adds an eighth level.
         for snap in snaps_with_abilities:
             for level in snap.ability_levels.values():
-                assert 0 <= level <= 7, f"Unexpected ability level {level}"
+                assert 0 <= level <= 8, f"Unexpected ability level {level}"
 
     def test_ability_upgrades_arr_matches_opendota(self, match, full_replay_path):
         opendota_path = full_replay_path.with_suffix(".opendota.json")
@@ -422,7 +422,7 @@ class TestPhase8Integration:
             assert snap.team in (2, 3), f"Unexpected courier team {snap.team}"
 
     def test_draft_events_populated(self, match):
-        # The canonical TI2026 fixture is CM — it should have bans and picks.
+        # The canonical fixture is CM — it should have bans and picks.
         assert len(match.draft) > 0
 
     def test_draft_picks_count(self, match):
