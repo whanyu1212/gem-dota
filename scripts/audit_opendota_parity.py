@@ -25,10 +25,11 @@ The mapping keeps only value differences:
 - Every other field name both sides share is compared as-is.
 
 OpenDota does not re-parse a match it has already parsed, so a fixture's JSON
-keeps the rules of the odota/parser that parsed it. The manifest's
-``opendota_json_predates`` lists the rule changes a fixture's JSON is older
-than; a mismatch on a field such a change touches is reported as stale, not
-counted against gem (see :data:`RULE_CHANGES`).
+keeps the rules of the odota/parser that parsed it, and of the odota/core that
+served it when it was fetched. The manifest's ``opendota_json_predates`` lists
+the rule changes a fixture's JSON is older than; a mismatch on a field such a
+change touches is reported as stale, not counted against gem (see
+:data:`RULE_CHANGES`).
 
 Reference: odota/parser src/main/java/opendota/CreateParsedDataBlob.java
 (pinned revision in CLAUDE.md) defines the OpenDota output fields.
@@ -70,12 +71,15 @@ _MINUTE_ARRAYS = (
     ("game_times_min", "times"),
 )
 
-# odota/parser commit -> the audited fields its rule change touches.
+# odota/parser or odota/core commit -> the audited fields its rule change touches.
 RULE_CHANGES = {
-    # August 2026: an Aegis reincarnation is no longer a death.
+    # odota/parser, August 2026: an Aegis reincarnation is no longer a death.
     "efe5794b": frozenset(
         {"match.teamfights", "player.kills_log", "player.killed", "player.killed_by"}
     ),
+    # odota/core, 14 October 2026: a first purchase at exactly 0:00 is kept
+    # instead of being replaced by the item's next purchase.
+    "7d32aef0": frozenset({"player.first_purchase_time"}),
 }
 
 Seconds = Callable[[int], "int | None"]

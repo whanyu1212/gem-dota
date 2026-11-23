@@ -12,9 +12,10 @@ slots 0-7, no dedup, ``purchase_time`` summed — these match exactly.
 
 HY-80 closed the remaining gaps: starting items are read at OpenDota's first
 once-a-second interval and timed by its tick-start clock, ``ward_dispenser`` is
-left out of the log and timing maps, and ``first_purchase_time`` keeps
-OpenDota's rule that a purchase at exactly 0 is replaced by the next one. The
-whole purchase timeline now matches, including pre-horn times.
+left out of the log and timing maps. The whole purchase timeline now matches,
+including pre-horn times. ``first_purchase_time`` keeps a purchase at exactly
+0, as OpenDota has since odota/core 7d32aef0; this fixture's JSON is older, so
+the test applies that rule to OpenDota's own purchase log.
 
 Marked ``slow`` + ``integration`` — needs a real ``.dem`` plus its
 ``.opendota.json``.
@@ -136,7 +137,13 @@ class TestPurchaseParityMatchesOpenDota:
             log = [(e.value_name.removeprefix("item_"), seconds(e)) for e in player.purchase_log]
             assert log == [(e["key"], e["time"]) for e in od_player["purchase_log"]], hero_id
             assert player.purchase_time == od_player["purchase_time"], hero_id
-            assert player.first_purchase_time == od_player["first_purchase_time"], hero_id
+            # The stored JSON predates odota/core 7d32aef0, which keeps a first
+            # purchase at 0:00; apply today's rule to OpenDota's own log.
+            first_purchase_time: dict[str, int] = {}
+            for entry in od_player["purchase_log"]:
+                if entry["key"] in od_player["first_purchase_time"]:
+                    first_purchase_time.setdefault(entry["key"], entry["time"])
+            assert player.first_purchase_time == first_purchase_time, hero_id
 
     def test_purchase_log_has_no_recipes(self, paired):
         # purchase_log (chronological) excludes recipe_ entries, like OpenDota.
