@@ -55,6 +55,17 @@ _ROSHAN_ITEM_DROPS: dict[str, str] = {
     "CDOTA_Item_Roshans_Banner": "banner",
 }
 
+# Tormentor item entity class name → short drop name. A Tormentor spawns carrying
+# its drops: on 7.41 an Aghanim's Shard; since 7.42 a Greater Horn of Battle,
+# plus an Aghanim's Shard from its second death. They are created unowned at the
+# spawn; a bought Aghanim's Shard has a player owner from creation, which is how
+# the two are told apart.
+_TORMENTOR_ITEM_DROPS: dict[str, str] = {
+    "CDOTA_Item_Horn_Of_Battle_Greater": "horn_of_battle_greater",
+    "CDOTA_Item_Aghanims_Shard": "aghanims_shard",
+}
+_ITEM_OWNER_FIELDS = FieldAccessPlan(("m_iPlayerOwnerID",))
+
 # Planted Roshan's Banner *unit* entity (distinct from the position-less
 # ``CDOTA_Item_Roshans_Banner`` drop). When a held banner is planted it spawns a
 # stationary allied unit that projects a movement-speed / bonus-damage aura to
@@ -181,9 +192,16 @@ class TormentorKill:
             or empty string if unknown.
         killer_player_id: Player slot (0–9) of the killing player from the
             ``CHAT_MESSAGE_MINIBOSS_KILL`` event, or ``-1`` if unavailable.
+            On patch 7.42 the first Tormentor's chat event names no player, so
+            it is ``-1`` while ``killer`` still names the last hitter; OpenDota
+            stores the same ``-1``.
         kill_number: Sequential kill number (1-indexed) for this game.
         killer_team: Protocol attacker team (2=Radiant, 3=Dire), or ``None``
             when unavailable.
+        drops: Items the Tormentor carried, as short names
+            (``"horn_of_battle_greater"``, ``"aghanims_shard"``): an Aghanim's
+            Shard on patch 7.41; since 7.42 a Greater Horn of Battle, plus an
+            Aghanim's Shard from the second Tormentor on.
     """
 
     tick: int
@@ -191,6 +209,7 @@ class TormentorKill:
     killer_player_id: int
     kill_number: int
     killer_team: int | None = None
+    drops: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -328,6 +347,10 @@ class ObjectivesExtractor:
         # Belt-and-suspenders against a transition re-emitted at the same tick:
         # one (index, spawn_tick) pair yields at most one BannerPlant.
         self._banner_seen: set[tuple[int, int]] = set()
+        # index → (creation_tick, short drop name) for unowned Tormentor item
+        # entities, and the last Tormentor death tick, as for Roshan above.
+        self._tormentor_items: dict[int, tuple[int, str]] = {}
+        self._last_tormentor_death_tick: int = -1
         # CHAT_MESSAGE_MINIBOSS_KILL (tick, playerid_1) not yet paired with a
         # Tormentor death, and the kill numbers already paired with one.
         self._pending_miniboss_chats: list[tuple[int, int]] = []
@@ -345,13 +368,17 @@ class ObjectivesExtractor:
         parser.on_chat_event(self._on_chat_event)
         parser._on_entity_filtered(
             self._on_entity,
-            class_names=(*_ROSHAN_ITEM_DROPS, _BANNER_UNIT_CLASS),
+            class_names=(*_ROSHAN_ITEM_DROPS, *_TORMENTOR_ITEM_DROPS, _BANNER_UNIT_CLASS),
         )
 
     def _on_entity(self, entity: Entity, op: EntityOp) -> None:
         name = entity.get_class_name()
         if name == _BANNER_UNIT_CLASS:
             self._on_banner_unit(entity, op)
+            return
+        tormentor_drop = _TORMENTOR_ITEM_DROPS.get(name)
+        if tormentor_drop is not None:
+            self._on_tormentor_item(entity, op, tormentor_drop)
             return
         drop_name = _ROSHAN_ITEM_DROPS.get(name)
         if drop_name is None:
@@ -370,6 +397,20 @@ class ObjectivesExtractor:
             if op.has(EntityOp.CREATED) or idx not in self._roshan_items:
                 tick = self._parser.tick if self._parser is not None else 0
                 self._roshan_items[idx] = (tick, drop_name)
+
+    def _on_tormentor_item(self, entity: Entity, op: EntityOp, drop_name: str) -> None:
+        idx = entity.get_index()
+        if op.has(EntityOp.DELETED):
+            self._tormentor_items.pop(idx, None)
+            return
+        if not op.has(EntityOp.CREATED):
+            return
+        # A recycled slot is a new item: drop any record of the old one first.
+        self._tormentor_items.pop(idx, None)
+        owner = entity._get_int32_resolved(entity._resolve_fields(_ITEM_OWNER_FIELDS)[0])
+        if owner == -1:
+            tick = self._parser.tick if self._parser is not None else 0
+            self._tormentor_items[idx] = (tick, drop_name)
 
     def _on_banner_unit(self, entity: Entity, op: EntityOp) -> None:
         # A banner plant is the unit's transition into the alive life state, not a
@@ -447,6 +488,30 @@ class ObjectivesExtractor:
                     return
             self._pending_miniboss_chats.append((tick, msg.playerid_1))
 
+    def _record_tormentor_kill(self, entry: CombatLogEntry) -> None:
+        # Items created at this Tormentor's spawn, after the previous death.
+        drops = sorted(
+            token
+            for created_tick, token in self._tormentor_items.values()
+            if created_tick > self._last_tormentor_death_tick
+        )
+        self._last_tormentor_death_tick = entry.tick
+        kill = TormentorKill(
+            tick=entry.tick,
+            killer=entry.attacker_name,
+            killer_player_id=-1,  # resolved from the chat event if available
+            kill_number=len(self.tormentor_kills) + 1,
+            killer_team=entry.attacker_team if entry.attacker_team in (2, 3) else None,
+            drops=drops,
+        )
+        self.tormentor_kills.append(kill)
+        pending = self._pending_miniboss_chats
+        while pending and entry.tick - pending[0][0] > _MINIBOSS_CHAT_WINDOW_TICKS:
+            pending.pop(0)  # a chat event whose death never arrived
+        if pending:
+            kill.killer_player_id = pending.pop(0)[1]
+            self._chat_paired_tormentors.add(kill.kill_number)
+
     def _on_combat_log(self, entry: CombatLogEntry) -> None:
         if entry.log_type != "DEATH":
             return
@@ -476,20 +541,7 @@ class ObjectivesExtractor:
                 )
             )
         elif target == "npc_dota_miniboss":
-            kill = TormentorKill(
-                tick=entry.tick,
-                killer=entry.attacker_name,
-                killer_player_id=-1,  # resolved from the chat event if available
-                kill_number=len(self.tormentor_kills) + 1,
-                killer_team=entry.attacker_team if entry.attacker_team in (2, 3) else None,
-            )
-            self.tormentor_kills.append(kill)
-            pending = self._pending_miniboss_chats
-            while pending and entry.tick - pending[0][0] > _MINIBOSS_CHAT_WINDOW_TICKS:
-                pending.pop(0)  # a chat event whose death never arrived
-            if pending:
-                kill.killer_player_id = pending.pop(0)[1]
-                self._chat_paired_tormentors.add(kill.kill_number)
+            self._record_tormentor_kill(entry)
         elif target.startswith("npc_dota_goodguys_tower") or target.startswith(
             "npc_dota_badguys_tower"
         ):

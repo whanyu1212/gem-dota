@@ -379,6 +379,8 @@ class TestCallbackRegistration:
                     "CDOTA_Item_RefresherOrb_Shard",
                     "CDOTA_Item_Roshans_Banner",
                     "CDOTA_Unit_Roshans_Banner",
+                    "CDOTA_Item_Horn_Of_Battle_Greater",
+                    "CDOTA_Item_Aghanims_Shard",
                 },
                 (),
             ),

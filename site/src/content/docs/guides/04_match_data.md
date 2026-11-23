@@ -387,6 +387,19 @@ match.roshans   # list[RoshanKill]: each Roshan kill event
 # RoshanKill fields: tick, killer (NPC name), kill_number, drops
 ```
 
+### Tormentor kills
+
+```python
+match.tormentors   # list[TormentorKill]: each Tormentor kill event
+# TormentorKill fields: tick, killer (NPC name), killer_player_id, kill_number,
+# killer_team, drops
+```
+
+`drops` lists the items the Tormentor carried: an Aghanim's Shard on patch 7.41;
+since 7.42 a Greater Horn of Battle, plus an Aghanim's Shard from the second
+Tormentor on. On 7.42 the first Tormentor's chat event names no player, so its
+`killer_player_id` is `-1`, as in OpenDota, while `killer` names the last hitter.
+
 ### Barracks
 
 ```python

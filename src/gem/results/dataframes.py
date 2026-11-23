@@ -581,6 +581,7 @@ def _build_core_tables(match: ParsedMatch) -> dict[str, pd.DataFrame]:
                 "killer_team": tm.killer_team,
                 "killer_player_id": tm.killer_player_id,
                 "kill_number": tm.kill_number,
+                "drops": ",".join(tm.drops),
             }
         )
     for s in match.shrines:

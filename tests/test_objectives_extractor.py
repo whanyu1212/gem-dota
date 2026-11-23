@@ -550,3 +550,76 @@ class TestRoshanDropAttribution:
         # Roshan #2's drops must be its own aegis + cheese — NOT the stale banner.
         assert ext.roshan_kills[1].drops == ["aegis", "cheese"]
         assert "banner" not in ext.roshan_kills[1].drops
+
+
+class TestTormentorDrops:
+    """A Tormentor's drops are the items created unowned at its spawn (7.42: a
+    Greater Horn of Battle, plus an Aghanim's Shard from the second). A bought
+    Aghanim's Shard has a player owner and is not a drop.
+    """
+
+    def _make(self):
+        from gem.extractors.objectives import ObjectivesExtractor
+
+        ext = ObjectivesExtractor()
+        parser = FakeParser()
+        ext.attach(parser)
+        return ext, parser
+
+    @staticmethod
+    def _item(idx: int, class_name: str, owner: int) -> _FakeItemEntity:
+        item = _FakeItemEntity(idx, class_name)
+        set_fields(item, {"m_iPlayerOwnerID": owner})
+        return item
+
+    def _kill(self, parser, tick: int) -> None:
+        parser.fire_combat_log(_make_combat_log_entry(tick=tick, target_name="npc_dota_miniboss"))
+
+    def test_spawn_items_are_the_next_kills_drops(self):
+        from gem.state.entities import EntityOp
+
+        ext, parser = self._make()
+        horn, shard = "CDOTA_Item_Horn_Of_Battle_Greater", "CDOTA_Item_Aghanims_Shard"
+        parser.fire_entity(self._item(10, horn, -1), EntityOp.CREATED, tick=900)
+        self._kill(parser, 1000)
+        # The next Tormentor spawns with both; the first horn is still held.
+        parser.fire_entity(self._item(20, horn, -1), EntityOp.CREATED, tick=2000)
+        parser.fire_entity(self._item(21, shard, -1), EntityOp.CREATED, tick=2000)
+        self._kill(parser, 3000)
+
+        assert [kill.drops for kill in ext.tormentor_kills] == [
+            ["horn_of_battle_greater"],
+            ["aghanims_shard", "horn_of_battle_greater"],
+        ]
+
+    def test_bought_shard_is_not_a_drop(self):
+        from gem.state.entities import EntityOp
+
+        ext, parser = self._make()
+        parser.fire_entity(
+            self._item(10, "CDOTA_Item_Horn_Of_Battle_Greater", -1), EntityOp.CREATED, tick=900
+        )
+        parser.fire_entity(
+            self._item(11, "CDOTA_Item_Aghanims_Shard", 4), EntityOp.CREATED, tick=950
+        )
+        self._kill(parser, 1000)
+
+        assert ext.tormentor_kills[0].drops == ["horn_of_battle_greater"]
+
+    def test_deleted_item_is_not_a_drop(self):
+        from gem.state.entities import EntityOp
+
+        ext, parser = self._make()
+        horn = self._item(10, "CDOTA_Item_Horn_Of_Battle_Greater", -1)
+        parser.fire_entity(horn, EntityOp.CREATED, tick=900)
+        parser.fire_entity(horn, EntityOp.UPDATED, tick=950)
+        parser.fire_entity(horn, EntityOp.DELETED, tick=960)
+        self._kill(parser, 1000)
+
+        assert ext.tormentor_kills[0].drops == []
+
+    def test_tormentor_without_items_has_no_drops(self):
+        ext, parser = self._make()
+        self._kill(parser, 1000)
+
+        assert ext.tormentor_kills[0].drops == []
