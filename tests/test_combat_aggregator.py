@@ -162,6 +162,26 @@ class TestCombatAggregatorDamage:
         agg.on_entry(e)
         assert agg.players[1].damage_taken["npc_dota_hero_axe"] == 100
 
+    def test_damage_taken_unnamed_source(self):
+        """Damage with no attacker or source name is keyed ``dota_unknown``.
+
+        CombatLogNames index 0 is the empty name, which OpenDota prints as
+        ``dota_unknown`` (7.42's sourceless 1-damage ticks; also seen on 7.41).
+        """
+        player_ext = MagicMock()
+        player_ext._hero_to_pid = _resolver({"npc_dota_hero_mirana": 1})
+        agg = _CombatAggregator(player_ext)
+        agg.on_entry(
+            _entry(
+                attacker_name="",
+                damage_source_name="",
+                attacker_is_hero=False,
+                target_is_hero=True,
+                value=1,
+            )
+        )
+        assert agg.players[1].damage_taken == {"dota_unknown": 1}
+
     def test_damage_by_type_accumulates_for_attacker(self):
         agg, _ = _make_agg(0)
         agg.on_entry(_entry(value=120, damage_type="physical"))
