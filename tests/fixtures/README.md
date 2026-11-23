@@ -35,8 +35,10 @@ manifest `artifact_url` takes precedence when present; the original Valve
   `--include-deprecated`.
 
 Deprecation is metadata-only: keep the manifest entry, set `status` to
-`deprecated`, and point `replaced_by` at an active fixture. Do not commit full
-replays to normal Git history.
+`deprecated`, and point `replaced_by` at an active fixture. A retired fixture's
+OpenDota JSON may be removed with it; set its `opendota_json` to `null` then (the
+7.41 fixtures retired in HY-574 are). Do not commit full replays to normal Git
+history.
 
 ## OpenDota JSON older than a rule change
 

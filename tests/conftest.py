@@ -19,7 +19,12 @@ PERFORMANCE_BASELINE_MATCH_ID = 9098298585
 FEATURE_PARITY_MATCH_ID = 9097868416
 PATCH_742_MATCH_ID = 9101479361
 PATCH_741_MATCH_ID = 8974053011
-DEPRECATED_OPENDOTA_REPLAY_IDS: frozenset[int] = frozenset()
+# Retired replays can linger in a local cache; read them from the manifest.
+DEPRECATED_OPENDOTA_REPLAY_IDS = frozenset(
+    entry["match_id"]
+    for entry in json.loads((OPENDOTA_FIXTURES_DIR / "manifest.json").read_text())["matches"]
+    if entry["status"] == "deprecated"
+)
 DEPRECATED_OPENDOTA_REPLAY_NAMES = frozenset(
     f"{match_id}.dem" for match_id in DEPRECATED_OPENDOTA_REPLAY_IDS
 )

@@ -37,7 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`SHORT_MATCH_ID`, `long_parsed_match`, …) rather than by tournament, and the
   tests that needed a particular event moved to a fixture that has it. The
   farming-route and Roshan conversion corpora are regenerated; 8974053011's
-  entries, the one replay in both sets, are unchanged.
+  entries, the one replay in both sets, are unchanged. The 12 retired replays
+  stay in the manifest as `deprecated`, each pointing at the fixture that took
+  over its role; their OpenDota JSON is removed.
 - **The docs site's details are tidier** (HY-419). Links and buttons ease into
   their hover colours, the home page's start cards lift and its recipe columns
   mark their top on hover, the previous/next links carry arrows, and callouts
