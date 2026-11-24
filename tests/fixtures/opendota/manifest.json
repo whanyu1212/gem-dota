@@ -93,7 +93,15 @@
       "artifact_url": null,
       "dem_size_bytes": 159291401,
       "dem_sha256": "340745bac90be48b27d2d6657180870270065ac9f52501799716065ba9661cd2",
-      "note": "BLAST SLAM IX, a median-length game (LEGION vs PARIVISION, 42 min); performance baseline"
+      "note": "BLAST SLAM IX, a median-length game (LEGION vs PARIVISION, 42 min); performance baseline",
+      "opendota_known_bugs": [
+        {
+          "bug": "meepo-aegis-reincarnation",
+          "killer": "npc_dota_hero_dragon_knight",
+          "victim": "npc_dota_hero_meepo",
+          "time": 1733
+        }
+      ]
     },
     {
       "match_id": 9097868416,

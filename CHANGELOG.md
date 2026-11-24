@@ -46,6 +46,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The OpenDota parity audit tracks known upstream parser bugs** (HY-576):
+  `scripts/audit_opendota_parity.py` now reads `opendota_known_bugs` from
+  `tests/fixtures/opendota/manifest.json`, writes `known_bug` in `--json-out` as
+  a map from match IDs to sorted event-identity lists, and prints per-match
+  counts at the bottom of the text report.
+  `9098298585` is annotated for `meepo-aegis-reincarnation` (`1733 s`, Dragon
+  Knight on Meepo): `odota/parser` consumes Meepo's Aegis on the first
+  `meepo_divided_we_stand` self-death before checking for suicide, so its JSON
+  records a kill the scoreboard does not count. Stripping only that pinned kill
+  keeps gem's `will_reincarnate` rule while still checking every other kill.
 - **The test fixtures are patch 7.42 replays** (HY-574). Seven BLAST SLAM IX games
   replace the 7.41 set: the tournament's shortest (25 min, canonical) and longest
   (73 min, stress), three near its 41-minute median, the Dark Seer game, and one

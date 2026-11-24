@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 import gem
 from gem.combat.log import CombatLogEntry, CombatLogType
 from gem.results.models import ChatEntry, ParsedMatch, ParsedPlayer
@@ -180,6 +182,240 @@ class TestStaleReference:
         assert audit.stale_fields(tmp_path, "2") == frozenset()
 
 
+_KNOWN_BUG = (
+    audit.KnownOpenDotaBug(
+        bug="meepo-aegis-reincarnation",
+        killer="npc_dota_hero_dragon_knight",
+        victim="npc_dota_hero_meepo",
+        time=1733,
+    ),
+)
+
+
+class TestKnownOpenDotaBug:
+    def _meepo_aegis_match(self) -> tuple[ParsedMatch, dict]:
+        dk = ParsedPlayer(
+            player_id=2,
+            hero_name="npc_dota_hero_dragon_knight",
+            killed={"npc_dota_hero_meepo": 1},
+            kills_log=[
+                CombatLogEntry(
+                    tick=_START + 30 * 1437,
+                    log_type=CombatLogType.DEATH,
+                    target_name="npc_dota_hero_meepo",
+                    target_is_hero=True,
+                )
+            ],
+        )
+        meepo = ParsedPlayer(
+            player_id=5,
+            hero_name="npc_dota_hero_meepo",
+            killed_by={"npc_dota_hero_dragon_knight": 1},
+        )
+        match = ParsedMatch(
+            match_id=1,
+            game_start_tick=_START,
+            players=[dk, meepo],
+        )
+        od = {
+            "match_id": 1,
+            "players": [
+                {
+                    "player_slot": 2,
+                    "hero_id": 49,
+                    "killed": {"npc_dota_hero_meepo": 2},
+                    "killed_by": {},
+                    "kills_log": [
+                        {"key": "npc_dota_hero_meepo", "time": 1437},
+                        {"key": "npc_dota_hero_meepo", "time": 1733},
+                    ],
+                },
+                {
+                    "player_slot": 128,
+                    "hero_id": 82,
+                    "killed": {},
+                    "killed_by": {"npc_dota_hero_dragon_knight": 2},
+                    "kills_log": [],
+                },
+            ],
+        }
+        return match, od
+
+    def test_strips_only_the_pinned_meepo_aegis_kill(self):
+        match, od = self._meepo_aegis_match()
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", match, od, results, known_bug_entries=_KNOWN_BUG)
+
+        expected_bug = {
+            "1": ["meepo-aegis-reincarnation:npc_dota_hero_dragon_knight->npc_dota_hero_meepo@1733"]
+        }
+        for field_name in ("player.killed", "player.killed_by", "player.kills_log"):
+            res = results[field_name]
+            assert (res.matched, res.total, res.mismatches, res.known_bug) == (
+                2,
+                2,
+                {},
+                expected_bug,
+            )
+            assert f"{field_name}: known OpenDota parser bug on 1×1" in audit.format_report(results)
+
+    def test_slot_resolution_uses_opendota_hero_ids_not_gem_players(self):
+        match, od = self._meepo_aegis_match()
+        # Corrupt gem's hero_name assignment; OpenDota's reference stripping must
+        # still target hero_id 49 -> 82 rather than letting gem shift it.
+        match.players[0].hero_name = "npc_dota_hero_axe"
+        match.players[1].hero_name = "npc_dota_hero_crystal_maiden"
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", match, od, results, known_bug_entries=_KNOWN_BUG)
+
+        for field_name in ("player.killed", "player.killed_by", "player.kills_log"):
+            res = results[field_name]
+            assert (res.matched, res.total, res.mismatches) == (2, 2, {})
+
+    def test_real_kill_is_not_stripped_if_gem_drops_it(self):
+        match, od = self._meepo_aegis_match()
+        # Simulate gem mislabeling the real 1437 s kill as will_reincarnate=True.
+        match.players[0].killed = {}
+        match.players[0].kills_log = []
+        match.players[1].killed_by = {}
+        match.combat_log = [
+            CombatLogEntry(
+                tick=_START + 30 * 1437,
+                log_type=CombatLogType.DEATH,
+                attacker_name="npc_dota_hero_dragon_knight",
+                damage_source_name="npc_dota_hero_dragon_knight",
+                target_name="npc_dota_hero_meepo",
+                target_is_hero=True,
+                will_reincarnate=True,
+            )
+        ]
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", match, od, results, known_bug_entries=_KNOWN_BUG)
+
+        for field_name in ("player.killed", "player.killed_by", "player.kills_log"):
+            res = results[field_name]
+            assert (res.matched, res.total, res.mismatches) == (1, 2, {"1": 1})
+
+    def test_unrelated_mismatch_on_same_player_is_still_caught(self):
+        match, od = self._meepo_aegis_match()
+        od["players"][0]["killed"]["npc_dota_hero_axe"] = 1  # unrelated regression
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", match, od, results, known_bug_entries=_KNOWN_BUG)
+
+        killed = results["player.killed"]
+        assert (killed.matched, killed.total, killed.mismatches) == (1, 2, {"1": 1})
+
+    def test_partial_reference_preserves_unrelated_fields(self):
+        match, od = self._meepo_aegis_match()
+        od["players"][0]["killed_by"] = None
+        del od["players"][1]["kills_log"]
+        del od["players"][1]["killed"]
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", match, od, results, known_bug_entries=_KNOWN_BUG)
+
+        assert (results["player.killed"].matched, results["player.killed"].total) == (1, 1)
+        assert (results["player.kills_log"].matched, results["player.kills_log"].total) == (1, 1)
+        assert (results["player.killed_by"].matched, results["player.killed_by"].total) == (1, 2)
+        assert results["player.killed_by"].mismatches == {"1": 1}
+
+    def test_normalizes_available_summaries_when_killed_by_is_absent(self):
+        match, od = self._meepo_aegis_match()
+        del od["players"][1]["killed_by"]
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", match, od, results, known_bug_entries=_KNOWN_BUG)
+
+        assert (results["player.kills_log"].matched, results["player.kills_log"].total) == (2, 2)
+        assert (results["player.killed"].matched, results["player.killed"].total) == (2, 2)
+        assert (results["player.killed_by"].matched, results["player.killed_by"].total) == (1, 1)
+        assert results["player.kills_log"].known_bug == {
+            "1": ["meepo-aegis-reincarnation:npc_dota_hero_dragon_knight->npc_dota_hero_meepo@1733"]
+        }
+        assert results["player.killed"].known_bug == {
+            "1": ["meepo-aegis-reincarnation:npc_dota_hero_dragon_knight->npc_dota_hero_meepo@1733"]
+        }
+        assert results["player.killed_by"].known_bug == {}
+
+    def test_entries_come_from_the_manifest(self, tmp_path):
+        (tmp_path / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "matches": [
+                        {
+                            "match_id": 1,
+                            "opendota_known_bugs": [
+                                {
+                                    "bug": "meepo-aegis-reincarnation",
+                                    "killer": "npc_dota_hero_dragon_knight",
+                                    "victim": "npc_dota_hero_meepo",
+                                    "time": 1733,
+                                }
+                            ],
+                        }
+                    ]
+                }
+            )
+        )
+
+        assert audit.known_bugs(tmp_path, "1") == _KNOWN_BUG
+        assert audit.known_bugs(tmp_path, "2") == ()
+
+    def test_empty_gem_players_preserves_known_bug_metadata(self):
+        match, od = self._meepo_aegis_match()
+        match.players = []
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", match, od, results, known_bug_entries=_KNOWN_BUG)
+
+        expected_bug = {
+            "1": ["meepo-aegis-reincarnation:npc_dota_hero_dragon_knight->npc_dota_hero_meepo@1733"]
+        }
+        for field_name in ("player.killed", "player.killed_by", "player.kills_log"):
+            assert results[field_name].known_bug == expected_bug
+            assert results[field_name].total == 0
+
+        report = audit.format_report(results)
+        assert "1 of 4 fields match exactly: match.match_id" in report
+        assert (
+            "Untested (0 comparisons): player.killed, player.killed_by, player.kills_log" in report
+        )
+
+        baseline = {
+            "player.killed": {"matched": 0, "total": 2, "known_bug": expected_bug},
+            "player.killed_by": {"matched": 0, "total": 2, "known_bug": expected_bug},
+            "player.kills_log": {"matched": 0, "total": 2, "known_bug": expected_bug},
+        }
+        assert audit.missing_fields(results, baseline) == [
+            "player.killed",
+            "player.killed_by",
+            "player.kills_log",
+        ]
+        assert audit.regressed(results, baseline) is True
+
+    @pytest.mark.parametrize("bad_time", [1733.75, "1733", True, None])
+    def test_fractional_or_non_int_known_bug_time_raises(self, tmp_path, bad_time):
+        (tmp_path / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "matches": [
+                        {
+                            "match_id": 99,
+                            "opendota_known_bugs": [
+                                {
+                                    "bug": "meepo-aegis-reincarnation",
+                                    "killer": "npc_dota_hero_dragon_knight",
+                                    "victim": "npc_dota_hero_meepo",
+                                    "time": bad_time,
+                                }
+                            ],
+                        }
+                    ]
+                }
+            )
+        )
+
+        with pytest.raises(ValueError, match="99"):
+            audit.known_bugs(tmp_path, "99")
+
+
 class TestReport:
     def test_merge_adds_counts_and_keeps_the_first_example(self):
         total = {"player.kills": audit.FieldResult(1, 2, {"a": 1}, ("a", 1, 2))}
@@ -251,6 +487,7 @@ class TestCommandLine:
             "total": 1,
             "mismatches": {"1": 1},
             "stale": {},
+            "known_bug": {},
         }
 
     def test_compare_fails_when_a_field_got_worse(self, tmp_path):
@@ -296,3 +533,89 @@ class TestCommandLine:
 
     def test_no_parsed_fixtures_is_an_error(self, tmp_path):
         assert audit.main(["--fixtures-dir", str(tmp_path)]) == 1
+
+    def test_compare_rejects_incompatible_known_bug_baseline(self, tmp_path, capsys):
+        fixtures, cache = tmp_path / "fixtures", tmp_path / "gem-json"
+        fixtures.mkdir()
+        cache.mkdir()
+        match, od = TestKnownOpenDotaBug()._meepo_aegis_match()
+        od["radiant_gold_adv"] = [0]
+        (fixtures / "1.dem").write_bytes(b"")
+        (fixtures / "1.opendota.json").write_text(json.dumps(od))
+        (fixtures / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "matches": [
+                        {
+                            "match_id": 1,
+                            "opendota_known_bugs": [
+                                {
+                                    "bug": "meepo-aegis-reincarnation",
+                                    "killer": "npc_dota_hero_dragon_knight",
+                                    "victim": "npc_dota_hero_meepo",
+                                    "time": 1733,
+                                }
+                            ],
+                        }
+                    ]
+                }
+            )
+        )
+        (cache / "1.json").write_text(gem.to_json(match))
+        # Simulate a baseline from before known_bug normalization was applied.
+        baseline = tmp_path / "baseline.json"
+        baseline.write_text(
+            json.dumps(
+                {
+                    "player.killed": {"matched": 1, "total": 2},
+                    "player.killed_by": {"matched": 1, "total": 2},
+                    "player.kills_log": {"matched": 1, "total": 2},
+                }
+            )
+        )
+
+        code = audit.main(
+            [
+                "--fixtures-dir",
+                str(fixtures),
+                "--gem-json-dir",
+                str(cache),
+                "--workers",
+                "1",
+                "--compare",
+                str(baseline),
+            ]
+        )
+
+        assert code == 1
+        captured = capsys.readouterr()
+        assert "Incompatible --compare baseline" in captured.err
+        assert "now exact" not in captured.out
+        assert "0 improved, 0 worse" in captured.out
+
+    def test_compare_rejects_baseline_with_different_stripped_event_identity(self):
+        results = {
+            "player.killed": audit.FieldResult(
+                matched=2,
+                total=2,
+                known_bug={
+                    "1": [
+                        "meepo-aegis-reincarnation:npc_dota_hero_dragon_knight->npc_dota_hero_meepo@1733"
+                    ]
+                },
+            )
+        }
+        baseline = {
+            "player.killed": {
+                "matched": 2,
+                "total": 2,
+                "known_bug": {
+                    "1": [
+                        "meepo-aegis-reincarnation:npc_dota_hero_dragon_knight->npc_dota_hero_meepo@1437"
+                    ]
+                },
+            }
+        }
+
+        assert audit.incompatible_baseline_fields(results, baseline) == ["player.killed"]
+        assert audit.regressed(results, baseline) is True
