@@ -75,6 +75,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Ward removal times match OpenDota across odd-tick pauses** (HY-577):
+  `GameClockTracker.track_pause` now records the last unpaused
+  `m_nTotalPausedTicks` as the baseline for a new pause instead of the value on
+  the first `m_bGamePaused=True` packet (which can already be incremented by 1
+  when a pause starts on an odd tick between 2-tick packets). On paused fixture
+  9098298585 this eliminates the 1–3 tick cumulative drift that pushed 8
+  `obs_left_log` and `sen_left_log` entries 1 second later than OpenDota.
 - **Dire fountain anchor updated for patch 7.42** (HY-579): 7.42 moved the Dire
   `CDOTA_Unit_Fountain` entity 256 units west and 256 units south, from
   `(23792, 23232)` to `(23536, 22976)`, while the Radiant fountain stayed at

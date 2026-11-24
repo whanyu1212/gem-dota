@@ -35,9 +35,9 @@ def test_replay_records_pauses_and_post_game(paused_match: ParsedMatch) -> None:
     clock = paused_match.game_clock
     assert clock is not None
     assert clock.pauses == [
-        GamePause(start_tick=24239, end_tick=25494),
-        GamePause(start_tick=52245, end_tick=52763),
-        GamePause(start_tick=98223, end_tick=98384),
+        GamePause(start_tick=24239, end_tick=25495),
+        GamePause(start_tick=52245, end_tick=52764),
+        GamePause(start_tick=98223, end_tick=98385),
     ]
     assert clock.net_tick_offset == 1746
 
@@ -78,3 +78,16 @@ def test_objective_times_match_opendota(paused_match: ParsedMatch, paused_refere
             assert delta <= 1, objective
         compared += 1
     assert compared >= 20
+
+
+@pytest.mark.corpus
+@pytest.mark.slow
+def test_ward_left_times_match_opendota(paused_match: ParsedMatch, paused_reference: dict) -> None:
+    """Ward removal timestamps stay aligned with OpenDota across multiple pauses."""
+    for player_gem, player_od in zip(
+        paused_match.players, paused_reference["players"], strict=True
+    ):
+        for key in ("obs_left_log", "sen_left_log"):
+            gem_times = [entry["time"] for entry in getattr(player_gem, key)]
+            od_times = [entry["time"] for entry in player_od[key]]
+            assert gem_times == od_times, (player_gem.player_id, key)

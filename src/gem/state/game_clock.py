@@ -280,6 +280,8 @@ class GameClockTracker:
         self._combat_log_start_s: int | None = None
         # Open pause as ``(start_tick, total_paused_ticks_at_start)``.
         self._open_pause: tuple[int, int] | None = None
+        # Last (tick, m_nTotalPausedTicks) observed while unpaused (see track_pause).
+        self._unpaused_state: tuple[int, int] | None = None
         # OpenDota's running ``time`` at the current outer tick's start, and its
         # game-start anchor (first seen, never changed). See snapshot_tick_start.
         self.tick_start_raw_s: int | None = None
@@ -394,13 +396,33 @@ class GameClockTracker:
             total_paused_ticks: Current ``m_nTotalPausedTicks``.
             tick: Current replay tick.
         """
+        if not paused:
+            self._unpaused_state = (
+                (tick, total_paused_ticks) if total_paused_ticks is not None else None
+            )
         if paused == (self._open_pause is not None):
             return
         if paused:
             start = (
                 pause_start_net_tick - self.net_tick_offset(tick) if pause_start_net_tick else tick
             )
-            self._open_pause = (start, total_paused_ticks or 0)
+            # Replays deliver packets every 2 ticks, so a pause starting on an
+            # odd tick (or on the packet tick itself) can already show an
+            # incremented m_nTotalPausedTicks; anchor against the last unpaused
+            # sample only when it came from this pause transition without a gap.
+            unpaused = self._unpaused_state
+            if (
+                pause_start_net_tick
+                and unpaused is not None
+                and total_paused_ticks is not None
+                and -2 <= start - unpaused[0] <= 2
+                and unpaused[0] <= tick
+                and 0 <= total_paused_ticks - unpaused[1] <= (tick - start) + 1
+            ):
+                total_before = unpaused[1]
+            else:
+                total_before = total_paused_ticks or 0
+            self._open_pause = (start, total_before)
             return
         assert self._open_pause is not None
         start, total_before = self._open_pause
