@@ -27,9 +27,10 @@ The mapping keeps only value differences:
 OpenDota does not re-parse a match it has already parsed, so a fixture's JSON
 keeps the rules of the odota/parser that parsed it, and of the odota/core that
 served it when it was fetched. The manifest's ``opendota_json_predates`` lists
-the rule changes a fixture's JSON is older than; a mismatch on a field such a
-change touches is reported as stale, not counted against gem (see
-:data:`RULE_CHANGES`).
+the rule changes a fixture's JSON is older than (reported as stale), and
+``opendota_known_bugs`` pins verified upstream ``odota/parser`` bug events to
+strip from the reference before comparing the rest normally (see
+:data:`RULE_CHANGES` and :func:`known_bugs`).
 
 Reference: odota/parser src/main/java/opendota/CreateParsedDataBlob.java
 (pinned revision in CLAUDE.md) defines the OpenDota output fields.
@@ -81,6 +82,22 @@ RULE_CHANGES = {
     # instead of being replaced by the item's next purchase.
     "7d32aef0": frozenset({"player.first_purchase_time"}),
 }
+
+
+@dataclass(frozen=True)
+class KnownOpenDotaBug:
+    """One verified upstream ``odota/parser`` bug entry in a fixture manifest."""
+
+    bug: str
+    killer: str
+    victim: str
+    time: int
+
+
+# Known upstream odota/parser bugs that can be isolated and stripped from the
+# reference JSON without exempting unrelated player data.
+_MEEPO_AEGIS_BUG = "meepo-aegis-reincarnation"
+KNOWN_OPENDOTA_BUGS: frozenset[str] = frozenset({_MEEPO_AEGIS_BUG})
 
 Seconds = Callable[[int], "int | None"]
 PlayerCheck = Callable[["ParsedPlayer", dict[str, Any], Seconds], tuple[Any, Any]]
@@ -194,6 +211,8 @@ class FieldResult:
         example: The first mismatch as ``(match_id, gem value, OpenDota value)``.
         stale: Match id -> number of mismatched items whose OpenDota JSON
             predates a rule change touching this field; not in ``total``.
+        known_bug: Match id -> sorted list of verified OpenDota parser-bug
+            event identities stripped from the reference on that match.
     """
 
     matched: int = 0
@@ -201,6 +220,7 @@ class FieldResult:
     mismatches: dict[str, int] = field(default_factory=dict)
     example: tuple[str, Any, Any] | None = None
     stale: dict[str, int] = field(default_factory=dict)
+    known_bug: dict[str, list[str]] = field(default_factory=dict)
 
     def record(self, match_id: str, gem: Any, od: Any, *, stale: bool = False) -> None:
         """Count one comparison; a mismatch against a ``stale`` reference counts apart."""
@@ -214,6 +234,97 @@ class FieldResult:
         self.mismatches[match_id] = self.mismatches.get(match_id, 0) + 1
         if self.example is None:
             self.example = (match_id, gem, od)
+
+
+def _decrement_count(counts: dict[str, int], key: str) -> None:
+    remaining = counts[key] - 1
+    if remaining > 0:
+        counts[key] = remaining
+    else:
+        del counts[key]
+
+
+def _strip_meepo_aegis_reincarnation(
+    od: dict[str, Any],
+    bugs: Iterable[KnownOpenDotaBug],
+) -> tuple[dict[str, Any], dict[str, list[str]]]:
+    """Strip only the manifest-pinned Meepo Aegis reincarnation kill from ``od``.
+
+    odota/parser's ``handleDeathCombat`` (pinned 5018d019) calls
+    ``consumeReincarnationDeath`` before its suicide check, so the first
+    ``meepo_divided_we_stand`` clone self-death consumes Meepo's Aegis and the
+    actual ``will_reincarnate=True`` killing blow is counted as a real kill
+    (contradicting the scoreboard, HY-576). Resolves player slots from
+    OpenDota's own ``hero_id`` values so gem output cannot alter the reference,
+    and returns ``(od, stripped_events_by_field)``.
+    """
+    from gem.catalog import hero_id
+
+    od_players = {p["player_slot"]: p for p in od.get("players") or [] if "player_slot" in p}
+    hero_to_slot = {
+        p["hero_id"]: p["player_slot"]
+        for p in od_players.values()
+        if isinstance(p.get("hero_id"), int)
+    }
+    if not hero_to_slot or not od_players:
+        return od, {}
+
+    copied_players: dict[int, dict[str, Any]] = {}
+    adjusted: dict[str, list[str]] = {}
+
+    for bug in bugs:
+        if bug.bug != _MEEPO_AEGIS_BUG:
+            continue
+        killer_id = hero_id(bug.killer)
+        victim_id = hero_id(bug.victim)
+        killer_slot = hero_to_slot.get(killer_id) if killer_id else None
+        victim_slot = hero_to_slot.get(victim_id) if victim_id else None
+        if killer_slot is None or killer_slot not in od_players:
+            continue
+        k_od = copied_players.get(killer_slot, od_players[killer_slot])
+        k_log = k_od.get("kills_log")
+        if not isinstance(k_log, list):
+            continue
+        idx = next(
+            (
+                i
+                for i, item in enumerate(k_log)
+                if isinstance(item, dict)
+                and item.get("key") == bug.victim
+                and item.get("time") == bug.time
+            ),
+            None,
+        )
+        if idx is None:
+            continue
+
+        event_id = f"{bug.bug}:{bug.killer}->{bug.victim}@{bug.time}"
+        new_log = [dict(k) for k in k_log]
+        new_log.pop(idx)
+        k_updates: dict[str, Any] = {"kills_log": new_log}
+        adjusted.setdefault("player.kills_log", []).append(event_id)
+
+        k_killed = k_od.get("killed")
+        if isinstance(k_killed, dict) and k_killed.get(bug.victim, 0) > 0:
+            new_killed = dict(k_killed)
+            _decrement_count(new_killed, bug.victim)
+            k_updates["killed"] = new_killed
+            adjusted.setdefault("player.killed", []).append(event_id)
+        copied_players[killer_slot] = {**k_od, **k_updates}
+
+        if victim_slot is not None and victim_slot in od_players:
+            v_od = copied_players.get(victim_slot, od_players[victim_slot])
+            v_killed_by = v_od.get("killed_by")
+            if isinstance(v_killed_by, dict) and v_killed_by.get(bug.killer, 0) > 0:
+                new_killed_by = dict(v_killed_by)
+                _decrement_count(new_killed_by, bug.killer)
+                copied_players[victim_slot] = {**v_od, "killed_by": new_killed_by}
+                adjusted.setdefault("player.killed_by", []).append(event_id)
+
+    if not copied_players:
+        return od, {}
+    new_players = [copied_players.get(p.get("player_slot"), p) for p in od.get("players") or []]
+    return {**od, "players": new_players}, adjusted
 
 
 def _plain(value: Any) -> Any:
@@ -238,6 +349,7 @@ def audit_match(
     od: dict[str, Any],
     results: dict[str, FieldResult],
     stale_fields: frozenset[str] = frozenset(),
+    known_bug_entries: Iterable[KnownOpenDotaBug] = (),
 ) -> None:
     """Compare one match with OpenDota, adding to ``results`` in place.
 
@@ -249,6 +361,8 @@ def audit_match(
             ``match.<name>``, player fields ``player.<name>``.
         stale_fields: Fields whose rules changed after OpenDota parsed this
             match (see :func:`stale_fields`).
+        known_bug_entries: Pinned upstream parser-bug entries for this match
+            (see :func:`known_bugs`).
     """
     from gem.state.game_clock import game_clock_for
 
@@ -256,6 +370,8 @@ def audit_match(
 
     def seconds(tick: int) -> int | None:
         return clock.game_seconds_at(tick)
+
+    od, adjusted_bugs = _strip_meepo_aegis_reincarnation(od, known_bug_entries)
 
     match_fields = {f.name for f in fields(match) if not f.name.startswith("_")}
     compared = (match_fields | MATCH_CHECKS.keys()) & od.keys()
@@ -281,6 +397,9 @@ def audit_match(
                 match_id, gem, ref, stale=key in stale_fields
             )
 
+    for key, events in adjusted_bugs.items():
+        results.setdefault(key, FieldResult()).known_bug.setdefault(match_id, []).extend(events)
+
 
 def fixture_ids(fixtures_dir: Path) -> list[str]:
     """Return match ids with a replay and an OpenDota JSON that OpenDota parsed.
@@ -296,19 +415,51 @@ def fixture_ids(fixtures_dir: Path) -> list[str]:
     return ids
 
 
+def _manifest_entry(fixtures_dir: Path, match_id: str) -> dict[str, Any]:
+    manifest = fixtures_dir / "manifest.json"
+    if not manifest.exists():
+        return {}
+    entries = json.loads(manifest.read_text())["matches"]
+    return next((e for e in entries if str(e["match_id"]) == match_id), {})
+
+
 def stale_fields(fixtures_dir: Path, match_id: str) -> frozenset[str]:
     """Return the fields whose rules changed after OpenDota parsed ``match_id``.
 
     Read from the manifest's ``opendota_json_predates``; empty when the
     directory has no manifest or the match no entry.
     """
-    manifest = fixtures_dir / "manifest.json"
-    if not manifest.exists():
-        return frozenset()
-    entries = json.loads(manifest.read_text())["matches"]
-    entry: dict[str, Any] = next((e for e in entries if str(e["match_id"]) == match_id), {})
-    changes = entry.get("opendota_json_predates", [])
-    return frozenset().union(*(RULE_CHANGES[commit] for commit in changes))
+    entry = _manifest_entry(fixtures_dir, match_id)
+    return frozenset().union(
+        *(RULE_CHANGES[tag] for tag in entry.get("opendota_json_predates", []))
+    )
+
+
+def known_bugs(fixtures_dir: Path, match_id: str) -> tuple[KnownOpenDotaBug, ...]:
+    """Return pinned ``odota/parser`` bug entries annotated for ``match_id``.
+
+    Read from the manifest's ``opendota_known_bugs``; empty when the directory
+    has no manifest or the match no entry.
+    """
+    entry = _manifest_entry(fixtures_dir, match_id)
+    bugs: list[KnownOpenDotaBug] = []
+    for item in entry.get("opendota_known_bugs", []):
+        if isinstance(item, dict) and item.get("bug") in KNOWN_OPENDOTA_BUGS:
+            raw_time = item.get("time")
+            if type(raw_time) is not int:
+                raise ValueError(
+                    f"Invalid known-bug time {raw_time!r} for {item.get('bug')!r} "
+                    f"in match {match_id}; expected int"
+                )
+            bugs.append(
+                KnownOpenDotaBug(
+                    bug=str(item["bug"]),
+                    killer=str(item["killer"]),
+                    victim=str(item["victim"]),
+                    time=raw_time,
+                )
+            )
+    return tuple(bugs)
 
 
 def merge_results(into: dict[str, FieldResult], part: dict[str, FieldResult]) -> None:
@@ -319,6 +470,8 @@ def merge_results(into: dict[str, FieldResult], part: dict[str, FieldResult]) ->
         total.total += result.total
         total.mismatches.update(result.mismatches)
         total.stale.update(result.stale)
+        for mid, events in result.known_bug.items():
+            total.known_bug.setdefault(mid, []).extend(events)
         if total.example is None:
             total.example = result.example
 
@@ -354,7 +507,14 @@ def audit_fixture(
     match = gem.from_dict(json.loads(text))
     od = json.loads((fixtures_dir / f"{match_id}.opendota.json").read_text())
     results: dict[str, FieldResult] = {}
-    audit_match(match_id, match, od, results, stale_fields(fixtures_dir, match_id))
+    audit_match(
+        match_id,
+        match,
+        od,
+        results,
+        stale_fields(fixtures_dir, match_id),
+        known_bugs(fixtures_dir, match_id),
+    )
     return results
 
 
@@ -396,8 +556,23 @@ def run_audit(
 def results_to_json(results: dict[str, FieldResult]) -> dict[str, Any]:
     """Return the JSON-serializable summary written by ``--json-out``."""
     return {
-        name: {"matched": r.matched, "total": r.total, "mismatches": r.mismatches, "stale": r.stale}
+        name: {
+            "matched": r.matched,
+            "total": r.total,
+            "mismatches": r.mismatches,
+            "stale": r.stale,
+            "known_bug": {mid: sorted(events) for mid, events in sorted(r.known_bug.items())},
+        }
         for name, r in results.items()
+    }
+
+
+def _normalized_known_bug(raw: Any) -> Any:
+    if not isinstance(raw, dict):
+        return raw
+    return {
+        str(mid): sorted(events) if isinstance(events, list) else events
+        for mid, events in raw.items()
     }
 
 
@@ -418,7 +593,11 @@ def format_report(
         The report text.
     """
     lines = []
-    exact = sorted(name for name, r in results.items() if r.matched == r.total)
+    incompatible = (
+        set(incompatible_baseline_fields(results, baseline)) if baseline is not None else set()
+    )
+    exact = sorted(name for name, r in results.items() if r.total > 0 and r.matched == r.total)
+    untested = sorted(name for name, r in results.items() if r.total == 0)
     partial = sorted(
         (item for item in results.items() if item[1].matched < item[1].total),
         key=lambda item: (item[1].matched / item[1].total, item[0]),
@@ -426,7 +605,7 @@ def format_report(
     tally: Counter[str] = Counter()
     for name, result in partial:
         change = ""
-        if baseline is not None and name in baseline:
+        if baseline is not None and name in baseline and name not in incompatible:
             before = baseline[name]["matched"]
             if result.matched != before:
                 change = f"  ({'+' if result.matched > before else ''}{result.matched - before})"
@@ -439,16 +618,31 @@ def format_report(
     if baseline is not None:
         for name in exact:
             before = baseline.get(name)
-            if before is not None and before["matched"] < results[name].matched:
+            if (
+                before is not None
+                and name not in incompatible
+                and before["matched"] < results[name].matched
+            ):
                 tally["improved"] += 1
                 lines.append(f"{name:36s} now exact (was {before['matched']}/{before['total']})")
     lines.append("")
     lines.append(f"{len(exact)} of {len(results)} fields match exactly: {', '.join(exact)}")
+    if untested:
+        lines.append(f"Untested (0 comparisons): {', '.join(untested)}")
     for name, result in results.items():
         if result.stale:
             matches = ", ".join(f"{mid}×{n}" for mid, n in sorted(result.stale.items()))
             lines.append(f"{name}: OpenDota JSON predates a rule change on {matches}")
+        if result.known_bug:
+            matches = ", ".join(
+                f"{mid}×{len(events)}" for mid, events in sorted(result.known_bug.items())
+            )
+            lines.append(f"{name}: known OpenDota parser bug on {matches}")
     if baseline is not None:
+        for name in sorted(incompatible):
+            lines.append(
+                f"{name:36s} incompatible baseline (re-audit baseline with the current script)"
+            )
         for name in missing_fields(results, baseline):
             tally["worse"] += 1
             lines.append(
@@ -459,16 +653,37 @@ def format_report(
 
 
 def missing_fields(results: dict[str, FieldResult], baseline: dict[str, Any]) -> list[str]:
-    """Return baseline fields absent from ``results``, e.g. a removed or renamed field."""
-    return sorted(baseline.keys() - results.keys())
+    """Return baseline fields absent from ``results`` or whose comparison count dropped to 0."""
+    return sorted(
+        name
+        for name in baseline
+        if name not in results or (baseline[name].get("total", 0) > 0 and results[name].total == 0)
+    )
+
+
+def incompatible_baseline_fields(
+    results: dict[str, FieldResult], baseline: dict[str, Any]
+) -> list[str]:
+    """Return fields whose ``known_bug`` reference normalization differs from ``baseline``."""
+    return sorted(
+        name
+        for name, result in results.items()
+        if name in baseline
+        and _normalized_known_bug(result.known_bug)
+        != _normalized_known_bug(baseline[name].get("known_bug") or {})
+    )
 
 
 def regressed(results: dict[str, FieldResult], baseline: dict[str, Any]) -> bool:
-    """Return whether any field matches less often than in ``baseline`` or vanished."""
+    """Return whether any field got worse, vanished, or used different normalization."""
     worse = any(
         name in baseline and r.matched < baseline[name]["matched"] for name, r in results.items()
     )
-    return worse or bool(missing_fields(results, baseline))
+    return (
+        worse
+        or bool(missing_fields(results, baseline))
+        or bool(incompatible_baseline_fields(results, baseline))
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -479,7 +694,7 @@ def main(argv: list[str] | None = None) -> int:
 
     Returns:
         ``0`` on success, ``1`` when no fixtures were found, or when a field got
-        worse or disappeared against ``--compare``.
+        worse, disappeared, or used an incompatible ``--compare`` baseline.
     """
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--fixtures-dir", type=Path, default=DEFAULT_FIXTURES_DIR)
@@ -512,8 +727,17 @@ def main(argv: list[str] | None = None) -> int:
     print(format_report(results, baseline=baseline, examples=args.examples))
     if args.json_out is not None:
         args.json_out.write_text(json.dumps(results_to_json(results), indent=2, sort_keys=True))
-    if baseline is not None and regressed(results, baseline):
-        return 1
+    if baseline is not None:
+        incompatible = incompatible_baseline_fields(results, baseline)
+        if incompatible:
+            print(
+                "Incompatible --compare baseline: known_bug normalization differs on "
+                f"{', '.join(incompatible)}. Re-audit your cached baseline with the current script.",
+                file=sys.stderr,
+            )
+            return 1
+        if regressed(results, baseline):
+            return 1
     return 0
 
 

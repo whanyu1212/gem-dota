@@ -534,6 +534,41 @@ class TestSummonKillAttribution:
         assert len(agg.players[0].kills_log) == 1
         assert not agg.players[0].kills_log[0].will_reincarnate
 
+    def test_meepo_aegis_death_with_clone_suicides_is_not_a_kill(self):
+        # On Aegis reincarnation, Meepo logs meepo_divided_we_stand self-deaths
+        # (will_reincarnate=False) before the enemy killing blow (will_reincarnate=True).
+        # None of them is a real kill or death (HY-576).
+        player_ext = MagicMock()
+        player_ext._parser = None
+        player_ext._hero_to_pid = _resolver(
+            {"npc_dota_hero_dragon_knight": 0, "npc_dota_hero_meepo": 5}
+        )
+        agg = _CombatAggregator(player_ext)
+        for _ in range(3):
+            agg.on_entry(
+                _entry(
+                    log_type="DEATH",
+                    attacker_name="npc_dota_hero_meepo",
+                    damage_source_name="npc_dota_hero_meepo",
+                    target_name="npc_dota_hero_meepo",
+                    inflictor_name="meepo_divided_we_stand",
+                    target_is_hero=True,
+                    will_reincarnate=False,
+                )
+            )
+        agg.on_entry(
+            _entry(
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_dragon_knight",
+                damage_source_name="npc_dota_hero_dragon_knight",
+                target_name="npc_dota_hero_meepo",
+                inflictor_name="dragon_knight_breathe_fire",
+                target_is_hero=True,
+                will_reincarnate=True,
+            )
+        )
+        assert agg.players == {}
+
     def test_self_death_with_source_hero_not_credited(self):
         agg, _ = _make_agg(player_id_raw=0)
         agg.on_entry(
