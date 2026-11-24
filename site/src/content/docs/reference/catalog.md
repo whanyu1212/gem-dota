@@ -175,7 +175,7 @@ def world_to_map_image(x: float, y: float, width: float = MAP_IMAGE_WIDTH, heigh
 
 Project world coordinates onto the 7.41 map image.
 
-Source: [src/gem/catalog/map.py:32](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L32)
+Source: [src/gem/catalog/map.py:33](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L33)
 
 ### `map_image_to_world`
 
@@ -185,7 +185,7 @@ def map_image_to_world(px: float, py: float, width: float = MAP_IMAGE_WIDTH, hei
 
 Project a 7.41 map image pixel to world coordinates (inverse of :func:`world_to_map_image`).
 
-Source: [src/gem/catalog/map.py:56](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L56)
+Source: [src/gem/catalog/map.py:57](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L57)
 
 ### `load_camp_zones`
 
@@ -195,7 +195,7 @@ def load_camp_zones() -> dict[str, Any]
 
 Load calibrated neutral-camp zone geometry.
 
-Source: [src/gem/catalog/map.py:76](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L76)
+Source: [src/gem/catalog/map.py:77](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L77)
 
 ### `camps_on_patch`
 
@@ -205,7 +205,7 @@ def camps_on_patch(patch: str, payload: dict[str, Any] | None = None) -> list[di
 
 Return the camps ``camp_zones.json`` places on one patch's map.
 
-Source: [src/gem/catalog/map.py:85](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L85)
+Source: [src/gem/catalog/map.py:86](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L86)
 
 ### `load_map_constants`
 
@@ -215,7 +215,17 @@ def load_map_constants() -> dict[str, Any]
 
 Load static map calibration constants.
 
-Source: [src/gem/catalog/map.py:110](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L110)
+Source: [src/gem/catalog/map.py:111](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L111)
+
+### `fountains_on_patch`
+
+```python
+def fountains_on_patch(patch: str, payload: dict[str, Any] | None = None) -> dict[str, dict[str, float]]
+```
+
+Return the fountain positions ``map_constants.json`` records for one patch.
+
+Source: [src/gem/catalog/map.py:120](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L120)
 
 ### `load_neutral_camps`
 
@@ -225,7 +235,7 @@ def load_neutral_camps() -> list[dict[str, Any]]
 
 Load each neutral camp's ID, centre and type.
 
-Source: [src/gem/catalog/map.py:119](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L119)
+Source: [src/gem/catalog/map.py:167](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L167)
 
 ### `load_neutral_camp_centers`
 
@@ -235,7 +245,7 @@ def load_neutral_camp_centers() -> dict[int, tuple[float, float]]
 
 Load neutral camp IDs mapped to world-coordinate centers.
 
-Source: [src/gem/catalog/map.py:139](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L139)
+Source: [src/gem/catalog/map.py:187](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/catalog/map.py#L187)
 
 ## Module `gem.catalog.resources`
 

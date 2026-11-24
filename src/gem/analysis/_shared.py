@@ -18,10 +18,11 @@ _TEAM_DIRE = 3
 
 # The fountains come from the bundled ``map_constants.json`` (the same file
 # ``catalog.load_map_constants`` exposes); the literals are a fallback used only
-# if the JSON is missing or malformed, and must mirror it. They are the
-# CDOTA_Unit_Fountain entity positions, identical on every local fixture.
+# if the JSON is missing or malformed, and must mirror it. They are the current
+# patch's (7.42) CDOTA_Unit_Fountain entity positions; earlier patches are keyed
+# in ``map_constants.json["fountains_by_patch"]`` (``fountains_on_patch``).
 _FALLBACK_RADIANT_FOUNTAIN = (8928.0, 9446.0)
-_FALLBACK_DIRE_FOUNTAIN = (23792.0, 23232.0)
+_FALLBACK_DIRE_FOUNTAIN = (23536.0, 22976.0)
 
 
 def _load_fountains() -> tuple[tuple[float, float], tuple[float, float]]:

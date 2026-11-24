@@ -230,13 +230,36 @@ class TestMapGeometrySingleSource:
 
     def test_shared_constants_match_json(self) -> None:
         from gem.analysis import _shared
-        from gem.catalog.map import load_map_constants
+        from gem.catalog.map import fountains_on_patch, load_map_constants
 
         data = load_map_constants()
         fr = data["fountains"]["radiant"]
         fd = data["fountains"]["dire"]
         assert (float(fr["x"]), float(fr["y"])) == _shared._RADIANT_FOUNTAIN
         assert (float(fd["x"]), float(fd["y"])) == _shared._DIRE_FOUNTAIN
+        assert data["patches"] == list(data["fountains_by_patch"])
+        assert fountains_on_patch("7.42") == data["fountains"]
+        with pytest.raises(ValueError, match="7.40"):
+            fountains_on_patch("7.40")
+
+    def test_fountains_on_patch_validates_custom_payloads(self) -> None:
+        from gem.catalog.map import fountains_on_patch
+
+        with pytest.raises(ValueError, match="fountains_by_patch"):
+            fountains_on_patch("7.41", payload={"fountains": {}})
+
+        mismatched_payload = {
+            "patches": ["7.42"],
+            "fountains_by_patch": {"7.41": {"radiant": {"x": 1, "y": 2}, "dire": {"x": 3, "y": 4}}},
+        }
+        with pytest.raises(ValueError, match=r"covers patches \['7\.41'\]"):
+            fountains_on_patch("7.42", payload=mismatched_payload)
+
+        incomplete_payload = {
+            "fountains_by_patch": {"7.42": {"radiant": {"x": 1, "y": 2}}},
+        }
+        with pytest.raises(ValueError, match="missing 'dire' coordinates"):
+            fountains_on_patch("7.42", payload=incomplete_payload)
 
     def test_region_geometry_matches_json(self) -> None:
         from gem.catalog.map import load_map_constants
@@ -267,10 +290,12 @@ class TestMapGeometrySingleSource:
         assert (float(fd["x"]), float(fd["y"])) == _shared._FALLBACK_DIRE_FOUNTAIN
 
 
-# The CDOTA_Unit_Fountain positions, read from every local fixture replay
-# (8821954344 through 8974053011); all nine agree exactly.
-_RADIANT_FOUNTAIN_ENTITY = (8928.0, 9446.0)
-_DIRE_FOUNTAIN_ENTITY = (23792.0, 23232.0)
+# The CDOTA_Unit_Fountain positions, read from the 7.41 and 7.42 fixture replays;
+# 7.42 moved the Dire fountain 256 units west and 256 units south while Radiant stayed put.
+_FOUNTAIN_ENTITIES_BY_PATCH = {
+    "7.41": {2: (8928.0, 9446.0), 3: (23792.0, 23232.0)},
+    "7.42": {2: (8928.0, 9446.0), 3: (23536.0, 22976.0)},
+}
 
 
 class TestFountainAnchorsAreFountainEntities:
@@ -278,20 +303,36 @@ class TestFountainAnchorsAreFountainEntities:
 
     def test_anchors_pin_entity_positions(self) -> None:
         from gem.analysis import _shared
+        from gem.catalog.map import fountains_on_patch
 
-        assert _shared._RADIANT_FOUNTAIN == _RADIANT_FOUNTAIN_ENTITY
-        assert _shared._DIRE_FOUNTAIN == _DIRE_FOUNTAIN_ENTITY
+        expected_742 = _FOUNTAIN_ENTITIES_BY_PATCH["7.42"]
+        assert expected_742[2] == _shared._RADIANT_FOUNTAIN
+        assert expected_742[3] == _shared._DIRE_FOUNTAIN
+        for patch, expected in _FOUNTAIN_ENTITIES_BY_PATCH.items():
+            fountains = fountains_on_patch(patch)
+            assert (fountains["radiant"]["x"], fountains["radiant"]["y"]) == expected[2]
+            assert (fountains["dire"]["x"], fountains["dire"]["y"]) == expected[3]
 
     @pytest.mark.slow
     @pytest.mark.integration
-    def test_anchors_match_replay_fountain_entities(self, full_replay_path: Path) -> None:
-        from gem.analysis import _shared
+    @pytest.mark.parametrize(
+        ("replay_fixture", "patch"),
+        [
+            ("patch_741_replay_path", "7.41"),
+            ("patch_742_replay_path", "7.42"),
+        ],
+    )
+    def test_anchors_match_replay_fountain_entities(
+        self, request: pytest.FixtureRequest, replay_fixture: str, patch: str
+    ) -> None:
+        from gem.catalog.map import fountains_on_patch
         from gem.extractors._snapshots import _pos
         from gem.parser import ReplayParser
 
+        replay_path: Path = request.getfixturevalue(replay_fixture)
         fountains: dict[int, set[tuple[float, float] | None]] = {}
 
-        parser = ReplayParser(str(full_replay_path))
+        parser = ReplayParser(str(replay_path))
 
         def on_entity(entity: Any, op: Any) -> None:
             if entity.get_class_name() == "CDOTA_Unit_Fountain":
@@ -303,22 +344,27 @@ class TestFountainAnchorsAreFountainEntities:
         parser.on_entity(on_entity)
         parser.parse()
 
+        expected = fountains_on_patch(patch)
         assert fountains == {
-            2: {_shared._RADIANT_FOUNTAIN},
-            3: {_shared._DIRE_FOUNTAIN},
+            2: {(expected["radiant"]["x"], expected["radiant"]["y"])},
+            3: {(expected["dire"]["x"], expected["dire"]["y"])},
         }
 
 
-# Entity positions from replay 8974053011: fountains and ancients (CDOTA_Unit_Fountain,
-# CDOTA_BaseNPC_Fort), mid T1 towers, the power-rune spawners, the Roshan pits, the
-# lotus pools (CDOTA_BaseNPC_LotusPool), the wisdom shrines and the outposts.
+# Entity positions from replay 8974053011 (7.41) plus 7.42 shifts (Dire fountain,
+# mid T1s): fountains and ancients (CDOTA_Unit_Fountain, CDOTA_BaseNPC_Fort),
+# mid T1 towers, power-rune spawners, Roshan pits, lotus pools, wisdom shrines,
+# and outposts.
 _REGION_LANDMARKS = {
     "radiant fountain": ((8928, 9446), "radiant_half"),
     "dire fountain": ((23792, 23232), "dire_half"),
+    "dire fountain (7.42)": ((23536, 22976), "dire_half"),
     "radiant ancient": ((10464, 11032), "radiant_half"),
     "dire ancient": ((21912, 21384), "dire_half"),
     "radiant mid T1": ((14840, 14976), "radiant_half"),
+    "radiant mid T1 (7.42)": ((15150, 15152), "radiant_half"),
     "dire mid T1": ((16908, 17036), "dire_half"),
+    "dire mid T1 (7.42)": ((17216, 17232), "dire_half"),
     "top power rune": ((14744, 17496), "river"),
     "bottom power rune": ((17564, 15168), "river"),
     "top Roshan pit": ((13190, 18779), "river"),

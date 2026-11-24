@@ -31,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   checks. `scripts/render_camp_zones_overlay.py --patch 7.42` draws 7.42's camps
   on it.
 - **`gem.catalog.camps_on_patch(patch)`** gives one patch's 28 camps from the
-  camp catalog.
+  camp catalog, and **`gem.catalog.fountains_on_patch(patch)`** gives one
+  patch's fountain positions from `map_constants.json`.
 - **Docs pages show where you are and can link to any section** (HY-417). The
   "On this page" outline marks the section on screen as you scroll, the sidebar
   marks the current page with an accent bar, and each h2–h4 shows a `#` link on
@@ -74,6 +75,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Dire fountain anchor updated for patch 7.42** (HY-579): 7.42 moved the Dire
+  `CDOTA_Unit_Fountain` entity 256 units west and 256 units south, from
+  `(23792, 23232)` to `(23536, 22976)`, while the Radiant fountain stayed at
+  `(8928, 9446)`.
+  `map_constants.json` now records per-patch positions in `fountains_by_patch`
+  (exposed via `gem.catalog.fountains_on_patch(patch)`) and sets the top-level
+  `fountains` entry and `gem.analysis._shared`'s fallback literal to 7.42's
+  position. Normal `region_of` output is unchanged (the fountain anchors are
+  only used for its degraded bisector fallback).
 - **7.42's neutral camps are in the camp catalog.** 7.42 moved four camps toward
   the map's rims: both small flooded camps and two medium camps, the mediums to
   where the Twin Gates stood. On a 7.42 replay their creeps had no camp (83 on
