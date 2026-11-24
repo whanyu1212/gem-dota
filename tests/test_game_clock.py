@@ -126,6 +126,60 @@ class TestPauseTracking:
         tracker.finish()
         assert tracker.clock.pauses == [GamePause(100, None)]
 
+    def test_odd_tick_pause_uses_last_unpaused_total(self) -> None:
+        tracker = self._tracker(net_tick=200)
+        tracker.track_pause(False, 0, 0, tick=200)
+        # First pause started on odd net_tick 201, observed at 202 with total=1.
+        tracker.on_net_tick(202)
+        tracker.track_pause(True, 201, 1, tick=202)
+        tracker.on_net_tick(302)
+        tracker.track_pause(False, 0, 101, tick=302)
+        # Second pause started on odd net_tick 401, observed at 402 with total=102.
+        tracker.on_net_tick(400)
+        tracker.track_pause(False, 0, 101, tick=400)
+        tracker.on_net_tick(402)
+        tracker.track_pause(True, 401, 102, tick=402)
+        tracker.on_net_tick(452)
+        tracker.track_pause(False, 0, 152, tick=452)
+
+        assert tracker.clock.pauses == [GamePause(201, 302), GamePause(401, 452)]
+        assert tracker.clock.paused_ticks_before(500) == 152
+
+    def test_unpaused_sample_without_total_clears_cached_baseline(self) -> None:
+        tracker = self._tracker(net_tick=200)
+        tracker.track_pause(False, 0, 10, tick=200)
+        # Subsequent unpaused sample omits m_nTotalPausedTicks, clearing (200, 10).
+        tracker.on_net_tick(201)
+        tracker.track_pause(False, 0, None, tick=201)
+        tracker.on_net_tick(203)
+        tracker.track_pause(True, 202, 11, tick=203)
+        tracker.on_net_tick(252)
+        tracker.track_pause(False, 0, 60, tick=252)
+
+        assert tracker.clock.pauses == [GamePause(202, 251)]
+
+    def test_missing_pause_start_keeps_first_paused_total(self) -> None:
+        tracker = self._tracker(net_tick=200)
+        tracker.track_pause(False, 0, 0, tick=200)
+        tracker.on_net_tick(202)
+        tracker.track_pause(True, None, 1, tick=202)
+        tracker.on_net_tick(302)
+        tracker.track_pause(False, 0, 101, tick=302)
+
+        assert tracker.clock.pauses == [GamePause(202, 302)]
+
+    def test_stale_unpaused_total_across_gap_is_ignored(self) -> None:
+        tracker = self._tracker(net_tick=100)
+        tracker.track_pause(False, 0, 0, tick=100)
+        # Gap skips a 120-tick pause; next observed pause starts at 1000 and is
+        # first seen late at 1200 (so tick - start > 120), resuming at 1300.
+        tracker.on_net_tick(1200)
+        tracker.track_pause(True, 1000, 120, tick=1200)
+        tracker.on_net_tick(1300)
+        tracker.track_pause(False, 0, 420, tick=1300)
+
+        assert tracker.clock.pauses == [GamePause(1000, 1300)]
+
 
 class TestRawClock:
     """The raw (unshifted) clock is readable in pregame, as OpenDota's ``time``."""
