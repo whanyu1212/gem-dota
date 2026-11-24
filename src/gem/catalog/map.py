@@ -11,6 +11,7 @@ Reference: https://github.com/odota/dotaconstants
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 from gem.catalog.resources import load_data_json
@@ -114,6 +115,53 @@ def load_map_constants() -> dict[str, Any]:
         Decoded ``map_constants.json`` payload.
     """
     return load_data_json("map_constants.json")
+
+
+def fountains_on_patch(
+    patch: str, payload: dict[str, Any] | None = None
+) -> dict[str, dict[str, float]]:
+    """Return the fountain positions ``map_constants.json`` records for one patch.
+
+    Patch 7.42 moved the Dire fountain 256 units west and 256 units south, from
+    ``(23792, 23232)`` to ``(23536, 22976)``, while the Radiant fountain stayed at
+    ``(8928, 9446)``.
+
+    Args:
+        patch: A Dota patch the catalog covers, such as ``"7.42"``.
+        payload: A decoded map-constants payload; the bundled one when omitted.
+
+    Returns:
+        Mapping of ``"radiant"`` and ``"dire"`` to ``{"x": ..., "y": ...}``
+        world coordinates.
+
+    Raises:
+        ValueError: If the payload lacks ``fountains_by_patch``, does not cover
+            ``patch``, or has incomplete coordinates for either fountain.
+    """
+    if payload is None:
+        payload = load_map_constants()
+    by_patch = payload.get("fountains_by_patch")
+    if not isinstance(by_patch, Mapping):
+        raise ValueError("map_constants.json does not include 'fountains_by_patch'")
+    covered = list(by_patch)
+    if patch not in by_patch:
+        raise ValueError(f"map_constants.json covers patches {covered}, not {patch!r}")
+    row = by_patch[patch]
+    if not isinstance(row, Mapping):
+        raise ValueError(f"map_constants.json entry for patch {patch!r} must be a mapping")
+
+    result: dict[str, dict[str, float]] = {}
+    for side in ("radiant", "dire"):
+        pos = row.get(side)
+        if not isinstance(pos, Mapping) or "x" not in pos or "y" not in pos:
+            raise ValueError(f"map_constants.json patch {patch!r} is missing {side!r} coordinates")
+        try:
+            result[side] = {"x": float(pos["x"]), "y": float(pos["y"])}
+        except (TypeError, ValueError) as err:
+            raise ValueError(
+                f"map_constants.json patch {patch!r} has invalid {side!r} coordinates"
+            ) from err
+    return result
 
 
 def load_neutral_camps() -> list[dict[str, Any]]:
