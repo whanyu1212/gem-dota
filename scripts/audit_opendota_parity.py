@@ -85,6 +85,9 @@ RULE_CHANGES = {
     # target_is_hero=True in the combat log, but killing it is not a hero kill
     # on the scoreboard and is left out of kills_log.
     "8d6ea0c2": frozenset({"player.kills_log"}),
+    # odota/parser, November 2026: tower/creep-finished hero kills that the
+    # scoreboard credits to an enemy hero are included in kills_log.
+    "a6e8dbf3": frozenset({"player.kills_log"}),
 }
 
 

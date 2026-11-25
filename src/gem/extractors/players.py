@@ -180,6 +180,12 @@ class PlayerExtractor:
         self._minute_snaps: list[PlayerStateSnapshot] = []
         # player_id → (kills, deaths, assists) from server scoreboard at game end
         self.scoreboard: dict[int, tuple[int, int, int]] = {}
+        # Tick-level scoreboard counter increases: (tick, player_id, delta).
+        # Used to credit tower/creep-finished hero kills in kills_log (odota/parser a6e8dbf3).
+        self.kill_ticks: list[tuple[int, int, int]] = []
+        self.death_ticks: list[tuple[int, int, int]] = []
+        self._last_kills: dict[int, int] = {}
+        self._last_deaths: dict[int, int] = {}
         # set of player_ids whose starting inventory has been emitted
         self._inventory_initialized: set[int] = set()
         # player_id → tick the starting inventory was read at
@@ -634,6 +640,8 @@ class PlayerExtractor:
             else:
                 self._player_resource = entity
                 self._refresh_team_slots()
+                if self._parser is not None:
+                    self._track_kill_death_counters(entity, self._parser.tick)
                 should_sample = True
 
         if should_sample and self._parser is not None:
@@ -727,7 +735,31 @@ class PlayerExtractor:
         # (early in the replay, before PlayerResource is fully populated) keep the
         # previous mapping rather than introducing a half-built shift.
         if scan.resolved:
+            if self._resource_index_by_id and scan.index_by_id != self._resource_index_by_id:
+                self._last_kills.clear()
+                self._last_deaths.clear()
             self._resource_index_by_id = scan.index_by_id
+
+    def _track_kill_death_counters(self, pr: Entity, tick: int) -> None:
+        """Record per-tick increases in ``m_iKills`` and ``m_iDeaths``.
+
+        Reference: odota/parser Parse.java ``trackAssistCounters`` (``a6e8dbf3``).
+        """
+        fields = pr._resolve_fields(_PLAYER_RESOURCE_KDA_FIELDS)
+        for player_id in range(10):
+            offset = self._resource_index(player_id) * 3
+            kills = pr._get_int32_resolved(fields[offset])
+            deaths = pr._get_int32_resolved(fields[offset + 1])
+            if kills is not None:
+                prev_k = self._last_kills.get(player_id)
+                if prev_k is not None and kills > prev_k:
+                    self.kill_ticks.append((tick, player_id, kills - prev_k))
+                self._last_kills[player_id] = kills
+            if deaths is not None:
+                prev_d = self._last_deaths.get(player_id)
+                if prev_d is not None and deaths > prev_d:
+                    self.death_ticks.append((tick, player_id, deaths - prev_d))
+                self._last_deaths[player_id] = deaths
 
     def _resource_index(self, player_id: int) -> int:
         """Map a logical player slot to its CDOTA_PlayerResource array index.

@@ -317,3 +317,10 @@ class TestFirstBloodDeath:
         hero = _hero_death(30, target_name="npc_dota_hero_axe")
         assert _first_blood_death([bear, hero], None) is hero
         assert _first_blood_death([bear], None) is None
+
+    def test_chat_stream_without_firstblood_event_returns_none(self):
+        # When the replay carries chat events (e.g. CHAT_MESSAGE_HERO_KILL=0)
+        # without any CHAT_MESSAGE_FIRSTBLOOD, no first-blood objective occurred.
+        death = _hero_death(6044, target_name="npc_dota_hero_tusk")
+        events = [_event(0, 6044, None, player=4, player2=7)]
+        assert _first_blood_death([death], events) is None
