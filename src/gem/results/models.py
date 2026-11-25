@@ -1076,10 +1076,13 @@ class ParsedMatch:
             typed per-type fields (``towers``, ``roshans``, etc.) are retained
             alongside it.
         tower_status_radiant: End-of-game Radiant tower-status bitmask (Steam GC
-            11-bit convention; bit set = tower standing). Reconstructed from tower
-            kills. Mirrors OpenDota's ``tower_status_radiant``.
-        tower_status_dire: End-of-game Dire tower-status bitmask. Mirrors
-            OpenDota's ``tower_status_dire``.
+            11-bit convention; bit set = tower standing). Overlaid from the
+            embedded ``CMsgDOTAMatch.tower_status`` postgame summary when
+            present, falling back to reconstruction from tower kills. Mirrors
+            OpenDota's ``tower_status_radiant``.
+        tower_status_dire: End-of-game Dire tower-status bitmask (same source
+            and fallback as ``tower_status_radiant``). Mirrors OpenDota's
+            ``tower_status_dire``.
         barracks_status_radiant: End-of-game Radiant barracks-status bitmask
             (6-bit; bit set = barracks standing). Mirrors OpenDota's
             ``barracks_status_radiant``.

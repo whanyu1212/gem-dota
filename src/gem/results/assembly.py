@@ -150,12 +150,18 @@ _MATCH_DETAILS_MATCH_SCALARS = (
 
 
 def _apply_match_details_match_scalars(match: ParsedMatch, details: CMsgDOTAMatch | None) -> None:
-    """Overlay the postgame summary's first blood, pre-game and score values.
+    """Overlay the postgame summary's match-level scalars and tower bitmasks.
 
     These are the Game Coordinator values OpenDota reports as
-    ``first_blood_time``, ``pre_game_duration``, ``radiant_score`` and
-    ``dire_score`` (equal on every local fixture). A present field, including an
-    explicit zero, replaces the replay reconstruction; an absent one keeps it.
+    ``first_blood_time``, ``pre_game_duration``, ``radiant_score``,
+    ``dire_score``, ``tower_status_radiant``, and ``tower_status_dire``. A
+    present field, including an explicit zero, replaces the replay
+    reconstruction; an absent one keeps it.
+
+    ``barracks_status`` is intentionally NOT overlaid: Valve's embedded
+    ``CMsgDOTAMatch.barracks_status`` repeats Radiant's barracks bitmask for
+    both teams (``[radiant, radiant]``), whereas combat-log barracks NPC names
+    already identify every lane and melee/ranged structure uniquely.
     """
     if details is None:
         return
@@ -163,6 +169,11 @@ def _apply_match_details_match_scalars(match: ParsedMatch, details: CMsgDOTAMatc
         if details.HasField(source_field):
             setattr(match, attr, int(getattr(details, source_field)))
             match._match_details_fields.add(attr)
+    if len(details.tower_status) >= 2:
+        match.tower_status_radiant = int(details.tower_status[0])
+        match.tower_status_dire = int(details.tower_status[1])
+        match._match_details_fields.add("tower_status_radiant")
+        match._match_details_fields.add("tower_status_dire")
 
 
 def _tick_game_seconds(tick: int, clock: GameClock) -> int:

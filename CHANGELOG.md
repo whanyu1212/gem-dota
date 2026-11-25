@@ -85,6 +85,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **End-of-game tower status bitmasks match Steam GC when one Tier-4 tower
+  falls**: both Tier-4 towers share the combat-log NPC name `..._tower4`, so
+  reconstructing `tower_status_radiant` / `tower_status_dire` from tower kills
+  alone could clear bit 9 instead of bit 10 when only one Tier-4 tower was
+  destroyed (observed on BLAST SLAM IX match `9099278768` and ranked match
+  `9104678882`). `_apply_match_details_match_scalars` now overlays
+  `tower_status_radiant` and `tower_status_dire` from the embedded
+  `CMsgDOTAMatch.tower_status` postgame summary when present, keeping the
+  tower-kill reconstruction as fallback for incomplete replays.
+  `barracks_status_*` continues to use combat-log reconstruction because
+  Valve's embedded `CMsgDOTAMatch.barracks_status` repeats Radiant's mask for
+  both teams.
 - **Pre-horn `max_hero_hit` timestamps use the finalized game clock**: when a
   player's largest hero hit occurs before the 0:00 horn (e.g. an early abandon),
   `entry.game_time_s` is `None` during streaming because `game_start_tick` is

@@ -639,7 +639,7 @@ Signature: `def ParsedMatch.duration_seconds(self) -> float`
 
 Game duration in seconds, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1230](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1230)
+Source: [src/gem/results/models.py:1233](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1233)
 
 ##### `duration_minutes`
 
@@ -647,7 +647,7 @@ Signature: `def ParsedMatch.duration_minutes(self) -> float`
 
 Game duration in minutes, derived from ``game_start_tick`` and ``game_end_tick``.
 
-Source: [src/gem/results/models.py:1236](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1236)
+Source: [src/gem/results/models.py:1239](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/results/models.py#L1239)
 
 ## Module `gem.state.game_clock`
 
