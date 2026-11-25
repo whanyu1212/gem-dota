@@ -112,6 +112,7 @@ from gem.proto.netmessages_pb2 import (
     svc_UserMessage,
 )
 from gem.proto.networkbasetypes_pb2 import CNETMsg_Tick, QuantizedFloatEncoderAlias_t, net_Tick
+from gem.proto.usermessages_pb2 import CUserMessageSayText2, UM_SayText2
 from gem.results.models import ChatEntry, NeutralItemFoundEvent
 from gem.schema.sendtable import parse_send_tables
 from gem.schema.sendtable.models import FieldAccessPlan
@@ -175,6 +176,7 @@ _DOTA_UM_MATCH_METADATA = DOTA_UM_MatchMetadata  # CDOTAMatchMetadataFile
 _DOTA_UM_MATCH_DETAILS = DOTA_UM_MatchDetails  # CMsgDOTAMatch postgame summary
 _DOTA_UM_FOUND_NEUTRAL_ITEM = DOTA_UM_FoundNeutralItem  # CDOTAUserMsg_FoundNeutralItem
 _DOTA_UM_CHAT_MESSAGE = DOTA_UM_ChatMessage  # CDOTAUserMsg_ChatMessage
+_UM_SAY_TEXT2 = UM_SayText2  # CUserMessageSayText2 (console say / lobby & admin chat)
 
 _CHAT_MSG_RUNE_PICKUP = CHAT_MESSAGE_RUNE_PICKUP
 
@@ -708,7 +710,7 @@ class ReplayParser:
                 return -10
             if type_id == _SVC_PACKET_ENTITIES:
                 return 5
-            if type_id in (_GE_GAME_EVENT, _DOTA_UM_COMBAT_LOG_HLTV):
+            if type_id in (_GE_GAME_EVENT, _DOTA_UM_COMBAT_LOG_HLTV, _UM_SAY_TEXT2):
                 return 10
             return 0
 
@@ -822,6 +824,9 @@ class ReplayParser:
         elif type_id == _DOTA_UM_CHAT_MESSAGE:
             self._emit_chat_message(payload)
 
+        elif type_id == _UM_SAY_TEXT2:
+            self._emit_say_text2(payload)
+
     # ------------------------------------------------------------------
     # Subsystem handlers
     # ------------------------------------------------------------------
@@ -903,6 +908,8 @@ class ReplayParser:
             self._on_match_metadata(msg.msg_data)
         elif msg.msg_type == _DOTA_UM_MATCH_DETAILS:
             self._on_match_details(msg.msg_data)
+        elif msg.msg_type == _UM_SAY_TEXT2:
+            self._emit_say_text2(msg.msg_data)
 
     def _combat_log_time(self, msg: CMsgDOTACombatLogEntry) -> int | None:
         """Return OpenDota-style game-relative time for an S2 combat-log entry."""
@@ -934,6 +941,30 @@ class ReplayParser:
             player_slot=chat_msg.source_player_id,
             channel=channel,
             text=chat_msg.message_text,
+        )
+        for cb in self._chat_callbacks:
+            cb(entry)
+
+    def _emit_say_text2(self, payload: bytes) -> None:
+        if not self._chat_callbacks:
+            return
+        say_msg = CUserMessageSayText2()
+        _parse_proto(say_msg, payload)
+        player_slot = -1
+        em = self.entity_manager
+        if em is not None and 0 <= say_msg.entityindex < len(em.entities):
+            ent = em.entities[say_msg.entityindex]
+            if ent is not None:
+                for field_name in ("m_nPlayerID", "m_iPlayerID", "m_iPlayerOwnerID"):
+                    val = ent.get_int32(field_name)
+                    if val is not None and val >= 0:
+                        player_slot = val
+                        break
+        entry = ChatEntry(
+            tick=self.tick,
+            player_slot=player_slot,
+            channel="all",
+            text=say_msg.param2,
         )
         for cb in self._chat_callbacks:
             cb(entry)

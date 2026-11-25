@@ -981,6 +981,52 @@ class TestEmitChatMessage:
         assert len(recv1) == 1
         assert len(recv2) == 1
 
+    def test_say_text2_emits_all_chat_with_controller_player_id(self):
+        from gem.proto.usermessages_pb2 import CUserMessageSayText2, UM_SayText2
+        from gem.results.models import ChatEntry
+
+        p = ReplayParser(b"")
+        controller = MagicMock()
+        controller.get_int32.side_effect = lambda name: 9 if name == "m_nPlayerID" else None
+        em = MagicMock()
+        em.entities = [None] * 6
+        em.entities[5] = controller
+        p.entity_manager = em
+        p.tick = 4046
+
+        received = []
+        p.on_chat_message(received.append)
+
+        msg = CUserMessageSayText2(entityindex=5, param1="Player", param2="gl hf!")
+        p._dispatch_inner(UM_SayText2, msg.SerializeToString())
+
+        assert received == [ChatEntry(tick=4046, player_slot=9, channel="all", text="gl hf!")]
+
+    def test_say_text2_preserves_broadcaster_slot_and_handles_missing_entity(self):
+        from gem.proto.usermessages_pb2 import CUserMessageSayText2, UM_SayText2
+
+        p = ReplayParser(b"")
+        broadcaster = MagicMock()
+        broadcaster.get_int32.side_effect = lambda name: 11 if name == "m_nPlayerID" else None
+        em = MagicMock()
+        em.entities = [None] * 5
+        em.entities[4] = broadcaster
+        p.entity_manager = em
+        p.tick = 19430
+
+        received = []
+        p.on_chat_message(received.append)
+
+        msg1 = CUserMessageSayText2(entityindex=4, param1="Admin", param2="adjust cameras")
+        msg2 = CUserMessageSayText2(entityindex=99, param1="Sys", param2="no entity")
+        p._dispatch_inner(UM_SayText2, msg1.SerializeToString())
+        p._dispatch_inner(UM_SayText2, msg2.SerializeToString())
+
+        assert [(e.player_slot, e.channel, e.text) for e in received] == [
+            (11, "all", "adjust cameras"),
+            (-1, "all", "no entity"),
+        ]
+
 
 # ---------------------------------------------------------------------------
 # _dispatch_inner — chat event (rune pickup)
