@@ -503,6 +503,71 @@ class TestBuildParsedMatchSmoke:
         assert fight.players[6].killed == {"npc_dota_hero_axe": 1, "npc_dota_hero_lina": 1}
         assert fight.players[7].deaths == 1
 
+    def test_creep_finished_hero_kill_credited_to_kills_log(self):
+        from gem.combat.aggregator import _CombatAggregator
+
+        parser = _make_parser(game_start_tick=6000)
+        player_ext = _make_player_ext(
+            snapshots=[
+                _FakePlayerSnapshot(
+                    player_id=1, tick=6000, npc_name="npc_dota_hero_broodmother", team=2
+                ),
+                _FakePlayerSnapshot(
+                    player_id=6, tick=6000, npc_name="npc_dota_hero_windrunner", team=3
+                ),
+            ]
+        )
+        player_ext._hero_to_pid.side_effect = {
+            "npc_dota_hero_broodmother": 1,
+            "npc_dota_hero_windrunner": 6,
+        }.get
+        # Scoreboard counters moved on tick 11144 (creep kill credited to Broodmother)
+        # and tick 12000 (direct hero kill by Broodmother, already in kills_log).
+        player_ext.kill_ticks = [(11144, 1, 1), (12000, 1, 1)]
+        player_ext.death_ticks = [(11144, 6, 1), (12000, 6, 1)]
+
+        creep_kill = CombatLogEntry(
+            tick=11144,
+            game_time_s=208,
+            log_type="DEATH",
+            attacker_name="npc_dota_creep_goodguys_melee",
+            damage_source_name="npc_dota_creep_goodguys_melee",
+            target_name="npc_dota_hero_windrunner",
+            target_is_hero=True,
+        )
+        hero_kill = CombatLogEntry(
+            tick=12000,
+            game_time_s=236,
+            log_type="DEATH",
+            attacker_name="npc_dota_hero_broodmother",
+            attacker_is_hero=True,
+            damage_source_name="npc_dota_hero_broodmother",
+            target_name="npc_dota_hero_windrunner",
+            target_is_hero=True,
+        )
+        agg = _CombatAggregator(player_ext)
+        agg.on_entry(creep_kill)
+        agg.on_entry(hero_kill)
+
+        m = build_parsed_match(
+            parser,
+            player_ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            agg,
+            [creep_kill, hero_kill],
+            [],
+        )
+
+        # kills_log gets both kills in chronological order; killed stays hero-attributed only.
+        assert [(e.target_name, e.game_time_s) for e in m.players[1].kills_log] == [
+            ("npc_dota_hero_windrunner", 208),
+            ("npc_dota_hero_windrunner", 236),
+        ]
+        assert m.players[1].killed == {"npc_dota_hero_windrunner": 1}
+
     def test_has_ten_players(self):
         m = self._build()
         assert len(m.players) == 10

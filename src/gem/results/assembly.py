@@ -650,8 +650,10 @@ def _first_blood_death(
         and not e.will_reincarnate
         and (not e.target_name or e.target_name.startswith("npc_dota_hero_"))
     ]
-    event = next((e for e in chat_event_times or () if e.type == CHAT_MESSAGE_FIRSTBLOOD), None)
-    if event is not None:
+    if chat_event_times:
+        event = next((e for e in chat_event_times if e.type == CHAT_MESSAGE_FIRSTBLOOD), None)
+        if event is None:
+            return None
         near = [d for d in deaths if abs(d.tick - event.tick) <= _CHAT_MATCH_WINDOW_TICKS]
         if near:
             return min(near, key=lambda d: abs(d.tick - event.tick))
@@ -1075,6 +1077,139 @@ def _resolve_max_hero_hit(agg: Any, clock: GameClock) -> dict[str, Any] | None:
             if resolved is not None:
                 return {**hit, "time": resolved}
     return dict(hit)
+
+
+def _match_tick_deaths(
+    victim_pids: list[int],
+    candidates: list[CombatLogEntry],
+    combat_agg: _CombatAggregator,
+) -> list[tuple[int, CombatLogEntry, int | None]]:
+    """Pair each counted victim death on one tick with its combat-log entry."""
+    used_entries: set[int] = set()
+    counted: list[tuple[int, CombatLogEntry, int | None]] = []
+    for victim_pid in victim_pids:
+        # Prefer a death entry whose attacker is not the victim itself
+        # (Meepo clones log self-deaths alongside the real killing blow).
+        matched: CombatLogEntry | None = None
+        for entry in candidates:
+            if (
+                id(entry) in used_entries
+                or combat_agg._hero_to_pid(entry.target_name) != victim_pid
+            ):
+                continue
+            matched = entry
+            if entry.attacker_name != entry.target_name:
+                break
+        if matched is None:
+            continue
+        used_entries.add(id(matched))
+        killer_from_log = combat_agg.resolve_kill_pid(
+            matched.damage_source_name, matched.attacker_name
+        )
+        counted.append((victim_pid, matched, killer_from_log))
+    return counted
+
+
+def _assign_tick_non_hero_kills(
+    match: ParsedMatch,
+    counted: list[tuple[int, CombatLogEntry, int | None]],
+    tick_kills: dict[int, int],
+    pid_to_team: dict[int, int],
+) -> set[int]:
+    """Credit unmatched kill increments on one tick to enemy non-hero deaths."""
+    remaining = dict(tick_kills)
+    for _, _, killer_from_log in counted:
+        if killer_from_log is not None and remaining.get(killer_from_log, 0) > 0:
+            remaining[killer_from_log] -= 1
+
+    credited_entries: set[int] = set()
+    touched: set[int] = set()
+    for killer_pid, count in remaining.items():
+        killer_team = pid_to_team.get(killer_pid)
+        if killer_team is None:
+            continue
+        for _ in range(count):
+            pick = next(
+                (
+                    entry
+                    for victim_pid, entry, killer_from_log in counted
+                    if killer_from_log is None
+                    and id(entry) not in credited_entries
+                    and pid_to_team.get(victim_pid) not in (None, killer_team)
+                ),
+                None,
+            )
+            if pick is None:
+                break
+            credited_entries.add(id(pick))
+            match.players[killer_pid].kills_log.append(pick)
+            touched.add(killer_pid)
+    return touched
+
+
+def _credit_non_hero_kills(
+    match: ParsedMatch,
+    all_entries: list[CombatLogEntry],
+    combat_agg: _CombatAggregator,
+    player_ext: PlayerExtractor,
+) -> None:
+    """Credit tower/creep-finished hero kills to the hero the scoreboard credits.
+
+    When a tower or lane creep lands the last hit on a hero, the combat log
+    names no hero as attacker, yet Dota 2 can credit the kill to an enemy hero
+    on the scoreboard (incrementing ``m_iKills`` on the death's tick). Pair
+    those unmatched ``kill_ticks`` with enemy hero deaths on the same tick and
+    append them to ``ParsedPlayer.kills_log`` without altering ``killed`` or
+    ``killed_by``.
+
+    Reference: odota/parser CreateParsedDataBlob.java
+    ``creditKillsWithoutHeroAttacker`` (commit ``a6e8dbf3``).
+    """
+    kill_ticks = getattr(player_ext, "kill_ticks", None)
+    death_ticks = getattr(player_ext, "death_ticks", None)
+    if not isinstance(kill_ticks, (list, tuple)) or not isinstance(death_ticks, (list, tuple)):
+        return
+    if not kill_ticks or not death_ticks:
+        return
+
+    kills_by_tick: dict[int, dict[int, int]] = defaultdict(lambda: defaultdict(int))
+    for tick, pid, delta in kill_ticks:
+        kills_by_tick[tick][pid] += delta
+
+    deaths_by_tick: dict[int, list[int]] = defaultdict(list)
+    for tick, pid, delta in death_ticks:
+        deaths_by_tick[tick].extend([pid] * delta)
+
+    shared_ticks = kills_by_tick.keys() & deaths_by_tick.keys()
+    if not shared_ticks:
+        return
+
+    hero_deaths_by_tick: dict[int, list[CombatLogEntry]] = defaultdict(list)
+    for entry in all_entries:
+        if (
+            entry.tick in shared_ticks
+            and entry.log_type == "DEATH"
+            and entry.target_is_hero
+            and not entry.target_is_illusion
+            and not entry.will_reincarnate
+            and entry.target_name.startswith("npc_dota_hero_")
+        ):
+            hero_deaths_by_tick[entry.tick].append(entry)
+
+    pid_to_team = {pp.player_id: pp.team for pp in match.players if pp.team in (2, 3)}
+    touched_killers: set[int] = set()
+
+    for tick in sorted(shared_ticks):
+        candidates = hero_deaths_by_tick.get(tick)
+        if not candidates:
+            continue
+        counted = _match_tick_deaths(deaths_by_tick[tick], candidates, combat_agg)
+        touched_killers |= _assign_tick_non_hero_kills(
+            match, counted, kills_by_tick[tick], pid_to_team
+        )
+
+    for killer_pid in touched_killers:
+        match.players[killer_pid].kills_log.sort(key=lambda e: e.tick)
 
 
 def _populate_player_series(
@@ -1553,6 +1688,7 @@ def build_parsed_match(
         radiant_win=radiant_win,
         buyback_spends=_buyback_spends_by_player(buyback_spends, interval_ext),
     )
+    _credit_non_hero_kills(match, all_entries, combat_agg, player_ext)
     if neutral_camp_ext is not None:
         _add_camp_facts(match, neutral_camp_ext, combat_agg, interval_ext)
 

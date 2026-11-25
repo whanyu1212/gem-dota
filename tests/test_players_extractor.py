@@ -2243,3 +2243,35 @@ def test_decoded_cache_and_canonical_handles_remain_parser_local():
         assert [s.player_id for s in ext.snapshots] == [raw, raw]
         extractors.append(ext)
     assert extractors[0].snapshots[0].player_id != extractors[1].snapshots[0].player_id
+
+
+def test_player_resource_tracks_kill_and_death_counter_ticks():
+    parser = FakeParser(tick=100)
+    ext = PlayerExtractor(sample_interval=9999)
+    ext.attach(parser)
+
+    pr = _ent(
+        "CDOTA_PlayerResource",
+        **{
+            "m_vecPlayerTeamData.0001.m_iKills": 0,
+            "m_vecPlayerTeamData.0001.m_iDeaths": 0,
+            "m_vecPlayerTeamData.0006.m_iKills": 0,
+            "m_vecPlayerTeamData.0006.m_iDeaths": 0,
+        },
+    )
+    ext._on_entity(pr, EntityOp.CREATED)
+    assert ext.kill_ticks == []
+    assert ext.death_ticks == []
+
+    parser.tick = 11144
+    set_fields(
+        pr,
+        {
+            "m_vecPlayerTeamData.0001.m_iKills": 1,
+            "m_vecPlayerTeamData.0006.m_iDeaths": 1,
+        },
+    )
+    ext._on_entity(pr, EntityOp.UPDATED)
+
+    assert ext.kill_ticks == [(11144, 1, 1)]
+    assert ext.death_ticks == [(11144, 6, 1)]

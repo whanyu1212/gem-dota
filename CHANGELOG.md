@@ -85,6 +85,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Tower- and creep-finished hero kills are credited in `kills_log`**
+  (`odota/parser` `a6e8dbf3`): when a tower or lane creep lands the killing blow
+  on a hero while Dota 2 credits the kill to an enemy hero on the scoreboard,
+  `PlayerExtractor` now tracks per-tick `m_iKills` / `m_iDeaths` increments on
+  `CDOTA_PlayerResource` and assembly pairs unmatched kill increments with
+  same-tick non-hero-attacker deaths in `ParsedPlayer.kills_log` (without
+  altering `killed` or `killed_by`). `RULE_CHANGES` in
+  `scripts/audit_opendota_parity.py` also records `a6e8dbf3`.
+- **First-blood objectives are no longer fabricated when the replay emits no
+  `CHAT_MESSAGE_FIRSTBLOOD`**: when a match's first hero death is a
+  creep/tower-finished kill that produces `CHAT_MESSAGE_HERO_KILL` without
+  `CHAT_MESSAGE_FIRSTBLOOD` (observed on ranked matches `9104686971` and
+  `9104703948`), `_first_blood_death` now returns `None` instead of falling back
+  to the earliest combat-log death, matching OpenDota's `objectives` timeline.
 - **Hero swaps in Ranked All Pick resolve to the post-swap hero**: assembly now
   reads each player's `hero_name` and `team` from their last snapshot instead of
   their first (matching OpenDota's `CreateParsedDataBlob.processMetadata`, where
