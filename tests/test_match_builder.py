@@ -376,6 +376,68 @@ class TestBuildParsedMatchSmoke:
             "npc_dota_hero_lina": 1,
         }
 
+    def test_pre_horn_max_hero_hit_uses_game_clock(self):
+        from gem.combat.aggregator import _CombatAggregator
+
+        parser = _make_parser(game_start_tick=7066)
+        player_ext = _make_player_ext(
+            snapshots=[
+                _FakePlayerSnapshot(
+                    player_id=0,
+                    tick=7066,
+                    npc_name="npc_dota_hero_jakiro",
+                    team=2,
+                    x=10.0,
+                    y=20.0,
+                ),
+                _FakePlayerSnapshot(
+                    player_id=5,
+                    tick=7066,
+                    npc_name="npc_dota_hero_shadow_demon",
+                    team=3,
+                    x=30.0,
+                    y=40.0,
+                ),
+            ]
+        )
+        player_ext._hero_to_pid.side_effect = {
+            "npc_dota_hero_jakiro": 0,
+            "npc_dota_hero_shadow_demon": 5,
+        }.get
+        agg = _CombatAggregator(player_ext)
+        # Pre-horn hit: game_time_s is None during streaming; timestamp_s is raw engine seconds.
+        pre_horn = CombatLogEntry(
+            tick=5894,
+            timestamp_s=234.1,
+            game_time_s=None,
+            log_type="DAMAGE",
+            attacker_name="npc_dota_hero_jakiro",
+            attacker_is_hero=True,
+            damage_source_name="npc_dota_hero_jakiro",
+            target_name="npc_dota_hero_shadow_demon",
+            target_is_hero=True,
+            inflictor_name="item_blood_grenade",
+            value=36,
+        )
+        agg.on_entry(pre_horn)
+
+        m = build_parsed_match(
+            parser,
+            player_ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            agg,
+            [pre_horn],
+            [],
+        )
+
+        jakiro = next(p for p in m.players if p.player_id == 0)
+        assert jakiro.max_hero_hit is not None
+        assert jakiro.max_hero_hit["time"] == m.game_clock.game_seconds_at(5894) == -40
+        assert jakiro.max_hero_hit["value"] == 36
+
     def test_has_ten_players(self):
         m = self._build()
         assert len(m.players) == 10

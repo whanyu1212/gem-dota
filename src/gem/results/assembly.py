@@ -1046,6 +1046,26 @@ def _add_camp_facts(
     match.camp_stacks = credit_stacks(candidates, credits, positions)
 
 
+def _resolve_max_hero_hit(agg: Any, clock: GameClock) -> dict[str, Any] | None:
+    """Resolve ``max_hero_hit["time"]`` against the finalized clock for pre-horn hits.
+
+    Pre-horn combat-log entries arrive before ``game_start_tick`` is known, so
+    ``entry.game_time_s`` is ``None`` during streaming and the aggregator falls
+    back to raw ``timestamp_s``. Once ``clock`` is finalized, resolve the
+    winning hit's tick to signed integer game-clock seconds (matching OpenDota).
+    """
+    hit = agg.max_hero_hit
+    if hit is None:
+        return None
+    if not getattr(agg, "max_hero_hit_has_game_time", True):
+        tick = getattr(agg, "max_hero_hit_tick", None)
+        if tick is not None:
+            resolved = clock.game_seconds_at(tick)
+            if resolved is not None:
+                return {**hit, "time": resolved}
+    return dict(hit)
+
+
 def _populate_player_series(
     match: ParsedMatch,
     *,
@@ -1162,7 +1182,7 @@ def _populate_player_series(
             pp.damage_targets = {k: dict(v) for k, v in agg.damage_targets.items()}
             pp.ability_targets = {k: dict(v) for k, v in agg.ability_targets.items()}
             pp.hero_hits = dict(agg.hero_hits)
-            pp.max_hero_hit = agg.max_hero_hit
+            pp.max_hero_hit = _resolve_max_hero_hit(agg, clock)
             pp.healing = agg.healing
             pp.ability_uses = agg.ability_uses
             pp.item_uses = agg.item_uses
