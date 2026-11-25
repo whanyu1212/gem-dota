@@ -17,7 +17,7 @@
     {
       "repository": "skadistats/clarity",
       "branch": "master",
-      "commit": "bd37eab0a572cd963dcfeaeaf9afb195f12c43aa",
+      "commit": "53e60b12fccf509d40b8acec89e6c06cea3e527b",
       "role": "Correctness authority for edge cases and combat-log ingestion",
       "watch": [
         "src/main/java/skadistats/clarity/io/s2/**",
