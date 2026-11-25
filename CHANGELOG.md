@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-25
+
+Full patch 7.42 support and broad pro + ranked-pub hardening. Bundled constants,
+neutral camps, fountain anchors, Tormentor drops (`TormentorKill.drops`), and
+the 7.42 map are updated while preserving 7.41 backward compatibility. The gold
+ledger reads `summon_kill_gold`, `midas_gold` (verified exact on Hand of Midas
+replays), and the experimental gold fields. Hardened against a 57-match /
+127-hero tournament + ranked-pub corpus: hero swaps in Ranked All Pick,
+tower- and creep-finished kills in `kills_log` (`odota/parser` `a6e8dbf3`),
+Spirit Bear exclusion (`8d6ea0c2`), authoritative `CMsgDOTAMatch.tower_status`
+T4 bitmasks, pre-horn combat-log timestamps and `max_hero_hit`, Source 2
+`CUserMessageSayText2` chat messages, odd-tick pause baselines, and gated
+first-blood objectives.
+
+Upgrading from 0.14: no breaking changes. JSON output stays `schema_version` 4
+and Python 3.10+ support is preserved.
+
 ### Added
 
 - **Tormentor drops** (HY-578): `TormentorKill.drops` lists the items each
@@ -2542,7 +2559,8 @@ combat-log layers. The supported top-level API (`gem.parse`, `gem.ParsedMatch`,
 - CLI and example scripts, including HTML match report.
 - Validation, fuzzing, and parser robustness foundations.
 
-[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/whanyu1212/gem-dota/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/whanyu1212/gem-dota/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/whanyu1212/gem-dota/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/whanyu1212/gem-dota/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/whanyu1212/gem-dota/compare/v0.11.0...v0.12.0
