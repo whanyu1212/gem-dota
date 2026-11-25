@@ -35,6 +35,12 @@ what it cost and what followed. It doesn't score plays or decide whether a Rosha
 "converted"; the [recipes](#recipes) show how to answer questions like that from the
 facts, in code you can change.
 
+**Patch 7.42:** gem has caught up with Dota 2 patch 7.42 (constants, camps,
+fountain anchors, Tormentor drops, and gold ledger fields) and has been checked
+against tournament and ranked replays across all 127 heroes. Because 7.42 is still
+new, do expect the occasional edge case here and there — if you hit one, please
+[open an issue](https://github.com/whanyu1212/gem-dota/issues) with the match ID.
+
 ## Install
 
 gem needs Python 3.10 or newer.
@@ -144,7 +150,8 @@ python examples/cookbook/fights.py replays/*.dem
 gem is an independent Python implementation, checked against the
 [Manta](https://github.com/dotabuff/manta), [Clarity](https://github.com/skadistats/clarity)
 and [OpenDota](https://github.com/odota/parser) parsers at pinned revisions. On the
-test replays and recent pro matches (most recently nine from October 2026), its per-player totals (K/D/A, last hits, net worth, GPM/XPM, hero and tower
+test replays and a 57-match patch 7.42 tournament + ranked corpus (November 2026),
+its per-player totals (K/D/A, last hits, net worth, GPM/XPM, hero and tower
 damage, healing, wards, stacks, runes, buybacks) and per-minute gold, XP, last-hit and
 deny curves match OpenDota exactly. Replays with an embedded postgame summary give
 exact final gold, net worth and spending; older or incomplete replays fall back to
