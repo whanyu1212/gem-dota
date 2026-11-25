@@ -767,6 +767,16 @@ Builds the in-game clock while a replay is parsed.
 
 Source: [src/gem/state/game_clock.py:239](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L239)
 
+#### Properties
+
+##### `combat_log_start_s`
+
+Signature: `def GameClockTracker.combat_log_start_s(self) -> int | None`
+
+Rounded combat-log ``GAME_IN_PROGRESS`` anchor timestamp, if observed.
+
+Source: [src/gem/state/game_clock.py:466](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L466)
+
 #### Methods
 
 ##### `on_net_tick`
@@ -831,7 +841,7 @@ Signature: `def GameClockTracker.finish(self) -> None`
 
 Close a pause still open when the replay ends.
 
-Source: [src/gem/state/game_clock.py:465](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L465)
+Source: [src/gem/state/game_clock.py:470](https://github.com/whanyu1212/gem-dota/blob/main/src/gem/state/game_clock.py#L470)
 
 ## Module `gem.results.serialization`
 

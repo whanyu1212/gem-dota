@@ -118,8 +118,7 @@ class _ParsedPlayerAgg:
     )
     hero_hits: defaultdict[str, int] = field(default_factory=_int_counter)
     max_hero_hit: dict[str, Any] | None = None
-    max_hero_hit_tick: int | None = field(default=None, compare=False, repr=False)
-    max_hero_hit_has_game_time: bool = field(default=False, compare=False, repr=False)
+    max_hero_hit_entry: Any = field(default=None, compare=False, repr=False)
     healing: defaultdict[str, int] = field(default_factory=_int_counter)
     ability_uses: defaultdict[str, int] = field(default_factory=_int_counter)
     item_uses: defaultdict[str, int] = field(default_factory=_int_counter)
@@ -277,8 +276,7 @@ class _CombatAggregator:
                 "key": target_key,
                 "value": entry.value,
             }
-            src.max_hero_hit_tick = entry.tick
-            src.max_hero_hit_has_game_time = entry.game_time_s is not None
+            src.max_hero_hit_entry = entry
             # An auto-attack has no inflictor: OpenDota's entry holds a null
             # inflictor, which its JSON leaves out ("null" is only a dict key).
             if inflictor == "null":

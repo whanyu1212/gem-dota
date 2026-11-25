@@ -343,6 +343,11 @@ class ReplayParser:
         """OpenDota's rounded game-start anchor, latched when first seen."""
         return self._clock.opendota_start_s
 
+    @property
+    def combat_log_start_s(self) -> int | None:
+        """Rounded combat-log ``GAME_IN_PROGRESS`` timestamp anchor, when observed."""
+        return self._clock.combat_log_start_s
+
     def _game_rules_entity(self) -> Entity | None:
         """Return the live ``CDOTAGamerulesProxy``, caching the lookup."""
         em = self.entity_manager

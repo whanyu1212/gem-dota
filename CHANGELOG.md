@@ -85,6 +85,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Pre-horn combat-log entries backfill `game_time_s` from their server
+  timestamp**: pre-horn `CombatLogEntry` records arrive before the 0:00
+  `GAME_IN_PROGRESS` anchor is known, so `entry.game_time_s` stayed `None` and
+  downstream projections (`purchase_log`, `purchase_time`, `first_purchase_time`,
+  `kills_log`, `max_hero_hit`, `opendota_teamfights`) fell back to rounding the
+  2-tick replay packet tick — drifting by 1 second whenever `timestamp_s` sat
+  just below `.5`. Assembly now backfills pre-horn `entry.game_time_s` as
+  `round(timestamp_s) - combat_log_start_s`, matching `odota/parser`
+  `Parse.java`'s `flushLogBuffer()`.
 - **Tower- and creep-finished hero kills are credited in `kills_log`**
   (`odota/parser` `a6e8dbf3`): when a tower or lane creep lands the killing blow
   on a hero while Dota 2 credits the kill to an enemy hero on the scoreboard,
