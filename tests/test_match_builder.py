@@ -438,6 +438,71 @@ class TestBuildParsedMatchSmoke:
         assert jakiro.max_hero_hit["time"] == m.game_clock.game_seconds_at(5894) == -40
         assert jakiro.max_hero_hit["value"] == 36
 
+    def test_hero_swap_resolves_post_swap_hero_and_teamfight_slots(self):
+        parser = _make_parser(game_start_tick=6000)
+        # Slots 6 and 7 swap heroes between tick 4622 (pre-swap) and 4802 (post-swap).
+        player_ext = _make_player_ext(
+            snapshots=[
+                _FakePlayerSnapshot(player_id=0, tick=4622, npc_name="npc_dota_hero_axe", team=2),
+                _FakePlayerSnapshot(player_id=1, tick=4622, npc_name="npc_dota_hero_lina", team=2),
+                _FakePlayerSnapshot(player_id=6, tick=4622, npc_name="npc_dota_hero_marci", team=3),
+                _FakePlayerSnapshot(
+                    player_id=7, tick=4622, npc_name="npc_dota_hero_broodmother", team=3
+                ),
+                _FakePlayerSnapshot(
+                    player_id=6, tick=4802, npc_name="npc_dota_hero_broodmother", team=3
+                ),
+                _FakePlayerSnapshot(player_id=7, tick=4802, npc_name="npc_dota_hero_marci", team=3),
+            ]
+        )
+        # Three deaths in one fight: Broodmother (post-swap slot 6) kills Axe and Lina,
+        # Marci (post-swap slot 7) dies to Axe.
+        entries = [
+            CombatLogEntry(
+                tick=9000,
+                game_time_s=100,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_broodmother",
+                target_name="npc_dota_hero_axe",
+                target_is_hero=True,
+            ),
+            CombatLogEntry(
+                tick=9030,
+                game_time_s=101,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_broodmother",
+                target_name="npc_dota_hero_lina",
+                target_is_hero=True,
+            ),
+            CombatLogEntry(
+                tick=9060,
+                game_time_s=102,
+                log_type="DEATH",
+                attacker_name="npc_dota_hero_axe",
+                target_name="npc_dota_hero_marci",
+                target_is_hero=True,
+            ),
+        ]
+
+        m = build_parsed_match(
+            parser,
+            player_ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            _make_combat_agg(),
+            entries,
+            [],
+        )
+
+        assert (m.players[6].hero_name, m.players[6].hero_id) == ("npc_dota_hero_broodmother", 61)
+        assert (m.players[7].hero_name, m.players[7].hero_id) == ("npc_dota_hero_marci", 136)
+        assert len(m.opendota_teamfights) == 1
+        fight = m.opendota_teamfights[0]
+        assert fight.players[6].killed == {"npc_dota_hero_axe": 1, "npc_dota_hero_lina": 1}
+        assert fight.players[7].deaths == 1
+
     def test_has_ten_players(self):
         m = self._build()
         assert len(m.players) == 10
