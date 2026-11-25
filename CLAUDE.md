@@ -437,10 +437,15 @@ players):
 
 - items + consumables == summary `gold_spent`, 90/90;
 - the earned sources minus shared gold == `m_iTotalEarnedGold`, once
-  `m_iSummonKillGold` is counted: 80/80 players on the 7.41 and 7.42 fixtures
-  (HY-575). Midas and the experimental fields were 0 on every fixture, so their
-  place in the sum is unverified. (Before HY-575 this failed on 8974053011,
-  blamed on combat-log gold reason 22; the gap was summon-kill gold.);
+  `m_iSummonKillGold` and `m_iMidasGold` are counted: 80/80 players on the 7.41
+  and 7.42 fixtures (HY-575), plus verified exact on Hand of Midas games in the
+  GCS corpus (`9104678779` Ogre Magi: 4,640 `midas_gold`, diff 0; `9104685856`
+  Tinker: 3,840 `midas_gold`, diff 0). In abandon matches (`9104685856`
+  Radiant), Valve adds redistributed abandon gold directly to
+  `m_iTotalEarnedGold` without recording it in any per-source counter. The two
+  experimental fields were 0 on every checked replay, so their place in the sum
+  remains unverified. (Before HY-575 this failed on 8974053011, blamed on
+  combat-log gold reason 22; the gap was summon-kill gold.);
 - support spend is a subset of items + consumables.
 
 **Exact buyback cost.** `m_iGoldSpentOnBuybacks` rises on the same tick as the
@@ -579,7 +584,7 @@ Key message classes used throughout the parser:
 
 ## Status
 
-Current version: **0.14.0** (see `pyproject.toml` and `CHANGELOG.md`).
+Current version: **0.15.0** (see `pyproject.toml` and `CHANGELOG.md`).
 
 The full parsing pipeline and all extractors are complete and stable: binary
 reader, entity system, combat log (S1+S2), string tables, every extractor, the
