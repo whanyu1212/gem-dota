@@ -88,6 +88,10 @@ class TestDetectTeamfights:
         entries = [_death(100, illusion=True)]
         assert detect_fights(entries) == []
 
+    def test_spirit_bear_death_ignored(self):
+        entries = [_death(100, target="npc_dota_lone_druid_bear1")]
+        assert detect_fights(entries) == []
+
     def test_single_death_creates_one_fight(self):
         fights = detect_fights([_death(1000)])
         assert len(fights) == 1

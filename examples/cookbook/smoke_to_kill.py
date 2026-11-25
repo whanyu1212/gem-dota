@@ -42,6 +42,7 @@ def hero_deaths(match: gem.ParsedMatch) -> pd.DataFrame:
             and entry.target_is_hero
             and not entry.target_is_illusion
             and not entry.will_reincarnate
+            and entry.target_name.startswith("npc_dota_hero_")
             and entry.game_time_s is not None
         ],
         columns=["game_time_s", "killer_team", "victim_team"],

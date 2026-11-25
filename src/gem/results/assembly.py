@@ -614,8 +614,9 @@ def _first_blood_death(
 ) -> CombatLogEntry | None:
     """Return the combat-log hero death that drew first blood.
 
-    Only real hero deaths count: illusion deaths and reincarnation triggers are
-    excluded (``target_is_hero`` stays true for an illusion). Not every such
+    Only real hero deaths count: illusion deaths, reincarnation triggers, and
+    hero-flagged non-hero units such as Lone Druid's Spirit Bear are excluded
+    (``target_is_hero`` stays true for illusions and Spirit Bear). Not every such
     death is first blood (a hero killed by neutrals is not), so when the replay
     has a ``CHAT_MESSAGE_FIRSTBLOOD`` chat event, the death nearest its tick
     wins. Without one, the earliest real hero death is used.
@@ -636,6 +637,7 @@ def _first_blood_death(
         and e.target_is_hero
         and not e.target_is_illusion
         and not e.will_reincarnate
+        and (not e.target_name or e.target_name.startswith("npc_dota_hero_"))
     ]
     event = next((e for e in chat_event_times or () if e.type == CHAT_MESSAGE_FIRSTBLOOD), None)
     if event is not None:

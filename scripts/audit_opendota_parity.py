@@ -81,6 +81,10 @@ RULE_CHANGES = {
     # odota/core, 14 October 2026: a first purchase at exactly 0:00 is kept
     # instead of being replaced by the item's next purchase.
     "7d32aef0": frozenset({"player.first_purchase_time"}),
+    # odota/parser, November 2026: Lone Druid's Spirit Bear is flagged
+    # target_is_hero=True in the combat log, but killing it is not a hero kill
+    # on the scoreboard and is left out of kills_log.
+    "8d6ea0c2": frozenset({"player.kills_log"}),
 }
 
 
@@ -153,7 +157,11 @@ PLAYER_CHECKS: dict[str, PlayerCheck] = {
     "kills_log": _log_check(
         "kills_log",
         lambda e: e.target_name,
-        keep=lambda e: e.target_is_hero and not e.target_is_illusion,
+        keep=lambda e: (
+            e.target_is_hero
+            and not e.target_is_illusion
+            and e.target_name.startswith("npc_dota_hero_")
+        ),
     ),
     "buyback_log": lambda p, o, t: (
         [_entry_seconds(e, t) for e in p.buyback_log],

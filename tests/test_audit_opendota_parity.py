@@ -161,6 +161,36 @@ class TestAuditMatch:
     def test_player_slots_map_to_opendota(self):
         assert [audit.od_player_slot(i) for i in (0, 4, 5, 9)] == [0, 4, 128, 132]
 
+    def test_spirit_bear_excluded_from_kills_log(self):
+        """odota/parser 8d6ea0c2 keeps Spirit Bear in killed, not kills_log."""
+        match = _match()
+        player = match.players[0]
+        player.kills_log = [
+            CombatLogEntry(
+                tick=_START + 30 * 100,
+                log_type=CombatLogType.DEATH,
+                target_name="npc_dota_lone_druid_bear1",
+                target_is_hero=True,
+            ),
+            CombatLogEntry(
+                tick=_START + 30 * 120,
+                log_type=CombatLogType.DEATH,
+                target_name="npc_dota_hero_axe",
+                target_is_hero=True,
+            ),
+        ]
+        player.killed = {"npc_dota_lone_druid_bear1": 1, "npc_dota_hero_axe": 1}
+        od = _opendota()
+        od["players"][0]["kills_log"] = [{"key": "npc_dota_hero_axe", "time": 120}]
+        od["players"][0]["killed"] = {"npc_dota_lone_druid_bear1": 1, "npc_dota_hero_axe": 1}
+        results: dict[str, audit.FieldResult] = {}
+
+        audit.audit_match("1", match, od, results)
+
+        assert results["player.kills_log"].matched == 1
+        assert results["player.killed"].matched == 1
+        assert audit.RULE_CHANGES["8d6ea0c2"] == frozenset({"player.kills_log"})
+
 
 class TestStaleReference:
     def test_mismatch_counts_apart_from_the_total(self):

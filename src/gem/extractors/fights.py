@@ -242,11 +242,18 @@ def detect_fights(
             continue
         # Skip reincarnation/aegis trigger deaths (will_reincarnate=True) — the
         # hero comes back, so the trigger must not open/extend a fight or count
-        # toward Fight.deaths. Filtering only in pass 1 covers pass 2 too,
-        # since pass-2 death attribution looks up death_fight by entry id and
-        # skips any entry not recorded here. Matches the death-curve fix in
-        # players.py so fight/Roshan-conversion summaries stay consistent.
-        if not entry.target_is_hero or entry.target_is_illusion or entry.will_reincarnate:
+        # toward Fight.deaths. Also skip hero-flagged non-hero units such as
+        # Lone Druid's Spirit Bear (target_is_hero=True, non-hero target_name).
+        # Filtering only in pass 1 covers pass 2 too, since pass-2 death
+        # attribution looks up death_fight by entry id and skips any entry not
+        # recorded here. Matches the death-curve fix in players.py so
+        # fight/Roshan-conversion summaries stay consistent.
+        if (
+            not entry.target_is_hero
+            or entry.target_is_illusion
+            or entry.will_reincarnate
+            or (entry.target_name and not entry.target_name.startswith("npc_dota_hero_"))
+        ):
             continue
 
         # Expire any active fights whose cooldown has elapsed before this death.

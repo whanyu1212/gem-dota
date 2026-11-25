@@ -684,9 +684,14 @@ class ParsedPlayer:
         xp_reasons: XP received per reason code.
         kills_log: Combat log DEATH entries where this player was the attacker,
             summons' kills included. Deaths the target came back from (the game's
-            ``will_reincarnate`` flag: Aegis, Reincarnation) are left out, so the
-            hero entries equal the scoreboard ``kills``. OpenDota approximates this
-            with an Aegis-holder rule that sometimes keeps such a death.
+            ``will_reincarnate`` flag: Aegis, Reincarnation) are left out. Hero
+            kill entries are those with ``target_is_hero``, ``not
+            target_is_illusion``, and ``target_name.startswith("npc_dota_hero_")``
+            (the combat log also sets ``target_is_hero`` on Lone Druid's Spirit
+            Bear, which stays here for ``killed`` counts but is not a hero kill,
+            matching ``odota/parser`` ``8d6ea0c2``). OpenDota approximates
+            reincarnations with an Aegis-holder rule that sometimes keeps such a
+            death.
         purchase_log: Chronological PURCHASE combat log entries for this player,
             excluding recipes and ``ward_dispenser`` (the combat log records one
             whenever an observer and a sentry ward merge), matching OpenDota's

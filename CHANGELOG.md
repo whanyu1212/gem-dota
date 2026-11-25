@@ -85,6 +85,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Lone Druid's Spirit Bear is excluded from hero-kill projections**
+  (`odota/parser` `8d6ea0c2`): Dota 2's combat log flags the Spirit Bear
+  (`npc_dota_lone_druid_bear*`) with `target_is_hero=True`, even though killing
+  it is not a hero kill on the scoreboard. `detect_fights`, `_first_blood_death`,
+  the `smoke_to_kill` cookbook recipe, and `scripts/audit_opendota_parity.py`'s
+  `kills_log` projection now require `target_name.startswith("npc_dota_hero_")`
+  so Spirit Bear deaths do not open spurious fights, claim first blood, or leak
+  into OpenDota-shaped `kills_log` (while remaining in `ParsedPlayer.kills_log`
+  and `killed`, matching OpenDota's `killed` map). `RULE_CHANGES` in the parity
+  audit also records `8d6ea0c2`.
 - **Ward removal times match OpenDota across odd-tick pauses** (HY-577):
   `GameClockTracker.track_pause` now records the last unpaused
   `m_nTotalPausedTicks` as the baseline for a new pause instead of the value on
