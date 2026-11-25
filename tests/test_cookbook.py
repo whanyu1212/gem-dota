@@ -142,6 +142,35 @@ def test_smoke_to_kill_counts_real_hero_kills_in_the_window() -> None:
     assert row["first_loss_after_s"] == 25
 
 
+def test_smoke_to_kill_ignores_spirit_bear() -> None:
+    participant = SmokeParticipant(
+        hero_name="npc_dota_hero_axe", player_id=0, applied_tick=600, removed_tick=900
+    )
+    bear_death = CombatLogEntry(
+        tick=30 * 30,
+        log_type=CombatLogType.DEATH,
+        attacker_name="npc_dota_hero_axe",
+        target_name="npc_dota_lone_druid_bear1",
+        target_is_hero=True,
+        attacker_team=2,
+        target_team=3,
+        game_time_s=30,
+    )
+    match = ParsedMatch(
+        match_id=1,
+        game_start_tick=0,
+        game_clock=GameClock(game_start_tick=0),
+        smoke_events=[
+            SmokeEvent(tick=600, activator="npc_dota_hero_axe", team=2, participants=[participant])
+        ],
+        combat_log=[bear_death, _hero_death(40, killer_team=2, victim_team=3)],
+    )
+
+    row = smoke_to_kill.smoke_to_kill(match).iloc[0]
+
+    assert row["first_kill_after_s"] == 20
+
+
 def test_core_farm_reports_the_window_for_each_core() -> None:
     minutes = list(range(25))
 

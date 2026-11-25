@@ -311,3 +311,9 @@ class TestFirstBloodDeath:
         death = _hero_death(30)
         events = [_event(CHAT_MESSAGE_FIRSTBLOOD, 9000, None)]
         assert _first_blood_death([death], events) is death
+
+    def test_spirit_bear_death_skipped(self):
+        bear = _hero_death(15, target_name="npc_dota_lone_druid_bear1")
+        hero = _hero_death(30, target_name="npc_dota_hero_axe")
+        assert _first_blood_death([bear, hero], None) is hero
+        assert _first_blood_death([bear], None) is None
