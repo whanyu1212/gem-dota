@@ -85,6 +85,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Source 2 `CUserMessageSayText2` chat messages are emitted in `match.chat`**:
+  `ReplayParser` previously subscribed only to `CDOTAUserMsg_ChatMessage` (612)
+  and dropped `UM_SayText2` (118, `CUserMessageSayText2`), which carries
+  console `say` lines, pre-game lobby/admin chat, and automated chat macros
+  (verified on pro match `9098185996` and ranked matches `9104687052` and
+  `9104703948`). Sender slot resolution reads `m_nPlayerID` / `m_iPlayerID` /
+  `m_iPlayerOwnerID` from `entity_manager.entities[entityindex]`, preserving
+  broadcaster/admin slots (e.g. slot 11) and matching `odota/parser`
+  `Parse.java` `onAllChatS2`.
 - **Pre-horn combat-log entries backfill `game_time_s` from their server
   timestamp**: pre-horn `CombatLogEntry` records arrive before the 0:00
   `GAME_IN_PROGRESS` anchor is known, so `entry.game_time_s` stayed `None` and
