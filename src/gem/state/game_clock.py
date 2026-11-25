@@ -462,6 +462,11 @@ class GameClockTracker:
             self.duration_s = game_time_s
         return game_time_s
 
+    @property
+    def combat_log_start_s(self) -> int | None:
+        """Rounded combat-log ``GAME_IN_PROGRESS`` anchor timestamp, if observed."""
+        return self._combat_log_start_s
+
     def finish(self) -> None:
         """Close a pause still open when the replay ends."""
         if self._open_pause is not None:

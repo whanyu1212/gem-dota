@@ -568,6 +568,73 @@ class TestBuildParsedMatchSmoke:
         ]
         assert m.players[1].killed == {"npc_dota_hero_windrunner": 1}
 
+    def test_pre_horn_combat_log_entries_backfill_from_timestamp(self):
+        from gem.combat.aggregator import _CombatAggregator
+        from gem.state.game_clock import GameClock
+
+        # 9104673865: timestamp_s=171.4667 rounds down to 171 -> 171 - 252 = -81,
+        # whereas tick-based game_seconds_at(4366) rounds up to -80.
+        parser = _make_parser(game_start_tick=6800)
+        parser.opendota_start_s = 252
+        parser.game_clock = GameClock(
+            game_start_tick=6800,
+            game_start_time_s=252.433349609375,
+            net_tick_offset=779,
+        )
+        player_ext = _make_player_ext(
+            snapshots=[
+                _FakePlayerSnapshot(
+                    player_id=0, tick=6800, npc_name="npc_dota_hero_oracle", team=2
+                ),
+                _FakePlayerSnapshot(
+                    player_id=5, tick=6800, npc_name="npc_dota_hero_venomancer", team=3
+                ),
+            ]
+        )
+        player_ext._hero_to_pid.side_effect = {
+            "npc_dota_hero_oracle": 0,
+            "npc_dota_hero_venomancer": 5,
+        }.get
+        purchase = CombatLogEntry(
+            tick=4366,
+            timestamp_s=171.4666748046875,
+            game_time_s=None,
+            log_type="PURCHASE",
+            target_name="npc_dota_hero_oracle",
+            target_is_hero=True,
+            value_name="item_tango",
+        )
+        kill = CombatLogEntry(
+            tick=4366,
+            timestamp_s=171.4666748046875,
+            game_time_s=None,
+            log_type="DEATH",
+            attacker_name="npc_dota_hero_oracle",
+            attacker_is_hero=True,
+            damage_source_name="npc_dota_hero_oracle",
+            target_name="npc_dota_hero_venomancer",
+            target_is_hero=True,
+        )
+        agg = _CombatAggregator(player_ext)
+        agg.on_entry(purchase)
+        agg.on_entry(kill)
+
+        m = build_parsed_match(
+            parser,
+            player_ext,
+            _make_obj_ext(),
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            agg,
+            [purchase, kill],
+            [],
+        )
+
+        assert m.players[0].purchase_log[0].game_time_s == -81
+        assert m.players[0].first_purchase_time["tango"] == -81
+        assert m.players[0].kills_log[0].game_time_s == -81
+
     def test_has_ten_players(self):
         m = self._build()
         assert len(m.players) == 10

@@ -29,6 +29,7 @@ from gem.results.derived import (
 )
 from gem.results.models import BuybackEvent, GoldLedger, GoldLedgerSnapshot, ParsedMatch
 from gem.results.permanent_buffs import permanent_buff_flags
+from gem.state.game_clock import _round_positive_seconds
 
 if TYPE_CHECKING:
     from gem.combat.aggregator import _CombatAggregator
@@ -1059,23 +1060,44 @@ def _add_camp_facts(
     match.camp_stacks = credit_stacks(candidates, credits, positions)
 
 
+def _backfill_pre_horn_combat_log_times(
+    all_entries: list[CombatLogEntry],
+    start_s: int | None,
+) -> None:
+    """Backfill OpenDota-aligned ``game_time_s`` on pre-horn combat-log entries.
+
+    During streaming, ``GameClockTracker.combat_log_time`` returns ``None``
+    before the game-start anchor arrives. OpenDota buffers pre-horn entries and
+    shifts each by ``Math.round(timestamp) - gameStartTime`` when the horn
+    arrives (odota/parser Parse.java ``output`` / ``flushLogBuffer``). Filling
+    those entries here ensures every downstream projection uses the exact
+    server combat-log timestamp rather than a 2-tick packet boundary.
+    """
+    if start_s is None:
+        return
+    for entry in all_entries:
+        if entry.game_time_s is None and entry.timestamp_s is not None:
+            entry.game_time_s = _round_positive_seconds(entry.timestamp_s) - start_s
+
+
 def _resolve_max_hero_hit(agg: Any, clock: GameClock) -> dict[str, Any] | None:
-    """Resolve ``max_hero_hit["time"]`` against the finalized clock for pre-horn hits.
+    """Resolve ``max_hero_hit["time"]`` for pre-horn hits after clock finalization.
 
     Pre-horn combat-log entries arrive before ``game_start_tick`` is known, so
     ``entry.game_time_s`` is ``None`` during streaming and the aggregator falls
-    back to raw ``timestamp_s``. Once ``clock`` is finalized, resolve the
-    winning hit's tick to signed integer game-clock seconds (matching OpenDota).
+    back to raw ``timestamp_s``. Once pre-horn entries are backfilled (or the
+    clock is finalized), replace that fallback with signed game-clock seconds.
     """
     hit = agg.max_hero_hit
     if hit is None:
         return None
-    if not getattr(agg, "max_hero_hit_has_game_time", True):
-        tick = getattr(agg, "max_hero_hit_tick", None)
-        if tick is not None:
-            resolved = clock.game_seconds_at(tick)
-            if resolved is not None:
-                return {**hit, "time": resolved}
+    entry = getattr(agg, "max_hero_hit_entry", None)
+    if entry is not None:
+        if entry.game_time_s is not None:
+            return {**hit, "time": entry.game_time_s}
+        resolved = clock.game_seconds_at(entry.tick)
+        if resolved is not None:
+            return {**hit, "time": resolved}
     return dict(hit)
 
 
@@ -1648,6 +1670,16 @@ def build_parsed_match(
         truncated_at_tick=parser.truncated_at_tick,
     )
     clock = parser.game_clock
+    combat_log_start_s = getattr(parser, "combat_log_start_s", None)
+    if not isinstance(combat_log_start_s, int):
+        opendota_anchor = getattr(parser, "opendota_start_s", None)
+        if isinstance(opendota_anchor, int):
+            combat_log_start_s = opendota_anchor
+        elif clock.game_start_time_s is not None:
+            combat_log_start_s = _round_positive_seconds(clock.game_start_time_s)
+        else:
+            combat_log_start_s = None
+    _backfill_pre_horn_combat_log_times(all_entries, combat_log_start_s)
 
     # Post-process buybacks (7b).
     # For BUYBACK entries, entry.value = player slot (0-9).
