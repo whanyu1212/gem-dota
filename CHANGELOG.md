@@ -85,6 +85,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Pre-horn `max_hero_hit` timestamps use the finalized game clock**: when a
+  player's largest hero hit occurs before the 0:00 horn (e.g. an early abandon),
+  `entry.game_time_s` is `None` during streaming because `game_start_tick` is
+  not yet known, causing `ParsedPlayer.max_hero_hit["time"]` to hold raw engine
+  `timestamp_s` instead of negative game-clock seconds. Assembly now resolves
+  the winning hit's tick against `GameClock` once finalized, matching OpenDota.
+  `scripts/audit_opendota_parity.py` also normalizes absent/null `xp_start` and
+  `xp_end` fields on pre-horn `teamfights` entries to match OpenDota's Gson
+  null-omission.
 - **Lone Druid's Spirit Bear is excluded from hero-kill projections**
   (`odota/parser` `8d6ea0c2`): Dota 2's combat log flags the Spirit Bear
   (`npc_dota_lone_druid_bear*`) with `target_is_hero=True`, even though killing

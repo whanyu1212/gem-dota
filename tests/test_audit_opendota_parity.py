@@ -121,6 +121,22 @@ class TestAuditMatch:
 
         assert (results["match.teamfights"].matched, results["match.teamfights"].total) == (1, 1)
 
+    def test_teamfights_ignore_absent_null_xp_bounds(self):
+        from gem.extractors.fights import OpenDotaTeamfight
+
+        fight = OpenDotaTeamfight(start=-60, end=0, last_death=-16, deaths=5)
+        match = ParsedMatch(match_id=1, opendota_teamfights=[fight])
+        od_fight = audit._plain(fight)
+        # OpenDota's Gson omits null xp_start/xp_end when no interval sample exists.
+        for player in od_fight["players"]:
+            player.pop("xp_start", None)
+            player.pop("xp_end", None)
+        od = {"players": [], "teamfights": [od_fight]}
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", match, od, results)
+
+        assert (results["match.teamfights"].matched, results["match.teamfights"].total) == (1, 1)
+
     def test_value_differences_are_recorded_with_an_example(self):
         deaths = _audit()["player.deaths"]
 

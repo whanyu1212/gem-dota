@@ -197,13 +197,37 @@ def _annotated_objectives(od: dict[str, Any]) -> list[dict[str, Any]]:
     return objectives
 
 
+def _teamfights(fights: Iterable[Any]) -> list[dict[str, Any]]:
+    """Normalize teamfight dicts for OpenDota comparison.
+
+    OpenDota's Gson serializer omits ``null`` fields, so pre-horn teamfights
+    without an interval sample at ``start`` or ``end`` leave out ``xp_start``
+    and ``xp_end`` rather than emitting ``null``.
+    """
+    normalized: list[dict[str, Any]] = []
+    for fight in _plain(list(fights)):
+        players = [
+            {
+                key: value
+                for key, value in player.items()
+                if not (key in ("xp_start", "xp_end") and value is None)
+            }
+            for player in fight.get("players", [])
+        ]
+        normalized.append({**fight, "players": players})
+    return normalized
+
+
 #: Match fields compared after mapping; every other shared field is compared as-is.
 MATCH_CHECKS: dict[str, MatchCheck] = {
     "chat": lambda m, od: (
         [(c.text, c.player_slot) for c in m.chat if c.channel in ("all", "team")],
         [(c["key"], c.get("slot")) for c in od.get("chat") or [] if c.get("type") == "chat"],
     ),
-    "teamfights": lambda m, od: (_plain(m.opendota_teamfights), od.get("teamfights") or []),
+    "teamfights": lambda m, od: (
+        _teamfights(m.opendota_teamfights),
+        _teamfights(od.get("teamfights") or []),
+    ),
     "objectives": lambda m, od: (_plain(m.objectives), _annotated_objectives(od)),
 }
 
