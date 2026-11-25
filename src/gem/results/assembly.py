@@ -1173,12 +1173,26 @@ def _populate_player_series(
             if snap.player_id == player_id and snap.x is not None and snap.y is not None
         ]
 
-        # Resolve hero name from snapshots
-        for snap in player_ext.snapshots:
-            if snap.player_id == player_id:
-                pp.hero_name = snap.npc_name
-                pp.team = snap.team
-                break
+        # Resolve hero name and team from the player's last snapshot so hero
+        # swaps in Ranked All Pick keep the post-swap hero (matching OpenDota's
+        # CreateParsedDataBlob.processMetadata, where later interval entries
+        # overwrite hero_to_slot). Prefer the last snapshot carrying an NPC name.
+        identity_snap = next(
+            (
+                snap
+                for snap in reversed(player_ext.snapshots)
+                if snap.player_id == player_id and snap.npc_name
+            ),
+            None,
+        )
+        if identity_snap is None:
+            identity_snap = next(
+                (snap for snap in reversed(player_ext.snapshots) if snap.player_id == player_id),
+                None,
+            )
+        if identity_snap is not None:
+            pp.hero_name = identity_snap.npc_name
+            pp.team = identity_snap.team
 
         agg = combat_agg.players.get(player_id)
         if agg is not None:

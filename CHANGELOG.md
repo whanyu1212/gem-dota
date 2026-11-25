@@ -85,6 +85,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Hero swaps in Ranked All Pick resolve to the post-swap hero**: assembly now
+  reads each player's `hero_name` and `team` from their last snapshot instead of
+  their first (matching OpenDota's `CreateParsedDataBlob.processMetadata`, where
+  later intervals overwrite `hero_to_slot`). This fixes swapped `hero_name`,
+  `hero_id`, `find_player()`, and downstream `fights`/`opendota_teamfights`
+  player-slot attribution (verified on ranked match `9104703948`, where slots 6
+  and 7 swapped Marci and Broodmother).
 - **End-of-game tower status bitmasks match Steam GC when one Tier-4 tower
   falls**: both Tier-4 towers share the combat-log NPC name `..._tower4`, so
   reconstructing `tower_status_radiant` / `tower_status_dire` from tower kills
