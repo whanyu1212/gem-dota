@@ -976,6 +976,60 @@ class TestBuildParsedMatchMatchDetails:
         assert match.radiant_score == 7  # the kill sum
         assert match.pre_game_duration == 0
         assert "radiant_score" not in match._match_details_fields
+        assert "tower_status_radiant" not in match._match_details_fields
+        assert "tower_status_dire" not in match._match_details_fields
+
+    def test_summary_tower_status_overlays_bitmask(self):
+        from gem.combat.aggregator import _ParsedPlayerAgg
+        from gem.extractors.objectives import BarracksKill, TowerKill
+        from gem.proto.dota_gcmessages_common_pb2 import CMsgDOTAMatch
+
+        # Only Radiant's bottom T4 fell (clearing bit 10 -> 1023), whereas the
+        # combat-log fallback clears bit 9 first (-> 1535). Also simulate Valve's
+        # repeated-Radiant barracks_status bug ([3, 3]).
+        details = CMsgDOTAMatch(tower_status=[1023, 2046], barracks_status=[3, 3])
+        combat_agg = MagicMock()
+        combat_agg.players = {0: _ParsedPlayerAgg()}
+        player_ext = _make_player_ext(
+            snapshots=[_FakePlayerSnapshot(0, 100, "npc_dota_hero_axe", 2)],
+        )
+        obj_ext = _make_obj_ext(
+            towers=[
+                TowerKill(tick=5000, team=2, killer="", tower_name="npc_dota_goodguys_tower4"),
+                TowerKill(tick=5100, team=3, killer="", tower_name="npc_dota_badguys_tower1_top"),
+            ],
+            barracks=[
+                BarracksKill(
+                    tick=4000, team=2, killer="", barracks_name="npc_dota_goodguys_melee_rax_mid"
+                ),
+                BarracksKill(
+                    tick=4100, team=2, killer="", barracks_name="npc_dota_goodguys_range_rax_mid"
+                ),
+                BarracksKill(
+                    tick=4200, team=2, killer="", barracks_name="npc_dota_goodguys_melee_rax_bot"
+                ),
+                BarracksKill(
+                    tick=4300, team=2, killer="", barracks_name="npc_dota_goodguys_range_rax_bot"
+                ),
+            ],
+        )
+
+        match = build_parsed_match(
+            _make_parser(match_details=details),
+            player_ext,
+            obj_ext,
+            _make_ward_ext(),
+            _make_courier_ext(),
+            _make_draft_ext(),
+            combat_agg,
+            [],
+            [],
+        )
+
+        assert (match.tower_status_radiant, match.tower_status_dire) == (1023, 2046)
+        assert {"tower_status_radiant", "tower_status_dire"} <= match._match_details_fields
+        # Dire barracks remain all-standing (63); Valve's bogus [3, 3] must not overwrite them.
+        assert (match.barracks_status_radiant, match.barracks_status_dire) == (3, 63)
 
     def test_embedded_rates_derive_opendota_totals(self):
         match = self._build()
