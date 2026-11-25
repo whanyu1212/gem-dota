@@ -563,6 +563,8 @@ def collect_match(
 
     archive_sha256 = hashlib.sha256(archive_bytes).hexdigest()
     dem_sha256 = hashlib.sha256(dem_bytes).hexdigest()
+    opendota_bytes = (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    opendota_sha256 = hashlib.sha256(opendota_bytes).hexdigest()
     archive_object = f"matches/{match_id}.dem.bz2"
     opendota_object = f"matches/{match_id}.opendota.json"
 
@@ -573,7 +575,7 @@ def collect_match(
         tmp_archive = Path(tmpdir) / f"{match_id}.dem.bz2"
         tmp_json = Path(tmpdir) / f"{match_id}.opendota.json"
         tmp_archive.write_bytes(archive_bytes)
-        tmp_json.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        tmp_json.write_bytes(opendota_bytes)
         try:
             gcs.upload(tmp_archive, archive_uri)
             gcs.upload(tmp_json, opendota_uri)
@@ -598,6 +600,8 @@ def collect_match(
         archive_sha256=archive_sha256,
         dem_size_bytes=len(dem_bytes),
         dem_sha256=dem_sha256,
+        opendota_size_bytes=len(opendota_bytes),
+        opendota_sha256=opendota_sha256,
         opendota_parsed=payload_is_parsed(payload),
         fetched_at=utc_now_iso(),
         note=note,

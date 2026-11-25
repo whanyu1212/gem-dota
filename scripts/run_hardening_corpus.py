@@ -179,6 +179,27 @@ def check_match_invariants(match: ParsedMatch, entry: CorpusEntry) -> list[str]:
     return issues
 
 
+def _opendota_cache_valid(opendota_path: Path, entry: CorpusEntry) -> bool:
+    if not opendota_path.is_file():
+        return False
+    if (
+        entry.opendota_size_bytes is not None
+        and opendota_path.stat().st_size != entry.opendota_size_bytes
+    ):
+        return False
+    if entry.opendota_sha256 is not None:
+        return file_sha256(opendota_path) == entry.opendota_sha256
+    # Legacy index entries lack opendota_sha256; refresh if the index expects a
+    # parsed OpenDota payload while the cached JSON is unparsed or unreadable.
+    if entry.opendota_parsed:
+        try:
+            payload = json.loads(opendota_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return False
+        return isinstance(payload, dict) and bool(payload.get("radiant_gold_adv"))
+    return True
+
+
 def sync_corpus_entry(
     entry: CorpusEntry,
     *,
@@ -188,8 +209,8 @@ def sync_corpus_entry(
 ) -> tuple[Path, Path]:
     """Ensure a corpus entry's compressed archive and OpenDota JSON exist locally.
 
-    Verifies the local archive's SHA-256 against ``entry.archive_sha256`` and
-    re-downloads from GCS when missing or corrupted.
+    Verifies the local archive and OpenDota JSON against recorded size/SHA-256
+    metadata and re-downloads from GCS when missing, stale, or corrupted.
 
     Args:
         entry: Corpus index record.
@@ -225,11 +246,20 @@ def sync_corpus_entry(
                 f"(expected {entry.archive_sha256}, got {actual_sha})"
             )
 
-    if not opendota_path.is_file():
+    if not _opendota_cache_valid(opendota_path, entry):
         if gcs is None or bucket_uri is None:
-            raise RuntimeError(f"Match {entry.match_id}: OpenDota JSON missing at {opendota_path}")
+            raise RuntimeError(
+                f"Match {entry.match_id}: OpenDota JSON missing or stale at {opendota_path}"
+            )
         opendota_uri = join_gcs_uri(bucket_uri, "corpus", entry.opendota_object)
         gcs.download(opendota_uri, opendota_path)
+        if entry.opendota_sha256 is not None:
+            actual_od_sha = file_sha256(opendota_path)
+            if actual_od_sha != entry.opendota_sha256:
+                raise RuntimeError(
+                    f"Match {entry.match_id}: downloaded OpenDota JSON SHA-256 mismatch "
+                    f"(expected {entry.opendota_sha256}, got {actual_od_sha})"
+                )
 
     return archive_path, opendota_path
 
@@ -432,34 +462,41 @@ def run_batch_parquet_check(
         return True, "batch check skipped (0 matches)"
 
     started = time.perf_counter()
-    with tempfile.TemporaryDirectory(prefix="gem-batch-check-") as tmp_name:
-        root = Path(tmp_name)
-        dem_dir = root / "dems"
-        out_dir = root / "parquet"
-        dem_dir.mkdir()
-        dem_paths: list[Path] = []
-        for entry, archive_path in entries_with_archives:
-            dem_path = dem_dir / f"{entry.match_id}.dem"
-            dem_path.write_bytes(_decompress_replay(archive_path.read_bytes()))
-            dem_paths.append(dem_path)
+    try:
+        with tempfile.TemporaryDirectory(prefix="gem-batch-check-") as tmp_name:
+            root = Path(tmp_name)
+            dem_dir = root / "dems"
+            out_dir = root / "parquet"
+            dem_dir.mkdir()
+            dem_paths: list[Path] = []
+            for entry, archive_path in entries_with_archives:
+                dem_path = dem_dir / f"{entry.match_id}.dem"
+                dem_path.write_bytes(_decompress_replay(archive_path.read_bytes()))
+                dem_paths.append(dem_path)
 
-        written = gem.parse_many_to_parquet(
-            dem_paths,
-            out_dir,
-            workers=min(workers, len(dem_paths)),
-            progress=False,
-        )
-        summary_df = gem.read_parquet_table(out_dir, "player_summary")
-        seen_replays = set(summary_df["replay"].unique())
-        expected_replays = {str(entry.match_id) for entry, _ in entries_with_archives}
-        missing = sorted(expected_replays - seen_replays)
+            written = gem.parse_many_to_parquet(
+                dem_paths,
+                out_dir,
+                workers=min(workers, len(dem_paths)),
+                progress=False,
+            )
+            summary_df = gem.read_parquet_table(out_dir, "player_summary")
+            seen_replays = set(summary_df["replay"].unique())
+            expected_replays = {str(entry.match_id) for entry, _ in entries_with_archives}
+            missing = sorted(expected_replays - seen_replays)
+            elapsed = time.perf_counter() - started
+            if missing:
+                return False, f"batch check missing replay outputs: {', '.join(missing)}"
+            return (
+                True,
+                f"batch check OK: {len(dem_paths)} replays, {len(written)} parquet files, "
+                f"{len(summary_df)} player rows in {elapsed:.1f}s",
+            )
+    except Exception as exc:
         elapsed = time.perf_counter() - started
-        if missing:
-            return False, f"batch check missing replay outputs: {', '.join(missing)}"
         return (
-            True,
-            f"batch check OK: {len(dem_paths)} replays, {len(written)} parquet files, "
-            f"{len(summary_df)} player rows in {elapsed:.1f}s",
+            False,
+            f"batch check FAILED after {elapsed:.1f}s: {type(exc).__name__}: {exc}",
         )
 
 

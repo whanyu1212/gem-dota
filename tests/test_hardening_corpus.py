@@ -86,6 +86,7 @@ def _make_entry(
     hero_ids: tuple[int, ...] = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
     archive_bytes: bytes | None = None,
     dem_bytes: bytes | None = None,
+    opendota_bytes: bytes | None = None,
     opendota_parsed: bool = True,
 ) -> gcs_mod.CorpusEntry:
     raw_dem = dem_bytes if dem_bytes is not None else b"dem-payload"
@@ -106,6 +107,10 @@ def _make_entry(
         archive_sha256=hashlib.sha256(raw_archive).hexdigest(),
         dem_size_bytes=len(raw_dem),
         dem_sha256=hashlib.sha256(raw_dem).hexdigest(),
+        opendota_size_bytes=len(opendota_bytes) if opendota_bytes is not None else None,
+        opendota_sha256=(
+            hashlib.sha256(opendota_bytes).hexdigest() if opendota_bytes is not None else None
+        ),
         opendota_parsed=opendota_parsed,
         fetched_at="2026-11-25T00:00:00Z",
     )
@@ -384,7 +389,9 @@ class TestCollector:
         assert outcome.entry.archive_sha256 == hashlib.sha256(archive_bytes).hexdigest()
         assert outcome.entry.dem_sha256 == hashlib.sha256(dem_bytes).hexdigest()
         assert "gs://my-bucket/corpus/matches/1001.dem.bz2" in gcs.objects
-        assert "gs://my-bucket/corpus/matches/1001.opendota.json" in gcs.objects
+        uploaded_od = gcs.objects["gs://my-bucket/corpus/matches/1001.opendota.json"]
+        assert outcome.entry.opendota_size_bytes == len(uploaded_od)
+        assert outcome.entry.opendota_sha256 == hashlib.sha256(uploaded_od).hexdigest()
 
     def test_collect_match_handles_corrupt_archive_without_crashing(self) -> None:
         gcs = FakeGcsClient()
@@ -569,11 +576,19 @@ class TestRunner:
     def test_sync_corpus_entry_uses_cache_and_repairs_corruption(self, tmp_path: Path) -> None:
         dem_bytes = b"sample-dem"
         archive_bytes = bz2.compress(dem_bytes)
-        entry = _make_entry(1001, archive_bytes=archive_bytes, dem_bytes=dem_bytes)
+        stale_od = b'{"match_id": 1001}'
+        fresh_od = b'{"match_id": 1001, "radiant_gold_adv": [0, 100]}'
+        entry = _make_entry(
+            1001,
+            archive_bytes=archive_bytes,
+            dem_bytes=dem_bytes,
+            opendota_bytes=stale_od,
+            opendota_parsed=False,
+        )
         gcs = FakeGcsClient(
             {
                 "gs://b/corpus/matches/1001.dem.bz2": archive_bytes,
-                "gs://b/corpus/matches/1001.opendota.json": b'{"match_id": 1001}',
+                "gs://b/corpus/matches/1001.opendota.json": stale_od,
             }
         )
         corpus_dir = tmp_path / "corpus"
@@ -582,12 +597,38 @@ class TestRunner:
             entry, corpus_dir=corpus_dir, bucket_uri="gs://b", gcs=gcs
         )
         assert archive_path.read_bytes() == archive_bytes
-        assert od_path.exists()
+        assert od_path.read_bytes() == stale_od
 
-        # Corrupt local cache and verify sync re-downloads cleanly.
+        # Corrupt local archive cache and verify sync re-downloads cleanly.
         archive_path.write_bytes(b"corrupted")
         runner.sync_corpus_entry(entry, corpus_dir=corpus_dir, bucket_uri="gs://b", gcs=gcs)
         assert archive_path.read_bytes() == archive_bytes
+
+        # Re-collecting with --force updates GCS JSON + index metadata -> cache refreshes.
+        gcs.objects["gs://b/corpus/matches/1001.opendota.json"] = fresh_od
+        refreshed_entry = _make_entry(
+            1001,
+            archive_bytes=archive_bytes,
+            dem_bytes=dem_bytes,
+            opendota_bytes=fresh_od,
+            opendota_parsed=True,
+        )
+        runner.sync_corpus_entry(
+            refreshed_entry, corpus_dir=corpus_dir, bucket_uri="gs://b", gcs=gcs
+        )
+        assert od_path.read_bytes() == fresh_od
+
+        # Legacy entry (no opendota_sha256) still refreshes when cached JSON is unparsed.
+        od_path.write_bytes(stale_od)
+        legacy_entry = _make_entry(
+            1001,
+            archive_bytes=archive_bytes,
+            dem_bytes=dem_bytes,
+            opendota_bytes=None,
+            opendota_parsed=True,
+        )
+        runner.sync_corpus_entry(legacy_entry, corpus_dir=corpus_dir, bucket_uri="gs://b", gcs=gcs)
+        assert od_path.read_bytes() == fresh_od
 
     def test_evaluate_match_runs_api_checks_and_parity(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -688,3 +729,53 @@ class TestRunner:
             ]
         )
         assert rc_regressed == 1
+
+    def test_batch_check_exception_still_persists_run_artifacts(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        dem_bytes = b"offline-dem"
+        archive_bytes = bz2.compress(dem_bytes)
+        od_bytes = json.dumps(_sample_opendota_payload(1001)).encode("utf-8")
+        entry = _make_entry(
+            1001,
+            archive_bytes=archive_bytes,
+            dem_bytes=dem_bytes,
+            opendota_bytes=od_bytes,
+        )
+        corpus_dir = tmp_path / "corpus"
+        (corpus_dir / "matches").mkdir(parents=True)
+        (corpus_dir / "matches" / "1001.dem.bz2").write_bytes(archive_bytes)
+        (corpus_dir / "matches" / "1001.opendota.json").write_bytes(od_bytes)
+        (corpus_dir / "index.json").write_text(
+            json.dumps(gcs_mod.CorpusIndex(matches=(entry,)).to_dict()),
+            encoding="utf-8",
+        )
+
+        monkeypatch.setattr(gem, "parse", lambda _path: _sample_parsed_match(1001))
+        monkeypatch.setattr(
+            gem,
+            "parse_many_to_parquet",
+            lambda *_args, **_kwargs: (_ for _ in ()).throw(FileNotFoundError("no parquet")),
+        )
+
+        out_dir = tmp_path / "out-batch-fail"
+        rc = runner.main(
+            [
+                "--local-corpus-dir",
+                str(corpus_dir),
+                "--workers",
+                "1",
+                "--skip-api-checks",
+                "--batch-check",
+                "1",
+                "--out-dir",
+                str(out_dir),
+            ]
+        )
+        assert rc == 1
+        summary = json.loads((out_dir / "summary.json").read_text(encoding="utf-8"))
+        assert summary["matches_passed"] == 1
+        assert summary["batch_check_ok"] is False
+        assert "FileNotFoundError" in summary["batch_check_note"]
+        assert (out_dir / "parity.json").exists()
+        assert (out_dir / "report.txt").exists()

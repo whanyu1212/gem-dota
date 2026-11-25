@@ -266,6 +266,8 @@ class CorpusEntry:
     dem_sha256: str
     opendota_parsed: bool
     fetched_at: str
+    opendota_size_bytes: int | None = None
+    opendota_sha256: str | None = None
     note: str | None = None
 
     @property
@@ -291,6 +293,8 @@ class CorpusEntry:
             "archive_sha256": self.archive_sha256,
             "dem_size_bytes": self.dem_size_bytes,
             "dem_sha256": self.dem_sha256,
+            "opendota_size_bytes": self.opendota_size_bytes,
+            "opendota_sha256": self.opendota_sha256,
             "opendota_parsed": self.opendota_parsed,
             "fetched_at": self.fetched_at,
             "note": self.note,
@@ -337,6 +341,20 @@ class CorpusEntry:
             value = raw.get(key)
             if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
                 raise CorpusIndexError(f"Match {match_id}: {key} must be a positive integer")
+        opendota_size = raw.get("opendota_size_bytes")
+        if opendota_size is not None and (
+            not isinstance(opendota_size, int)
+            or isinstance(opendota_size, bool)
+            or opendota_size <= 0
+        ):
+            raise CorpusIndexError(
+                f"Match {match_id}: opendota_size_bytes must be a positive integer or null"
+            )
+        opendota_sha = raw.get("opendota_sha256")
+        if opendota_sha is not None and (not isinstance(opendota_sha, str) or not opendota_sha):
+            raise CorpusIndexError(
+                f"Match {match_id}: opendota_sha256 must be a non-empty string or null"
+            )
         return cls(
             match_id=match_id,
             source=raw["source"],
@@ -353,6 +371,8 @@ class CorpusEntry:
             archive_sha256=raw["archive_sha256"],
             dem_size_bytes=raw["dem_size_bytes"],
             dem_sha256=raw["dem_sha256"],
+            opendota_size_bytes=opendota_size,
+            opendota_sha256=opendota_sha,
             opendota_parsed=bool(raw.get("opendota_parsed", False)),
             fetched_at=raw["fetched_at"],
             note=raw.get("note"),
