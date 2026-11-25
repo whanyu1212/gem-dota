@@ -137,6 +137,21 @@ class TestAuditMatch:
 
         assert (results["match.teamfights"].matched, results["match.teamfights"].total) == (1, 1)
 
+    def test_empty_default_max_hero_hit_matches_none(self):
+        # odota/parser initializes PlayerData.max_hero_hit = new Entry() whose
+        # default JSON is {"time": 0} (no value) when a player deals 0 hero damage.
+        match = _match()
+        match.players[0].max_hero_hit = None
+        od = _opendota()
+        od["players"][0]["max_hero_hit"] = {"time": 0}
+        results: dict[str, audit.FieldResult] = {}
+        audit.audit_match("1", match, od, results)
+
+        assert (results["player.max_hero_hit"].matched, results["player.max_hero_hit"].total) == (
+            1,
+            1,
+        )
+
     def test_value_differences_are_recorded_with_an_example(self):
         deaths = _audit()["player.deaths"]
 

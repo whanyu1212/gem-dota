@@ -238,6 +238,20 @@ class TestGcsHelpers:
         client = gcs_mod.GcsClient()
         assert client.check_access("gs://my-bucket/sub") == {"location": "US-CENTRAL1"}
 
+    def test_gcs_client_sets_safe_transfer_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        captured_env: dict[str, str] = {}
+
+        def fake_run(cmd: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+            captured_env.update(kwargs.get("env") or {})
+            return subprocess.CompletedProcess(cmd, 0, stdout="{}", stderr="")
+
+        monkeypatch.delenv("CLOUDSDK_STORAGE_PARALLEL_COMPOSITE_UPLOAD_ENABLED", raising=False)
+        monkeypatch.delenv("CLOUDSDK_STORAGE_SLICED_OBJECT_DOWNLOAD_THRESHOLD", raising=False)
+        monkeypatch.setattr(subprocess, "run", fake_run)
+        gcs_mod.GcsClient().check_access("gs://my-bucket")
+        assert captured_env["CLOUDSDK_STORAGE_PARALLEL_COMPOSITE_UPLOAD_ENABLED"] == "False"
+        assert captured_env["CLOUDSDK_STORAGE_SLICED_OBJECT_DOWNLOAD_THRESHOLD"] == "0"
+
     def test_gcs_client_exists_distinguishes_missing_from_error(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
@@ -674,6 +688,65 @@ class TestRunner:
         assert outcome.ok is True
         assert outcome.parity_audited is False
         assert outcome.parity_results == {}
+
+    def test_evaluate_match_forwards_manifest_known_bugs(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        dem_bytes = b"fake-meepo-dem"
+        archive_bytes = bz2.compress(dem_bytes)
+        entry = _make_entry(9098298585, archive_bytes=archive_bytes, dem_bytes=dem_bytes)
+        archive_path = tmp_path / "9098298585.dem.bz2"
+        archive_path.write_bytes(archive_bytes)
+
+        od_payload = _sample_opendota_payload(9098298585)
+        od_payload["players"][0]["hero_id"] = 49  # npc_dota_hero_dragon_knight
+        od_payload["players"][5]["hero_id"] = 82  # npc_dota_hero_meepo
+        od_payload["players"][0]["kills_log"] = [{"key": "npc_dota_hero_meepo", "time": 1733}]
+        od_payload["players"][0]["killed"] = {"npc_dota_hero_meepo": 1}
+        od_payload["players"][5]["killed_by"] = {"npc_dota_hero_dragon_knight": 1}
+        od_path = tmp_path / "9098298585.opendota.json"
+        od_path.write_text(json.dumps(od_payload), encoding="utf-8")
+
+        parsed = _sample_parsed_match(9098298585)
+        parsed.players[0].hero_name = "npc_dota_hero_dragon_knight"
+        parsed.players[5].hero_name = "npc_dota_hero_meepo"
+        monkeypatch.setattr(gem, "parse", lambda _path: parsed)
+
+        manifest_dir = tmp_path / "manifest_dir"
+        manifest_dir.mkdir()
+        (manifest_dir / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": 2,
+                    "matches": [
+                        {
+                            "match_id": 9098298585,
+                            "opendota_known_bugs": [
+                                {
+                                    "bug": "meepo-aegis-reincarnation",
+                                    "killer": "npc_dota_hero_dragon_knight",
+                                    "victim": "npc_dota_hero_meepo",
+                                    "time": 1733,
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        outcome = runner.evaluate_match(
+            entry,
+            archive_path,
+            od_path,
+            run_api_checks=False,
+            manifest_dir=manifest_dir,
+        )
+        assert outcome.ok is True
+        assert outcome.parity_results["player.kills_log"].matched == 1
+        assert outcome.parity_results["player.kills_log"].total == 1
+        assert "9098298585" in outcome.parity_results["player.kills_log"].known_bug
 
     def test_main_local_offline_run_and_regression_exit_code(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

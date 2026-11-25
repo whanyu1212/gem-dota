@@ -341,6 +341,7 @@ def evaluate_match(
     run_api_checks: bool = True,
     include_smoke_parity: bool = False,
     keep_dem_dir: Path | None = None,
+    manifest_dir: Path | None = audit.DEFAULT_FIXTURES_DIR,
 ) -> MatchRunOutcome:
     """Parse one match once and run invariants, API checks, and OpenDota parity.
 
@@ -353,6 +354,8 @@ def evaluate_match(
         run_api_checks: Whether to exercise JSON round-trip, ``analyze()``, and Parquet.
         include_smoke_parity: Also run OpenDota parity on ``smoke-only`` matches (e.g. Turbo).
         keep_dem_dir: Optional directory to persist decompressed ``.dem`` files.
+        manifest_dir: Directory containing ``manifest.json`` for ``stale_fields`` and
+            ``known_bugs`` annotations (defaults to ``tests/fixtures/opendota``).
 
     Returns:
         :class:`MatchRunOutcome` with timings, errors, invariants, and parity tallies.
@@ -421,7 +424,18 @@ def evaluate_match(
             try:
                 od = json.loads(opendota_path.read_text(encoding="utf-8"))
                 if od.get("radiant_gold_adv"):
-                    audit.audit_match(str(entry.match_id), match, od, parity_results)
+                    match_key = str(entry.match_id)
+                    stale = (
+                        audit.stale_fields(manifest_dir, match_key)
+                        if manifest_dir is not None
+                        else frozenset()
+                    )
+                    bugs = (
+                        audit.known_bugs(manifest_dir, match_key)
+                        if manifest_dir is not None
+                        else ()
+                    )
+                    audit.audit_match(match_key, match, od, parity_results, stale, bugs)
                     parity_audited = True
             except Exception:
                 stage_errors["opendota_parity"] = traceback.format_exc(limit=6).strip()

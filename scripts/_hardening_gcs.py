@@ -124,8 +124,10 @@ class GcsClient:
     def _run(self, args: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
         cmd = [self.gcloud_bin, *args]
         env = dict(os.environ)
-        # Keep uploads atomic: avoid orphaned gcloud/tmp/parallel_composite_uploads/ chunks on interrupt.
+        # Keep uploads atomic (no orphaned composite chunks on interrupt) and avoid
+        # macOS sliced-download CRC32C HashMismatchError failures.
         env.setdefault("CLOUDSDK_STORAGE_PARALLEL_COMPOSITE_UPLOAD_ENABLED", "False")
+        env.setdefault("CLOUDSDK_STORAGE_SLICED_OBJECT_DOWNLOAD_THRESHOLD", "0")
         try:
             proc = subprocess.run(
                 cmd,

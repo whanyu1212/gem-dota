@@ -120,7 +120,7 @@ def _left_log(entries: Iterable[dict[str, Any]]) -> list[tuple[Any, Any, Any]]:
 
 
 def _max_hero_hit(hit: dict[str, Any] | None) -> dict[str, Any] | None:
-    if not hit:
+    if not hit or hit.get("value") is None:
         return None
     return {k: v for k, v in hit.items() if k not in ("slot", "player_slot")}
 
